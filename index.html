@@ -1653,7 +1653,7 @@ async function loadForecast(p,date,forceRefresh=false){
   ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
   ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
  }
- let modelErrors=[],forecastSource="五組獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="";
+ let modelErrors=[],forecastSource="五組獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="",staleCacheInUse=false;
  const diagBoxStart=$("apiDiagnosticsText");
  if(forceRefresh){
   if(diagBoxStart)diagBoxStart.textContent="球場："+p.name+"\n日期："+date+"\n\n背景更新：正在呼叫 Open-Meteo 五組模型；保留已顯示的快取資料。";
@@ -1669,6 +1669,7 @@ async function loadForecast(p,date,forceRefresh=false){
    if(cacheAgeMinutes>180)cacheNotice="｜提醒：預報快取已超過3小時（"+Math.floor(cacheAgeMinutes/60)+"小時），資料稍舊";
   }else if(cacheAgeMinutes<=720){
    active.modelRows=cached;forecastSource="GitHub Actions 舊快取（"+Object.keys(cached).length+"/5組模式）";
+   staleCacheInUse=true;
    cacheNotice="｜資料已超過6小時，先顯示舊快取並在背景更新；僅供暫時參考";
   }else{cacheNotice="｜預報快取超過12小時，改查即時API";modelErrors.push("快取已超過12小時，先嘗試即時API");}
  }catch(e){
@@ -1714,7 +1715,7 @@ async function loadForecast(p,date,forceRefresh=false){
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
 let base=consensusRows(active.modelRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
- let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'五組模式快取',detail:'降雨機率採預報快取中各模式逐時值的中位數'};}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
+ let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'五組模式快取',detail:'降雨機率採預報快取中各模式逐時值的中位數'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
  const valid=base.filter(x=>x.available),avg=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?a.reduce((z,v)=>z+v,0)/a.length:null;},mx=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?Math.max(...a):null;};
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
