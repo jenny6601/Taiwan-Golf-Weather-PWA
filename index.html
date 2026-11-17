@@ -1609,29 +1609,41 @@ async function loadV28ProviderCache(courseName,date){
 }
 
 // V32.2：優先讀取 GitHub Actions 建立的全台預報快取。
-let forecastCachePromise=null;
-async function loadForecastCache(){
- if(!forecastCachePromise)forecastCachePromise=(async()=>{
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
-  let c;
-  try{
-   const r=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/forecast_cache.json",{cache:"default",signal:controller.signal});
-   if(!r.ok)throw Error("預報快取 HTTP "+r.status);
-   // 逾時控制必須涵蓋完整 response body 與 JSON parsing，而不只是收到 response headers。
-   c=await r.json();
-  }catch(e){
-   if(e.name==="AbortError")throw Error("全台預報快取完整下載逾時（6秒）；立即改用即時API");
-   throw e;
-  }finally{clearTimeout(timer);}
-  if(!c||!c.courses)throw Error("預報快取格式不正確");
-  const t=Date.parse(c.generated_at||"");if(!Number.isFinite(t))throw Error("預報快取更新時間無效");
-  const age=Date.now()-t;
-  if(age < -5*60*1000)throw Error("預報快取更新時間異常（位於未來）");
-  if(age>12*60*60*1000)throw Error("預報快取超過12小時，停止使用");
-  c._cacheAgeMinutes=Math.max(0,age/60000);
-  return c;
- })().catch(e=>{forecastCachePromise=null;throw e;});
- return forecastCachePromise;
+let forecastCacheIndexPromise=null;
+const forecastCachePromiseByCourse=new Map();
+async function fetchJsonBounded(url,timeoutMs=6000,cacheMode="default"){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+ try{
+  const response=await fetch(url,{cache:cacheMode,signal:controller.signal});
+  if(!response.ok)throw Error("HTTP "+response.status+"："+url);
+  return await response.json();
+ }catch(e){
+  if(e.name==="AbortError")throw Error("下載逾時（"+timeoutMs/1000+"秒）");
+  throw e;
+ }finally{clearTimeout(timer);}
+}
+async function loadForecastCache(courseName){
+ const name=String(courseName||"").trim().normalize("NFC");
+ if(!name)throw Error("未指定球場，無法讀取球場預報快取");
+ if(!forecastCachePromiseByCourse.has(name)){
+  forecastCachePromiseByCourse.set(name,(async()=>{
+   if(!forecastCacheIndexPromise)forecastCacheIndexPromise=fetchJsonBounded("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/course-cache/index.json",6000,"no-cache").catch(e=>{forecastCacheIndexPromise=null;throw e;});
+   const index=await forecastCacheIndexPromise;
+   const rel=index.courses?.[name];
+   if(!rel)throw Error("分球場快取尚未包含「"+name+"」；改用即時API");
+   const version=encodeURIComponent(index.generated_at||"latest");
+   const cache=await fetchJsonBounded("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/course-cache/"+rel+"?v="+version,6000,"default");
+   if(!cache||!cache.courses)throw Error("球場預報快取格式不正確");
+   const t=Date.parse(cache.generated_at||index.generated_at||"");
+   if(!Number.isFinite(t))throw Error("預報快取更新時間無效");
+   const age=Date.now()-t;
+   if(age < -5*60*1000)throw Error("預報快取更新時間異常（位於未來）");
+   if(age>12*60*60*1000)throw Error("預報快取超過12小時，停止使用");
+   cache._cacheAgeMinutes=Math.max(0,age/60000);
+   return cache;
+  })().catch(e=>{forecastCachePromiseByCourse.delete(name);throw e;}));
+ }
+ return forecastCachePromiseByCourse.get(name);
 }
 function cachedCourseModels(cache,courseName,date){
  const key=String(courseName||"").trim().normalize("NFC");
@@ -1663,7 +1675,7 @@ async function loadForecast(p,date,forceRefresh=false){
  try{
   if(forceRefresh)throw Error("背景更新略過快取，直接取得最新模型");
   $("status").textContent="正在讀取預報快取資料…";
-  cacheCandidate=await loadForecastCache();cacheAgeMinutes=cacheCandidate._cacheAgeMinutes;cacheGeneratedAt=cacheCandidate.generated_at;
+  cacheCandidate=await loadForecastCache(p.name);cacheAgeMinutes=cacheCandidate._cacheAgeMinutes;cacheGeneratedAt=cacheCandidate.generated_at;
   const cached=cachedCourseModels(cacheCandidate,p.name,date);
   if(!Object.keys(cached).length)modelErrors.push("快取沒有此球場／日期的逐時資料");
   else if(cacheAgeMinutes<=360){
