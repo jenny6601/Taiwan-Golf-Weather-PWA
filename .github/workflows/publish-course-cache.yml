@@ -1,0 +1,36 @@
+name: Publish per-course forecast cache
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Original forecast builder runs at minute 25 of each hour.
+    - cron: "40 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pwa-course-cache
+  cancel-in-progress: true
+
+jobs:
+  split-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout PWA repository
+        uses: actions/checkout@v4
+      - name: Split nationwide cache into per-course files
+        run: python scripts/split_forecast_cache.py "$RUNNER_TEMP/course-cache"
+      - name: Publish latest cache snapshot to course-cache branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan course-cache
+          git rm -rf . || true
+          cp -R "$RUNNER_TEMP/course-cache/." .
+          git add .
+          git commit -m "Publish per-course forecast cache"
+          git push origin HEAD:course-cache --force
