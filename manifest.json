@@ -1,7 +1,7 @@
 {
   "id": "./index.html",
-  "name": "Taiwan Golf Weather V32.2",
-  "short_name": "Golf Weather",
+  "name": "台灣球場天氣",
+  "short_name": "台灣球場天氣",
   "description": "台灣57座高爾夫球場即時觀測與天氣預報",
   "lang": "zh-TW",
   "start_url": "./index.html",
