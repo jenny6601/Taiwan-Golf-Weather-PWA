@@ -182,6 +182,17 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
  #tableNote{font-size:11px;line-height:1.45}
 }
 
+
+/* V32.3 mobile icon legibility: enlarge all hourly weather icons except the already-large apparent-feel icon. */
+@media(max-width:600px){
+ .hourly-table-wrap #hourlyForecastTable .wxemoji{width:40px!important;height:38px!important;min-width:40px!important}
+ .hourly-table-wrap #hourlyForecastTable .wxemoji svg,
+ .hourly-table-wrap #hourlyForecastTable svg.wx-icon{width:42px!important;height:40px!important;max-width:none!important}
+ .hourly-table-wrap #hourlyForecastTable .temp-value>svg{width:19px!important;height:26px!important;vertical-align:-6px!important;margin-right:3px!important}
+ .hourly-table-wrap #hourlyForecastTable .rainpill svg{width:34px!important;height:30px!important;max-width:none!important;vertical-align:-7px!important}
+ .hourly-table-wrap #hourlyForecastTable .rainamount svg{width:35px!important;height:29px!important;max-width:none!important;vertical-align:-7px!important;margin-right:3px!important}
+}
+/* Apparent-feel icon sizing intentionally unchanged. */
 </style>
 <style>@media(max-width:600px){section.mobile-hide-sources{display:block!important}}</style>
 
