@@ -1612,7 +1612,7 @@ async function loadV28ProviderCache(courseName,date){
 let forecastCachePromise=null;
 async function loadForecastCache(){
  if(!forecastCachePromise)forecastCachePromise=(async()=>{
-  const r=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/forecast_cache.json?ts="+Date.now(),{cache:"no-store"});
+  const r=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/forecast_cache.json",{cache:"default"});
   if(!r.ok)throw Error("預報快取 HTTP "+r.status);
   const c=await r.json();if(!c||!c.courses)throw Error("預報快取格式不正確");
   const t=Date.parse(c.generated_at||"");if(!Number.isFinite(t))throw Error("預報快取更新時間無效");
