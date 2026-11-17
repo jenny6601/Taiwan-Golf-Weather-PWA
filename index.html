@@ -235,6 +235,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <style>#hourlyForecastTable .rain-interpretation{display:inline-flex!important;align-items:center;justify-content:center;gap:4px;min-width:0!important;width:100%;padding:2px!important;white-space:normal!important}.rain-level-icon{width:34px;height:34px;flex:0 0 34px}@media(max-width:600px){#hourlyForecastTable .rain-interpretation{display:flex!important;flex-direction:column;gap:1px}#hourlyForecastTable .rain-level-icon{width:27px;height:27px;flex-basis:27px}#hourlyForecastTable .rain-interpretation b{font-size:9px;line-height:1.1}}</style>
 <style>.forecast-legend-toggle{display:block!important;width:auto!important;min-width:132px;margin:9px 0 10px;padding:7px 13px!important;font-size:13px!important}.forecast-legend-panel[hidden]{display:none!important}.forecast-legend-panel{border:1px solid #dce5eb;border-radius:12px;background:#fbfdff;padding:8px;margin:7px 0 12px}.forecast-legend-panel .rain-level-guide{margin:0 0 8px}.forecast-weather-legend{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0 9px}.forecast-weather-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:62px;padding:5px 8px;border:1px solid #dfe6ec;border-radius:10px;background:#fff;font-size:12px}.forecast-weather-item .wx-icon{width:34px;height:32px}.forecast-rainprob-legend{display:flex;flex-direction:row;flex-wrap:nowrap;gap:7px;width:100%}.forecast-rainprob-item{display:flex;align-items:center;justify-content:center;gap:4px;flex:1;min-width:0;padding:7px 5px;border:1px solid #dfe6ec;border-radius:10px;background:#fff;font-size:11px;white-space:nowrap}.forecast-rainprob-item .rainpill{padding:0;background:transparent}.forecast-rainprob-item .rainpill svg{width:27px!important;height:23px!important}.forecast-rainprob-item b{font-size:11px}@media(max-width:600px){.forecast-legend-panel{padding:6px}.forecast-weather-legend{gap:5px}.forecast-weather-item{min-width:0;flex:1;padding:4px 2px;font-size:11px}.forecast-weather-item .wx-icon{width:31px;height:30px}.forecast-rainprob-legend{gap:4px}.forecast-rainprob-item{padding:6px 2px;gap:2px;font-size:10px}.forecast-rainprob-item .rainpill svg{width:22px!important;height:20px!important}.forecast-rainprob-item b{font-size:10px}.forecast-legend-toggle{margin:8px 0}}
 </style>
+<style>#hourlyForecastTable .rain-interpretation{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;min-height:104px;padding:5px 2px!important;white-space:normal!important}.rain-level-image{display:block;width:76px;height:104px;max-width:100%;background-image:url("./assets/rain-levels-five-icons.svg?v=2");background-repeat:no-repeat;background-size:500% 100%;background-position:0 0;border-radius:9px;overflow:hidden}.rain-level-image.level-image-1{background-position:0% 0}.rain-level-image.level-image-2{background-position:25% 0}.rain-level-image.level-image-3{background-position:50% 0}.rain-level-image.level-image-4{background-position:75% 0}.rain-level-image.level-image-5{background-position:100% 0}#hourlyForecastTable .rain-interpretation b{font-size:11px;line-height:1.15;text-align:center}@media(max-width:600px){#hourlyForecastTable .rain-interpretation{min-height:104px;gap:2px}.rain-level-image{width:65px;height:94px}.rain-level-image.level-image-1{background-position:0% 0}.rain-level-image.level-image-2{background-position:25% 0}.rain-level-image.level-image-3{background-position:50% 0}.rain-level-image.level-image-4{background-position:75% 0}.rain-level-image.level-image-5{background-position:100% 0}#hourlyForecastTable .rain-interpretation b{font-size:10px}}</style>
 </head>
 <body>
 <header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V32.3｜全台57球場即時觀測</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
@@ -1396,15 +1397,14 @@ function rainProbHTML(v){
 function rainInterpretation(prob,mm,weatherCode){
  if(prob===null||prob===undefined||mm===null||mm===undefined||!Number.isFinite(Number(prob))||!Number.isFinite(Number(mm)))return '<span class="rain-interpretation neutral">—</span>';
  const p=Number(prob),r=Number(mm),code=Number(weatherCode);
- let level,label,detail,symbol;
- // WMO thunderstorm codes take precedence over rainfall totals.
- if([95,96,99].includes(code)){level=5;label="大雨／雷雨";detail="有雷雨訊號，應停止戶外活動";symbol="storm-no-golf";}
- else if(r>5 || (p>=60 && r>2)){level=5;label="大雨／雷雨";detail="預估雨量偏大，不建議下場";symbol="storm-no-golf";}
- else if(r>2 || (p>=60 && r>0.3)){level=4;label="持續降雨";detail="降雨可能持續，建議雨衣、防水球鞋及雨傘";symbol="rain-umbrella";}
- else if(p>=30 || r>0.1){level=3;label="零星小雨";detail="可能有短暫降雨，建議帶雨傘及防潑水外套";symbol="rain-jacket";}
- else if(p>=15 || r>0){level=2;label="低降雨風險";detail="整體降雨風險低，建議備輕便雨傘";symbol="sun-cap";}
- else{level=1;label="晴朗乾燥";detail="降雨風險極低，正常服裝即可，不需雨傘";symbol="sun-sunglasses";}
- const icon='<svg class="rain-level-icon" viewBox="0 0 64 64" role="img" aria-label="'+label+'"><use href="./assets/rain-level-icons.svg#'+symbol+'"></use></svg>';
+ let level,label,detail;
+ // Five actionable golf levels. Thunderstorm signals always override rainfall amount.
+ if([95,96,99].includes(code)||r>5){level=5;label="大雨／雷雨";detail="雷雨或雨量過大，不建議打球";}
+ else if(r>2){level=4;label="持續降雨";detail="降雨量較大，建議雨衣、防水鞋及雨傘";}
+ else if(p>=30||r>0.1){level=3;label="零星小雨";detail="可能短暫降雨，建議雨傘及輕便雨衣";}
+ else if(p>0||r>0){level=2;label="低降雨風險";detail="降雨風險低，可正常打球，建議備輕便雨傘";}
+ else{level=1;label="晴朗乾燥";detail="降雨風險極低，正常服裝，不需雨傘";}
+ const icon='<span class="rain-level-image level-image-'+level+'" role="img" aria-label="'+label+'"></span>';
  return '<span class="rain-interpretation level-'+level+'" title="'+detail+'">'+icon+'<b>'+label+'</b></span>';
 }
 function rainAmountHTML(v){
