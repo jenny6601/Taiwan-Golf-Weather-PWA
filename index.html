@@ -1613,15 +1613,17 @@ let forecastCachePromise=null;
 async function loadForecastCache(){
  if(!forecastCachePromise)forecastCachePromise=(async()=>{
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
-  let r;
+  let c;
   try{
-   r=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/forecast_cache.json",{cache:"default",signal:controller.signal});
+   const r=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/forecast_cache.json",{cache:"default",signal:controller.signal});
+   if(!r.ok)throw Error("預報快取 HTTP "+r.status);
+   // 逾時控制必須涵蓋完整 response body 與 JSON parsing，而不只是收到 response headers。
+   c=await r.json();
   }catch(e){
-   if(e.name==="AbortError")throw Error("全台預報快取下載逾時（6秒）；改用即時API");
+   if(e.name==="AbortError")throw Error("全台預報快取完整下載逾時（6秒）；立即改用即時API");
    throw e;
   }finally{clearTimeout(timer);}
-  if(!r.ok)throw Error("預報快取 HTTP "+r.status);
-  const c=await r.json();if(!c||!c.courses)throw Error("預報快取格式不正確");
+  if(!c||!c.courses)throw Error("預報快取格式不正確");
   const t=Date.parse(c.generated_at||"");if(!Number.isFinite(t))throw Error("預報快取更新時間無效");
   const age=Date.now()-t;
   if(age < -5*60*1000)throw Error("預報快取更新時間異常（位於未來）");
