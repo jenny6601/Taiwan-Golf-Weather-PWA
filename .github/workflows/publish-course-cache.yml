@@ -30,6 +30,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout --orphan course-cache
           git rm -rf . || true
+          git clean -fdx
           cp -R "$RUNNER_TEMP/course-cache/." .
           git add .
           git commit -m "Publish per-course forecast cache"
