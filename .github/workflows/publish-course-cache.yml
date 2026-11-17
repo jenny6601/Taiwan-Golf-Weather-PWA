@@ -8,7 +8,6 @@ on:
       - '.github/workflows/publish-course-cache.yml'
       - 'scripts/split_forecast_cache.py'
   schedule:
-    # Original forecast builder runs at minute 25 of each hour.
     - cron: "40 * * * *"
 
 permissions:
@@ -16,27 +15,42 @@ permissions:
 
 concurrency:
   group: pwa-course-cache
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   split-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - name: Checkout PWA repository
         uses: actions/checkout@v4
-      - name: Split nationwide cache into per-course files
-        run: python scripts/split_forecast_cache.py "$RUNNER_TEMP/course-cache"
-      - name: Publish latest cache snapshot to course-cache branch
+        with:
+          fetch-depth: 0
+      - name: Split and validate nationwide cache
         env:
-          GH_TOKEN: ${{ github.token }}
+          CACHE_OUT: ${{ runner.temp }}/course-cache
+        run: |
+          python scripts/split_forecast_cache.py "$CACHE_OUT"
+          python - <<'PY'
+          import json, os, pathlib
+          root = pathlib.Path(os.environ["CACHE_OUT"])
+          idx = json.loads((root / "index.json").read_text(encoding="utf-8"))
+          assert len(idx.get("courses", {})) == 57, f"Expected 57 courses, got {len(idx.get('courses', {}))}"
+          for name, rel in idx["courses"].items():
+              p = root / rel
+              assert p.is_file(), f"Missing cache file for {name}: {rel}"
+              d = json.loads(p.read_text(encoding="utf-8"))
+              assert name in d.get("courses", {}), f"Invalid payload for {name}"
+          print(f"Validated {len(idx['courses'])} course files; generated_at={idx['generated_at']}")
+          PY
+      - name: Publish cache snapshot
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout --orphan course-cache
-          git rm -rf . || true
+          git rm -rf . >/dev/null 2>&1 || true
           git clean -fdx
-          cp -R "$RUNNER_TEMP/course-cache/." .
-          git add .
-          git commit -m "Publish per-course forecast cache"
+          cp -R "$CACHE_OUT/." .
+          git add -A
+          git commit -m "Publish validated per-course forecast cache"
           git push origin HEAD:refs/heads/course-cache --force
