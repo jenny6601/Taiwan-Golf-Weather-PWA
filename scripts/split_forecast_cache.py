@@ -21,6 +21,8 @@ if not isinstance(courses, dict) or not courses:
 generated_at = cache.get("generated_at")
 if not generated_at:
     raise SystemExit("Source forecast cache is missing generated_at.")
+if len(courses) < 50:
+    raise SystemExit(f"Source cache unexpectedly contains only {len(courses)} courses; refusing to publish an incomplete snapshot.")
 
 course_dir = OUT / "courses"
 course_dir.mkdir(parents=True, exist_ok=True)
@@ -47,4 +49,4 @@ for name, entry in sorted(courses.items(), key=lambda item: item[0]):
     index["courses"][name] = rel
 
 (OUT / "index.json").write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-print(f"Split {len(courses)} courses from source cache generated_at={generated_at}")
+print(f"Validated and split {len(courses)} courses from source cache generated_at={generated_at}")
