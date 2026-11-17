@@ -2,6 +2,11 @@ name: Publish per-course forecast cache
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-course-cache.yml'
+      - 'scripts/split_forecast_cache.py'
   schedule:
     # Original forecast builder runs at minute 25 of each hour.
     - cron: "40 * * * *"
@@ -34,4 +39,4 @@ jobs:
           cp -R "$RUNNER_TEMP/course-cache/." .
           git add .
           git commit -m "Publish per-course forecast cache"
-          git push origin HEAD:course-cache --force
+          git push origin HEAD:refs/heads/course-cache --force
