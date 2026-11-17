@@ -1679,6 +1679,7 @@ async function loadForecast(p,date,forceRefresh=false){
   ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
  }
  let modelErrors=[],forecastSource="五組獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="",staleCacheInUse=false;
+ let bestMatchFallbackPromise=null;
  const diagBoxStart=$("apiDiagnosticsText");
  if(forceRefresh){
   if(diagBoxStart)diagBoxStart.textContent="球場："+p.name+"\n日期："+date+"\n\n背景更新：正在呼叫 Open-Meteo 五組模型；保留已顯示的快取資料。";
@@ -1709,6 +1710,8 @@ async function loadForecast(p,date,forceRefresh=false){
   const diagApi=$("apiDiagnosticsText");
   if(diagApi)diagApi.textContent="球場："+p.name+"\n日期："+date+"\n\n正在呼叫 Open-Meteo 五組模型 API（每組最多重試2次，單次逾時18秒）…";
   let completedModels=0,provisionalShown=false;
+  // 同步啟動 Best Match 備援，避免五組指定模式全部逾時後才開始備援。
+  bestMatchFallbackPromise=getModel(p.lat,p.lon,null).then(data=>{const rows=extract(data,date);if(!rows.length)throw Error("Best Match 沒有所選日期逐時資料");return {data,rows};}).then(x=>({value:x})).catch(error=>({error}));
   const results=await Promise.allSettled(modelDefs.map(async m=>{
    const data=await getModel(p.lat,p.lon,m[1]),rows=extract(data,date);
    if(!rows.length)throw Error("所選日期沒有06:00–18:00資料");
@@ -1731,8 +1734,9 @@ async function loadForecast(p,date,forceRefresh=false){
   if(Object.keys(cached).length){active.modelRows=cached;names=Object.keys(cached);forecastSource="GitHub Actions 舊快取備援（"+names.length+"/5組模式）";cacheNotice="｜警告：即時API不可用，使用6–12小時舊快取，僅供參考";}
  }
  if(!names.length){
-  try{const fallback=await getModel(p.lat,p.lon,null),rows=extract(fallback,date);if(!rows.length)throw Error("所選日期沒有逐時資料");active.modelRows["Open-Meteo Best Match"]=rows;names=Object.keys(active.modelRows);forecastSource="Open-Meteo Best Match 備援";}
-  catch(e){const detail="快取、五組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+e.message;const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
+  const fallback=await (bestMatchFallbackPromise||getModel(p.lat,p.lon,null).then(data=>({value:{data,rows:extract(data,date)}})).catch(error=>({error})));
+  if(fallback.value){active.modelRows["Open-Meteo Best Match"]=fallback.value.rows;names=Object.keys(active.modelRows);forecastSource="Open-Meteo Best Match 備援";}
+  else{const detail="快取、五組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+(fallback.error?.message||"未知錯誤");const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
  }
  active.forecastSource=forecastSource;
  $("status").textContent="預報完成｜"+names.length+"/5 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");
