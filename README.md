@@ -2,25 +2,24 @@
 
 Taiwan Golf Weather V32.2 Progressive Web App.
 
-## Project purpose
+## Application files
+- `index.html`: app entry point
+- `manifest.json`: install metadata and icons
+- `sw.js`: app-shell cache and offline fallback
+- `offline.html`: offline fallback page
+- `pwa/pwa-install.js`: Service Worker registration
+- `icons/`: Android and iPhone app icons
 
-A standalone installable PWA interface for the Taiwan Golf Weather V32.2 service. This repository is kept separate from the original `Taiwan-Golf-Weather` repository to protect its existing GitHub Pages site and production workflows.
+## Live weather data
+The PWA interface is hosted independently here. To avoid duplicating the large, automatically refreshed weather datasets, it reads the public JSON files from the original `Taiwan-Golf-Weather` repository's `main` branch via raw.githubusercontent.com:
+- `data/live_observations.json`
+- `data/forecast_cache.json`
 
-## Planned features
+The original repository's existing GitHub Actions continue maintaining these datasets. This PWA repository does not run or modify those collectors.
 
-- Installable experience on supported Android and iPhone browsers
-- App manifest and dedicated application icons
-- Service Worker for app-shell caching and offline fallback
-- Live weather and forecast data loaded from the existing V32.2 data services
-
-## Deployment
-
-GitHub Pages will be configured separately after the application files and their data dependencies have been verified.
+## GitHub Pages
+After validation, configure Pages to **Deploy from a branch**, branch `main`, folder `/(root)`.
+Expected URL: https://jenny6601.github.io/Taiwan-Golf-Weather-PWA/
 
 ## Safety boundary
-
-This repository is independent. Do not change or replace the original `Taiwan-Golf-Weather` repository's `main` branch, V31.6 production site, or existing Actions workflows as part of PWA deployment.
-
-## Status
-
-Repository initialized. Application files and deployment configuration are pending validation.
+This repository is separate from `Taiwan-Golf-Weather`. Do not change the original repository's production `main`, V31.6 site, or weather-data workflows as part of PWA deployment.
