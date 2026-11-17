@@ -1612,12 +1612,12 @@ async function loadV28ProviderCache(courseName,date){
 let forecastCachePromise=null;
 async function loadForecastCache(){
  if(!forecastCachePromise)forecastCachePromise=(async()=>{
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),6000);
   let r;
   try{
    r=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/forecast_cache.json",{cache:"default",signal:controller.signal});
   }catch(e){
-   if(e.name==="AbortError")throw Error("全台預報快取下載逾時（12秒）；改用即時API");
+   if(e.name==="AbortError")throw Error("全台預報快取下載逾時（6秒）；改用即時API");
    throw e;
   }finally{clearTimeout(timer);}
   if(!r.ok)throw Error("預報快取 HTTP "+r.status);
@@ -1642,19 +1642,24 @@ function cachedCourseModels(cache,courseName,date){
  }
  return out;
 }
-async function loadForecast(p,date){
+async function loadForecast(p,date,forceRefresh=false){
  if(!date)throw Error("請先選擇預報日期。");
  active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{}};
  $("locname").textContent=p.name;
  $("coords").textContent=`${p.address||""}｜${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜固定座標`;
  $("status").textContent="正在以球場座標取得五組氣象模型資料…";
- // 清除舊查詢結果，避免失敗時舊資料被誤認為新資料。
- ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
- ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
+ // 背景更新保留舊快取畫面，避免畫面閃空。
+ if(!forceRefresh){
+  ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
+  ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
+ }
  let modelErrors=[],forecastSource="五組獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="";
  const diagBoxStart=$("apiDiagnosticsText");
- if(diagBoxStart)diagBoxStart.textContent="球場："+p.name+"\n日期："+date+"\n\n階段 1/2：正在讀取全台預報快取；目前尚未呼叫 Open-Meteo API（快取優先策略）。";
+ if(forceRefresh){
+  if(diagBoxStart)diagBoxStart.textContent="球場："+p.name+"\n日期："+date+"\n\n背景更新：正在呼叫 Open-Meteo 五組模型；保留已顯示的快取資料。";
+ }else if(diagBoxStart)diagBoxStart.textContent="球場："+p.name+"\n日期："+date+"\n\n階段 1/2：正在讀取全台預報快取；目前尚未呼叫 Open-Meteo API（快取優先策略）。";
  try{
+  if(forceRefresh)throw Error("背景更新略過快取，直接取得最新模型");
   $("status").textContent="正在讀取預報快取資料…";
   cacheCandidate=await loadForecastCache();cacheAgeMinutes=cacheCandidate._cacheAgeMinutes;cacheGeneratedAt=cacheCandidate.generated_at;
   const cached=cachedCourseModels(cacheCandidate,p.name,date);
@@ -1662,7 +1667,10 @@ async function loadForecast(p,date){
   else if(cacheAgeMinutes<=360){
    active.modelRows=cached;forecastSource="GitHub Actions 預報快取（"+Object.keys(cached).length+"/5組模式）";
    if(cacheAgeMinutes>180)cacheNotice="｜提醒：預報快取已超過3小時（"+Math.floor(cacheAgeMinutes/60)+"小時），資料稍舊";
-  }else{cacheNotice="｜預報快取已超過6小時，優先改查即時API";modelErrors.push("快取已超過6小時，先嘗試即時API");}
+  }else if(cacheAgeMinutes<=720){
+   active.modelRows=cached;forecastSource="GitHub Actions 舊快取（"+Object.keys(cached).length+"/5組模式）";
+   cacheNotice="｜資料已超過6小時，先顯示舊快取並在背景更新；僅供暫時參考";
+  }else{cacheNotice="｜預報快取超過12小時，改查即時API";modelErrors.push("快取已超過12小時，先嘗試即時API");}
  }catch(e){
   const cacheError="預報快取不可用："+(e.message||String(e));
   modelErrors.push(cacheError);
@@ -1674,8 +1682,22 @@ async function loadForecast(p,date){
   $("status").textContent="預報快取不可用，改以即時API查詢…";
   const diagApi=$("apiDiagnosticsText");
   if(diagApi)diagApi.textContent="球場："+p.name+"\n日期："+date+"\n\n正在呼叫 Open-Meteo 五組模型 API（每組最多重試2次，單次逾時18秒）…";
-  const results=await Promise.allSettled(modelDefs.map(m=>getModel(p.lat,p.lon,m[1])));
-  results.forEach((r,i)=>{const label=modelDefs[i][0];if(r.status==="fulfilled"){const rows=extract(r.value,date);if(rows.length)active.modelRows[label]=rows;else modelErrors.push(label+"：所選日期沒有06:00–18:00資料");}else modelErrors.push(label+"："+(r.reason?.message||String(r.reason)));});
+  let completedModels=0,provisionalShown=false;
+  const results=await Promise.allSettled(modelDefs.map(async m=>{
+   const data=await getModel(p.lat,p.lon,m[1]),rows=extract(data,date);
+   if(!rows.length)throw Error("所選日期沒有06:00–18:00資料");
+   active.modelRows[m[0]]=rows;completedModels++;
+   const dbox=$("apiDiagnosticsText");
+   if(dbox)dbox.textContent="球場："+p.name+"\n日期："+date+"\n\n即時模型進度："+completedModels+"/5\n已完成："+Object.keys(active.modelRows).join("、")+"\n其他模型仍在背景查詢。";
+   $("status").textContent="即時預報更新中｜已取得 "+completedModels+"/5 組模型";
+   if(!provisionalShown){
+    provisionalShown=true;
+    $("hourRows").innerHTML=rows.map(x=>'<tr><td><b>'+x.time+'</b></td><td><span class="wxcell"><span class="wxemoji">'+wxIcon(x.code)+'</span>'+wx(x.code)+'</span></td><td>'+rainProbHTML(x.rain)+'</td><td>'+amountRangeHTML(x)+'</td><td>'+thermometerHTML(x.temp)+'</td><td>'+apparentFeelHTML(x.feel)+'</td><td>'+rainInterpretation(x.rain,x.mm)+'</td><td>'+(x.wind??"—")+'</td><td>'+(x.gust??"—")+'</td><td>'+(x.dir===null||x.dir===undefined?"—":dir(x.dir)+" "+Math.round(x.dir)+"°")+'</td><td>'+(x.rh??"—")+'%</td><td>'+(x.cloud??"—")+'%</td><td>'+(x.uv??"—")+'</td><td>計算中</td></tr>').join("");
+    $("courseAutoStatus").textContent=p.name+"｜"+date+"｜已先顯示首組完成模型，其餘模型持續更新。";
+   }
+   return data;
+  }));
+  results.forEach((r,i)=>{const label=modelDefs[i][0];if(r.status==="rejected")modelErrors.push(label+"："+(r.reason?.message||String(r.reason)));});
   names=Object.keys(active.modelRows);
  }
  if(!names.length&&cacheCandidate&&cacheAgeMinutes>360&&cacheAgeMinutes<=720){
@@ -1721,6 +1743,10 @@ let base=consensusRows(active.modelRows);
  $("courseAutoStatus").textContent=`${p.name}｜${date}｜座標 ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜${forecastSource}${modelErrors.length?"；部分模型失敗，詳見 API 診斷":""}`;
  loadRadar(p.lat,p.lon);
  loadV28ProviderCache(p.name,date);
+ if(!forceRefresh&&cacheAgeMinutes!==null&&cacheAgeMinutes>360&&cacheAgeMinutes<=720&&Object.keys(cachedCourseModels(cacheCandidate,p.name,date)).length){
+  $("status").textContent="舊快取已先顯示｜正在背景更新五組即時模型…";
+  setTimeout(()=>loadForecast(p,date,true).catch(e=>{const b=$("apiDiagnosticsText");if(b)b.textContent+="\n\n背景更新失敗："+(e.message||String(e));$("status").textContent="目前顯示舊快取｜背景更新失敗，請稍後重試。";}),0);
+ }
 }
 async function loadRadar(lat,lon){try{let d=await fetch("https://api.rainviewer.com/public/weather-maps.json").then(r=>r.json());let frames=d.radar?.past||[];if(!frames.length)throw Error("目前沒有雷達影像");let f=frames[frames.length-1];$("radarImg").src=`${d.host}${f.path}/256/7/${lat}/${lon}/2/1_1.png`;$("radarStatus").textContent="雷達影像時間："+new Date(f.time*1000).toLocaleString("zh-TW")+"｜Weather data by RainViewer";}catch(e){$("radarStatus").textContent="雷達影像暫時無法載入："+e.message}}
 
