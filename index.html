@@ -187,7 +187,70 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
  .hourly-table-wrap #hourlyForecastTable .rainamount svg{width:35px!important;height:29px!important;max-width:none!important;vertical-align:-7px!important;margin-right:3px!important}
 }
 /* Apparent-feel icon sizing intentionally unchanged. */
-.rain-level-guide{width:100%;margin:8px 0 12px;overflow:hidden;border-radius:14px}.rain-level-guide img{display:block;width:100%;height:auto;max-width:100%}@media(max-width:600px){.rain-level-guide{margin:6px 0 10px;border-radius:10px}.rain-level-guide img{width:100%}}\n.rain-interpretation{display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;font-weight:750;line-height:1.15}.rain-level-icon{width:34px;height:34px;flex:0 0 34px;vertical-align:middle}.rain-interpretation b{font-size:12px}.rain-interpretation.level-1{color:#167044}.rain-interpretation.level-2{color:#1769aa}.rain-interpretation.level-3{color:#a16207}.rain-interpretation.level-4{color:#c2410c}.rain-interpretation.level-5{color:#b42318}@media(max-width:600px){.rain-level-icon{width:28px;height:28px;flex-basis:28px}.rain-interpretation{gap:2px;white-space:normal;flex-direction:column}.rain-interpretation b{font-size:10px}}\n</style>
+.rain-level-guide{width:100%;margin:8px 0 12px;overflow:hidden;border-radius:14px}.rain-level-guide img{display:block;width:100%;height:auto;max-width:100%}@media(max-width:600px){.rain-level-guide{margin:6px 0 10px;border-radius:10px}.rain-level-guide img{width:100%}}\n.rain-interpretation{display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;font-weight:750;line-height:1.15}.rain-level-icon{width:34px;height:34px;flex:0 0 34px;vertical-align:middle}.rain-interpretation b{font-size:12px}.rain-interpretation.level-1{color:#167044}.rain-interpretation.level-2{color:#1769aa}.rain-interpretation.level-3{color:#a16207}.rain-interpretation.level-4{color:#c2410c}.rain-interpretation.level-5{color:#b42318}@media(max-width:600px){.rain-level-icon{width:28px;height:28px;flex-basis:28px}.rain-interpretation{gap:2px;white-space:normal;flex-direction:column}.rain-interpretation b{font-size:10px}}\n
+/* V32.5：手機逐時表格緊湊模式，目標讓 06:00–18:00 盡量同屏呈現 */
+@media (max-width:600px){
+  .hourly-table-wrap #hourlyForecastTable{
+    font-size:10px!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable thead th{
+    padding:3px 1px!important;
+    line-height:1.1!important;
+    font-size:9px!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable tbody tr{
+    height:48px!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable tbody td{
+    height:48px!important;
+    padding:2px 1px!important;
+    line-height:1.1!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .wxemoji,
+  .hourly-table-wrap #hourlyForecastTable .wxemoji svg,
+  .hourly-table-wrap #hourlyForecastTable svg.wx-icon{
+    width:27px!important;height:24px!important;min-width:0!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .wxcell{
+    gap:0!important;font-size:9px!important;line-height:1.05!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .rainpill{
+    padding:0!important;gap:0!important;font-size:9px!important;line-height:1.05!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .rainpill svg{
+    width:20px!important;height:18px!important;max-width:20px!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .rainamount{
+    gap:0!important;font-size:9px!important;line-height:1.05!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .rainamount svg{
+    width:20px!important;height:17px!important;max-width:20px!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .rain-interpretation{
+    padding:1px 0!important;line-height:1.05!important;font-size:9px!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .rain-level-icon{
+    width:20px!important;height:20px!important;flex-basis:20px!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .temp-value{
+    font-size:10px!important;line-height:1.05!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .temp-value>svg{
+    width:14px!important;height:18px!important;margin:0!important;vertical-align:middle!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .hourly-feel-icon{
+    gap:0!important;font-size:9px!important;line-height:1.05!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable .hourly-feel-icon svg{
+    width:18px!important;height:18px!important;min-width:18px!important;flex:0 0 18px!important;
+  }
+  .hourly-table-wrap #hourlyForecastTable td:nth-child(7) img,
+  .hourly-table-wrap #hourlyForecastTable td:nth-child(7) svg{
+    width:27px!important;height:27px!important;max-width:27px!important;max-height:27px!important;
+  }
+}
+
+</style>
 <style>@media(max-width:600px){section.mobile-hide-sources{display:block!important}}</style>
 
 <style id="v30-mobile-core-fit">
