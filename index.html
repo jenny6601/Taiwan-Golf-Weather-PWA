@@ -1190,7 +1190,7 @@ async function geocodeGolfCourse(c,button){
  throw Error("無法將地址轉成球場座標。"+errors.join("；"));
 }
 function golfDateLabel(value){
- const m=String(value||"").match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+ const m=String(value||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
  return m?m[1]+"/"+m[2]+"/"+m[3]:"日期未定";
 }
 function updateWeatherDateHeadings(liveDate,forecastDate){
@@ -1274,7 +1274,8 @@ async function loadLiveObservation(course){
   const id=isJiaoxi?"JIAOXI":"TWG"+String(idx+1).padStart(3,"0");
   const res=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/live_observations.json?ts="+Date.now(),{cache:"no-store"});
   if(!res.ok)throw Error("即時觀測快照尚未發布（HTTP "+res.status+"）");
-  const snap=await res.json();\n  updateWeatherDateHeadings(snap.generated_at||new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
+  const snap=await res.json();
+  updateWeatherDateHeadings(snap.generated_at||new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
   let item=snap.courses&&snap.courses[id];
   if(!item&&snap.courses){
    item=Object.values(snap.courses).find(x=>String(x.course_name||"").trim().normalize("NFC")===courseName);
@@ -1312,7 +1313,8 @@ async function loadLiveObservation(course){
   times.textContent="氣象觀測時間："+fmtTime(ws)+"｜雨量觀測時間："+fmtTime(rs)+"｜快照更新時間："+fmtTime({observed_at:snap.generated_at})+"。體感為依氣溫、濕度及風速估算，非氣象站直接量測。";
  }catch(err){
   state.className="pill live-state-missing";state.textContent="尚無即時資料";
-  const dateTimeEl=$("liveObservationDateTime");if(dateTimeEl)dateTimeEl.textContent="日期時間暫缺";\n  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
+  const dateTimeEl=$("liveObservationDateTime");if(dateTimeEl)dateTimeEl.textContent="日期時間暫缺";
+  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
   summary.textContent=course.name+"｜"+err.message+"。逐時預報仍可獨立使用。";
   metrics.innerHTML=["目前天氣","氣溫","估算體感","濕度","近10分鐘雨量","近1小時雨量","風速","陣風"].map(x=>liveMetric(x,"—")).join("");
   times.textContent="不以預報值代替實際觀測值，也不將缺漏資料視為零。";
@@ -1718,7 +1720,8 @@ function cachedCourseModels(cache,courseName,date){
 }
 async function loadForecast(p,date,forceRefresh=false){
  if(!date)throw Error("請先選擇預報日期。");
- active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{}};\n updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
+ active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{}};
+ updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
  $("locname").textContent=p.name;
  $("coords").textContent=`${p.address||""}｜${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜固定座標`;
  $("status").textContent="正在以球場座標取得五組氣象模型資料…";
