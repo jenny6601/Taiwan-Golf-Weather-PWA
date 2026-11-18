@@ -6,6 +6,7 @@ limits. If configured, VISUAL_CROSSING_API_KEY is sent as a query parameter.
 """
 from __future__ import annotations
 import json
+import gzip
 import os
 import sys
 import urllib.parse
@@ -39,7 +40,10 @@ def get_json(url: str) -> dict:
     )
     try:
         with urllib.request.urlopen(req, timeout=60) as response:
-            return json.load(response)
+            payload = response.read()
+            if response.headers.get("Content-Encoding", "").lower() == "gzip":
+                payload = gzip.decompress(payload)
+            return json.loads(payload.decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")[:1200]
         raise RuntimeError(f"Visual Crossing HTTP {exc.code}: {detail}") from exc
