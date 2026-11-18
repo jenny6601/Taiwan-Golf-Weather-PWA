@@ -359,6 +359,34 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   }
 }
 </style>
+<style id="v32-7-compact-table-small-screens">
+/* V32.7：部分 Android 瀏覽器回報 CSS viewport 大於 600px；擴大斷點，確保緊湊樣式生效 */
+@media screen and (max-width:800px){
+ .hourly-table-wrap{overflow-x:hidden!important}
+ .hourly-table-wrap #hourlyForecastTable{width:100%!important;min-width:100%!important;max-width:100%!important;table-layout:fixed!important;font-size:9px!important}
+ .hourly-table-wrap #hourlyForecastTable thead th{height:34px!important;padding:2px 1px!important;font-size:9px!important;line-height:1.05!important}
+ .hourly-table-wrap #hourlyForecastTable tbody tr{height:76px!important}
+ .hourly-table-wrap #hourlyForecastTable tbody td{height:76px!important;padding:2px 1px!important;line-height:1.05!important;overflow:hidden!important}
+ .hourly-table-wrap #hourlyForecastTable .wxcell,
+ .hourly-table-wrap #hourlyForecastTable .rainpill,
+ .hourly-table-wrap #hourlyForecastTable .rainamount,
+ .hourly-table-wrap #hourlyForecastTable .temp-value,
+ .hourly-table-wrap #hourlyForecastTable .hourly-feel-icon{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:1px!important;margin:0 auto!important;padding:0!important;font-size:9px!important;line-height:1.05!important;white-space:normal!important
+ }
+ .hourly-table-wrap #hourlyForecastTable .wxemoji,
+ .hourly-table-wrap #hourlyForecastTable .wxemoji svg,
+ .hourly-table-wrap #hourlyForecastTable svg.wx-icon{width:28px!important;height:26px!important;min-width:0!important;max-width:28px!important;max-height:26px!important}
+ .hourly-table-wrap #hourlyForecastTable .rainpill svg,
+ .hourly-table-wrap #hourlyForecastTable .rainamount svg{width:23px!important;height:20px!important;max-width:23px!important;max-height:20px!important}
+ .hourly-table-wrap #hourlyForecastTable .temp-value>svg{width:17px!important;height:21px!important}
+ .hourly-table-wrap #hourlyForecastTable .hourly-feel-icon svg{width:27px!important;height:27px!important;min-width:27px!important;flex:0 0 27px!important}
+ .hourly-table-wrap #hourlyForecastTable .rain-interpretation{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:1px!important;padding:1px!important;font-size:9px!important;line-height:1.05!important}
+ .hourly-table-wrap #hourlyForecastTable .rain-interpretation b{font-size:9px!important;line-height:1.05!important}
+ .hourly-table-wrap #hourlyForecastTable .rain-level-icon{width:23px!important;height:23px!important;max-width:23px!important;max-height:23px!important;flex-basis:23px!important}
+}
+</style>
 </head>
 <body>
 <header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V32.3｜全台57球場即時觀測</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
