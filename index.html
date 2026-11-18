@@ -1825,8 +1825,8 @@ autoLoadDefaultCourse();
  const toggle=document.getElementById("forecastLegendToggle");
  if(!weather||!rain||!panel||!toggle)return;
  weather.innerHTML=[[0,"晴朗"],[2,"多雲"],[61,"下雨"],[95,"雷雨"]].map(([code,label])=>'<div class="forecast-weather-item">'+wxIcon(code)+'<span>'+label+'</span></div>').join("");
- const probability=[["0–29%",10],["30–59%",40],["60–100%",80]];
- rain.innerHTML=probability.map(([label,value])=>'<div class="forecast-rainprob-item">'+rainProbHTML(value).replace(/\d+%/,'<b>'+label+'</b>')+'</div>').join("");
+ const probability=[["低降雨機率","0–29%",10],["中降雨機率","30–59%",40],["高降雨機率","60–100%",80]];
+ rain.innerHTML=probability.map(([level,range,value])=>'<div class="forecast-rainprob-item">'+rainProbHTML(value).replace(/\d+%/,'<b>'+level+'<br>'+range+'</b>')+'</div>').join("");
  toggle.addEventListener("click",()=>{
   const show=panel.hidden;
   panel.hidden=!show;
