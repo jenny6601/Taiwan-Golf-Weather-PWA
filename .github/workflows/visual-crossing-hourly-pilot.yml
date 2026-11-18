@@ -1,0 +1,54 @@
+name: Visual Crossing 15-day hourly pilot (5 courses)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 05:15 Asia/Taipei (UTC+8), separate from the 05:30 crosscheck workflow.
+    - cron: "15 21 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: visual-crossing-hourly-pilot
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout PWA
+        uses: actions/checkout@v4
+      - name: Fetch five-course 15-day hourly forecasts
+        env:
+          VISUAL_CROSSING_API_KEY: ${{ secrets.VISUAL_CROSSING_API_KEY }}
+        run: |
+          python scripts/visual_crossing_pilot.py visual-crossing-pilot.json
+      - name: Add run summary
+        if: always()
+        run: |
+          if [ -f visual-crossing-pilot.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d=json.load(open("visual-crossing-pilot.json",encoding="utf-8"))
+          print("## Visual Crossing 15-day hourly pilot")
+          print(f"- Generated: {d.get('generated_at')}")
+          print(f"- Authentication: {d.get('api_key_mode')}")
+          print(f"- Successful courses: {len(d.get('courses',{}))}/5")
+          print("| Course | Dates | Hourly records | Query cost |")
+          print("|---|---:|---:|---:|")
+          for name,c in d.get("courses",{}).items():
+              print(f"| {name} | {c.get('date_count')} | {c.get('hour_count')} | {c.get('query_cost')} |")
+          for e in d.get("errors",[]):
+              print(f"- ERROR {e.get('course')}: {e.get('error')}")
+          PY
+          fi
+      - name: Upload Visual Crossing JSON report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-crossing-pilot-${{ github.run_number }}
+          path: visual-crossing-pilot.json
+          if-no-files-found: warn
+          retention-days: 30
