@@ -10,6 +10,7 @@ import os
 import sys
 import urllib.parse
 import urllib.request
+import urllib.error
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -36,8 +37,12 @@ def get_json(url: str) -> dict:
         headers={"User-Agent": "Taiwan-Golf-Weather-PWA-VisualCrossing-Pilot/1.0",
                  "Accept": "application/json"},
     )
-    with urllib.request.urlopen(req, timeout=60) as response:
-        return json.load(response)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")[:1200]
+        raise RuntimeError(f"Visual Crossing HTTP {exc.code}: {detail}") from exc
 
 def number(value):
     return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
@@ -57,7 +62,7 @@ def fetch_course(name: str, cache_key: str) -> dict:
         "include": "hours",
         "elements": ELEMENTS,
         "contentType": "json",
-        "lang": "zh-TW",
+        "source": "llms",
     }
     if API_KEY:
         params["key"] = API_KEY
