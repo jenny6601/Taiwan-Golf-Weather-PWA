@@ -36,7 +36,7 @@ def get_json(url: str) -> dict:
     req = urllib.request.Request(
         url,
         headers={"User-Agent": "Taiwan-Golf-Weather-PWA-VisualCrossing-Pilot/1.0",
-                 "Accept": "application/json"},
+                 "Accept": "application/json", "Accept-Encoding": "gzip"},
     )
     try:
         with urllib.request.urlopen(req, timeout=60) as response:
