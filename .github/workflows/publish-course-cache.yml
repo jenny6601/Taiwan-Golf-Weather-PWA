@@ -44,6 +44,8 @@ jobs:
           print(f"Validated {len(idx['courses'])} course files; generated_at={idx['generated_at']}")
           PY
       - name: Publish cache snapshot
+        env:
+          CACHE_OUT: ${{ runner.temp }}/course-cache
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
