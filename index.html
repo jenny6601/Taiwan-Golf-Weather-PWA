@@ -52,6 +52,29 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .live-observation-heading{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.live-data-details{margin-top:8px}.live-data-details>summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;padding:7px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#f8fafc;color:#475569;font-size:13px;font-weight:700}.live-data-details>summary::-webkit-details-marker{display:none}.live-data-details>summary:before{content:"ⓘ";font-size:14px;color:#64748b}.live-data-details[open]>summary{background:#eef2f7}.live-data-details-content{padding:9px 2px 0}.live-data-details-content .row{margin-bottom:5px}.live-data-details-content .muted{margin:5px 0}.live-observation-datetime{font-size:13px;color:var(--muted);font-weight:500}.live-warning-icon{display:inline-block;margin-right:4px;color:#d97706;font-size:14px;line-height:1;vertical-align:baseline}
 .live-condition-icon{display:inline-flex;align-items:center;justify-content:center;margin-right:5px;font-size:19px;line-height:1;vertical-align:-2px}.live-observation-grid .metric small{display:flex;align-items:center;gap:3px}
 .live-observation-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px}
+/* V32.4 即時天氣視覺強化與數值分級色彩 */
+#liveObservationPanel{background:#EAF3FC;border:1px solid #C6D9ED;border-radius:16px;padding:0;overflow:hidden}
+#liveObservationPanel .live-observation-heading{background:#173D68;color:#fff;padding:15px 16px;align-items:center}
+#liveObservationPanel .live-observation-heading h3{color:#fff;font-size:clamp(21px,3vw,26px);font-weight:850;letter-spacing:.02em}
+#liveObservationPanel .live-observation-heading:after{content:"LIVE";display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;background:#167C54;color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em}
+#liveObservationPanel .live-data-details{margin:12px 14px 0}
+#liveObservationPanel .live-data-details>summary{background:#F7FAFD;border-color:#C6D9ED;color:#526B88}
+#liveObservationPanel .live-observation-grid{padding:0 14px 14px;margin-top:12px}
+#liveObservationPanel .live-observation-grid .metric{background:#fff;border-color:#D8E4EF;border-radius:13px;padding:12px}
+#liveObservationPanel .live-observation-grid .metric small{color:#61758D;font-size:14px}
+#liveObservationPanel .live-observation-grid .metric strong{font-size:22px;font-weight:850;color:#172536}
+#liveObservationPanel .live-observation-grid .metric strong.live-temp-cold{color:#2875C7!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-temp-cool{color:#2696B5!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-temp-comfort{color:#15945C!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-temp-warm{color:#E58A16!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-temp-hot{color:#D83B35!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-rain-none{color:#15945C!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-rain-trace{color:#2875C7!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-rain-light{color:#E58A16!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-rain-moderate{color:#E45B32!important}
+#liveObservationPanel .live-observation-grid .metric strong.live-rain-heavy{color:#D83B35!important}
+@media(max-width:600px){#liveObservationPanel .live-observation-heading{padding:14px}#liveObservationPanel .live-observation-grid{padding:0 10px 12px;gap:9px}#liveObservationPanel .live-observation-grid .metric{padding:10px}#liveObservationPanel .live-observation-grid .metric strong{font-size:20px}}
+
 .live-observation-grid .metric strong{font-size:20px}
 .live-observation-foot{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
 .live-state-fresh{background:#dcfce7;color:#166534}.live-state-stale{background:#fef3c7;color:#92400e}.live-state-missing{background:#f1f5f9;color:#64748b}
@@ -1215,7 +1238,22 @@ function liveFeelIcon(value){
  if(n<=27)return '<span class="live-condition-icon" role="img" aria-label="舒適">🙂</span>';
  return '<span class="live-condition-icon" role="img" aria-label="炎熱，請注意防暑">🥵</span>';
 }
-function liveMetric(label,value){return '<div class="metric"><small>'+label+'</small><strong>'+value+'</strong></div>';}
+function liveMetric(label,value,valueClass){return '<div class="metric"><small>'+label+'</small><strong'+(valueClass?' class="'+valueClass+'"':'')+'>'+value+'</strong></div>';}
+function liveTemperatureClass(value,kind){
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
+ const n=Number(value);
+ if(kind==='feel')return n<=19?'live-temp-cold':n<=27?'live-temp-comfort':'live-temp-warm';
+ return n<15?'live-temp-cold':n<20?'live-temp-cool':n<=27?'live-temp-comfort':n<=32?'live-temp-warm':'live-temp-hot';
+}
+function liveRainClass(value){
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
+ const n=Number(value);
+ if(n<=0)return 'live-rain-none';
+ if(n<=0.5)return 'live-rain-trace';
+ if(n<=2)return 'live-rain-light';
+ if(n<=5)return 'live-rain-moderate';
+ return 'live-rain-heavy';
+}
 async function loadLiveObservation(course){
  const state=$("liveObservationState"),summary=$("liveObservationSummary"),metrics=$("liveObservationMetrics"),times=$("liveObservationTimes");
  if(!state||!metrics)return;state.className="pill";state.textContent="讀取中";
@@ -1246,8 +1284,8 @@ async function loadLiveObservation(course){
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
    liveMetric("目前天氣",'<span class="wxcell">'+weatherIcon+weatherText+'</span>'),
-   liveMetric("氣溫",liveFmt(temp,1," °C")),liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C")),liveMetric("濕度",liveFmt(rh,0," %")),
-   liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm")),
+   liveMetric("氣溫",liveFmt(temp,1," °C"),liveTemperatureClass(temp,"air")),liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C"),liveTemperatureClass(feel,"feel")),liveMetric("濕度",liveFmt(rh,0," %")),
+   liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml,liveRainClass(rain10)),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm"),liveRainClass(rain1h)),
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
   ].join("");
   const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
