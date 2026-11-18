@@ -2,6 +2,11 @@ name: Visual Crossing 15-day hourly pilot (5 courses)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/visual-crossing-hourly-pilot.yml'
+      - 'scripts/visual_crossing_pilot.py'
   schedule:
     # 05:15 Asia/Taipei (UTC+8), separate from the 05:30 crosscheck workflow.
     - cron: "15 21 * * *"
