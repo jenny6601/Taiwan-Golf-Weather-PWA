@@ -212,6 +212,21 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 /* Apparent-feel icon sizing intentionally unchanged. */
 .rain-level-guide{width:100%;margin:8px 0 12px;overflow:hidden;border-radius:14px}.rain-level-guide img{display:block;width:100%;height:auto;max-width:100%}@media(max-width:600px){.rain-level-guide{margin:6px 0 10px;border-radius:10px}.rain-level-guide img{width:100%}}\n.rain-interpretation{display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;font-weight:750;line-height:1.15}.rain-level-icon{width:34px;height:34px;flex:0 0 34px;vertical-align:middle}.rain-interpretation b{font-size:12px}.rain-interpretation.level-1{color:#167044}.rain-interpretation.level-2{color:#1769aa}.rain-interpretation.level-3{color:#a16207}.rain-interpretation.level-4{color:#c2410c}.rain-interpretation.level-5{color:#b42318}@media(max-width:600px){.rain-level-icon{width:28px;height:28px;flex-basis:28px}.rain-interpretation{gap:2px;white-space:normal;flex-direction:column}.rain-interpretation b{font-size:10px}}\n
 
+
+/* Phase 2: improve 16-day daytime forecast readability */
+.daily-forecast-card .daily-date-cell{font-size:12px!important;line-height:1.4!important}
+.daily-forecast-card .daily-date-cell .date{font-size:11px!important}
+.daily-forecast-card .daily-weather-cell .daily-desc{font-size:11px!important;line-height:1.3!important}
+.daily-forecast-card .daily-rain-cell small{font-size:10px!important;line-height:1.35!important}
+.daily-forecast-card .daily-rain-cell .rain-prob,.daily-forecast-card .daily-rain-cell .rain-mm{font-size:14px!important;line-height:1.3!important}
+.daily-forecast-card .daily-forecast-legend{font-size:12px!important}
+@media(max-width:600px){
+ .daily-forecast-card .daily-date-cell{font-size:11px!important}
+ .daily-forecast-card .daily-date-cell .date{font-size:10px!important}
+ .daily-forecast-card .daily-weather-cell .daily-desc{font-size:10px!important;line-height:1.25!important}
+ .daily-forecast-card .daily-rain-cell small{font-size:9px!important}
+ .daily-forecast-card .daily-rain-cell .rain-prob,.daily-forecast-card .daily-rain-cell .rain-mm{font-size:13px!important}
+}
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
