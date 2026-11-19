@@ -591,7 +591,7 @@ def verify_and_weight(now: datetime) -> dict:
             }
             for source, row in rows.items()
         }
-        probability_weights = normalized_weights(prob_scores, "Brier_score", MIN_GLOBAL_PAIRS, 2000, 0.4)
+        probability_weights = normalized_weights(prob_scores, "Brier_score", MIN_GLOBAL_PAIRS, 2000, 0.35)
         if amount_weights or probability_weights:
             active_leads += 1
         weights["lead_days"][key] = {
