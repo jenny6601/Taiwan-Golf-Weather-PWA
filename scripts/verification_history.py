@@ -171,7 +171,11 @@ def archive_observations(now: datetime) -> dict:
     })
     history.sort(key=lambda x: x.get("snapshot_at", ""))
     write_gzip_jsonl(path, history)
-    return {"status": "archived", "snapshot_at": generated, "course_count": len(normalized), "age_minutes": round(age_min, 1)}
+    return {
+        "status": "archived", "snapshot_at": generated,
+        "course_count": len(normalized), "age_minutes": round(age_min, 1),
+        "coverage": coverage,
+    }
 
 def fetch_course_cache(name: str, rel: str):
     payload = get_json(COURSE_BASE + rel)
@@ -652,6 +656,31 @@ def main():
     cutoff = now.date() - timedelta(days=RETENTION_DAYS)
     prune_old_files(ROOT / "observations", cutoff)
     prune_old_files(ROOT / "forecasts", cutoff)
+    weights_path = ROOT / "verification" / "weights.json"
+    try:
+        weights_doc = json.loads(weights_path.read_text(encoding="utf-8"))
+    except Exception:
+        weights_doc = {"status": "warming_up"}
+    forecast_dates = sorted(
+        p.name.split(".")[0] for p in (ROOT / "forecasts").glob("*.json.gz")
+    ) if (ROOT / "forecasts").exists() else []
+    observation_result = result.get("observation_archive") or {}
+    status_doc = {
+        "generated_at": now.isoformat(),
+        "latest_observation_snapshot_at": observation_result.get("snapshot_at"),
+        "observation_archive": observation_result,
+        "latest_forecast_archive_date": forecast_dates[-1] if forecast_dates else None,
+        "verification_status": weights_doc.get("status", "warming_up"),
+        "active_lead_days": [
+            lead for lead, item in weights_doc.get("lead_days", {}).items()
+            if item.get("weighting_active")
+        ],
+        "retention_days": RETENTION_DAYS,
+    }
+    (ROOT / "verification").mkdir(parents=True, exist_ok=True)
+    (ROOT / "verification" / "status.json").write_text(
+        json.dumps(status_doc, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 if __name__ == "__main__":
