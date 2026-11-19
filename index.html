@@ -1874,7 +1874,7 @@ let amountWeights=null,weightingLabel="等權中位數（歷史資料累積中�
    const weightDoc=await loadVerificationWeights(),lead=weightDoc?.lead_days?.[String(leadDays)];
    const courseWeights=weightDoc?.by_course?.[p.name]?.[String(leadDays)];
    const candidate=courseWeights||lead?.amount_weights;
-   if(candidate&&Object.keys(candidate).filter(k=>active.modelRows[k]).length>=3){
+   if(candidate&&Object.keys(candidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3){
     amountWeights=candidate;
     weightingLabel=courseWeights?"逐球場歷史回測權重（"+leadDays+"天）":"全台歷史回測權重（"+leadDays+"天）";
    }
