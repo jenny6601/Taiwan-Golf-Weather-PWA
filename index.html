@@ -1721,13 +1721,22 @@ async function loadVerificationMetrics(){
  }
  return verificationMetricsPromise;
 }
+let verificationStatusPromise=null;
+async function loadVerificationStatus(){
+ if(!verificationStatusPromise){
+  const url="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/verification-history/verification/status.json?ts="+Date.now();
+  verificationStatusPromise=fetchJsonBounded(url,5000,"no-store").catch(()=>null);
+ }
+ return verificationStatusPromise;
+}
 async function loadVerificationDashboard(courseName,leadDays){
  const status=$("verificationHistoryStatus"),leadTarget=$("verificationLeadTable"),sourceTarget=$("verificationSourceTable");
  if(!status||!leadTarget||!sourceTarget)return;
  try{
-  const [metrics,weights]=await Promise.all([
+  const [metrics,weights,archiveStatus]=await Promise.all([
    loadVerificationMetrics(),
-   loadVerificationWeights()
+   loadVerificationWeights(),
+   loadVerificationStatus()
   ]);
   if(!metrics||!weights)throw Error("尚未產生歷史驗證報告");
   const leads=[1,3,5,7,10,14],num=(v,d=2)=>v===null||v===undefined||!Number.isFinite(Number(v))?"—":Number(v).toFixed(d);
@@ -1756,7 +1765,8 @@ async function loadVerificationDashboard(courseName,leadDays){
    return "<tr><td>"+esc(name)+"</td><td>"+(r.sample_count||0)+"</td><td>"+num(r.MAE_mm)+"</td><td>"+num(r.RMSE_mm)+"</td><td>"+num(r.Bias_mm)+"</td><td>"+num(r.CSI,3)+"</td><td>"+num(r.Brier_score,3)+"</td><td>"+(wa===undefined?"—":(wa*100).toFixed(1)+"%")+"</td><td>"+(wp===undefined?"—":(wp*100).toFixed(1)+"%")+"</td></tr>";
   }).join("");
   sourceTarget.innerHTML='<h4 style="margin:12px 0 6px">'+esc(courseName)+'｜'+selected+'天提前期｜'+(hasCourse?"本球場":"全台統計（本球場樣本不足）")+'</h4><div class="provider-table-wrap"><table class="provider-table"><thead><tr><th>來源</th><th>N</th><th>MAE</th><th>RMSE</th><th>Bias</th><th>CSI</th><th>Brier</th><th>雨量權重</th><th>機率權重</th></tr></thead><tbody>'+(sourceRows||'<tr><td colspan="9">尚無足夠的已驗證逐時資料。</td></tr>')+'</tbody></table></div>';
-  status.textContent="資料更新："+(metrics.generated_at||"—")+"｜已評估預報版本："+(metrics.evaluated_vintages||0)+"｜權重狀態："+weights.status+"。雨量站距離限制 "+(metrics.station_distance_limit_km||15)+" km；10分鐘雨量優先累加，資料不足才使用1小時備援。權重門檻：全台每來源至少200筆，單球場每來源至少100筆，且至少3個來源達標。";
+  const obs=archiveStatus?.observation_archive||{},coverage=obs.coverage||{};
+  status.textContent="驗證報告更新："+(metrics.generated_at||"—")+"｜CWA最近快照："+(archiveStatus?.latest_observation_snapshot_at||"—")+"｜雨量站覆蓋："+(coverage.rainfall_courses??obs.course_count??"—")+"/57｜已評估預報版本："+(metrics.evaluated_vintages||0)+"｜權重狀態："+weights.status+"。雨量站距離限制 "+(metrics.station_distance_limit_km||15)+" km；10分鐘雨量優先累加，資料不足才使用1小時備援。權重門檻：全台每來源至少200筆，單球場每來源至少100筆，且至少3個來源達標。";
  }catch(e){
   status.textContent="歷史驗證資料尚未就緒："+e.message;
   leadTarget.innerHTML="";sourceTarget.innerHTML="";
