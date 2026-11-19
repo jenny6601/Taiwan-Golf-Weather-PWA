@@ -1668,10 +1668,10 @@ function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return r
 function median(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
 function spread(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return a.length>=2?Math.max(...a)-Math.min(...a):null;}
 function circularMean(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(!a.length)return null;let x=0,y=0;a.forEach(v=>{x+=Math.cos(v*Math.PI/180);y+=Math.sin(v*Math.PI/180)});return (Math.atan2(y,x)*180/Math.PI+360)%360;}
-function weightedRainValue(pairs,weights,key){
+function weightedRainValue(pairs,weights,key,minSources=3){
  if(!weights)return null;
  const usable=pairs.filter(x=>x.row&&x.row[key]!==null&&x.row[key]!==undefined&&Number.isFinite(Number(x.row[key]))&&Number(weights[x.name])>0);
- if(usable.length<3)return null;
+ if(usable.length<minSources)return null;
  const total=usable.reduce((z,x)=>z+Number(weights[x.name]),0);
  if(total<=0)return null;
  return usable.reduce((z,x)=>z+Number(x.row[key])*Number(weights[x.name]),0)/total;
@@ -1686,7 +1686,7 @@ function consensusRows(modelRows,amountWeights=null,probabilityWeights=null,exte
   if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}
   const amounts=rainPairs.map(x=>x.row.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);
   const weightedAmount=weightedRainValue(rainPairs,amountWeights,"mm");
-  const weightedProbability=weightedRainValue(rainPairs,probabilityWeights,"rain");
+  const weightedProbability=weightedRainValue(rainPairs,probabilityWeights,"rain",1);
   return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:weightedProbability===null?get('rain'):weightedProbability,mm:weightedAmount===null?get('mm'):weightedAmount,weightingApplied:weightedAmount!==null,probabilityWeightingApplied:weightedProbability!==null,code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
  });
 }
