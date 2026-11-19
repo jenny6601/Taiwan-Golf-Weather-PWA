@@ -1698,8 +1698,8 @@ async function loadVisualCrossingRainRows(courseName,date){
  const cache=await fetchJsonBounded(base+rel+"?v="+encodeURIComponent(index.generated_at||"latest"),6000,"no-cache");
  const key=(cache.courses||{})[courseName]||Object.entries(cache.courses||{}).find(([n])=>String(n).trim().normalize("NFC")===String(courseName).trim().normalize("NFC"))?.[1];
  const hours=key?.[date]?.providers?.["Visual Crossing"]?.hourly||[];
- return hours.filter(x=>{const h=Number(String(x.time||"").slice(11,13));return h>=6&&h<=18;}).map(x=>({
-  time:String(x.time||"").slice(11,16),mm:x.precipitation??null,rain:x.precipitation_probability??null,
+ return hours.filter(x=>{const h=Number(String(x.time||"").slice(11,13));return h>=5&&h<=17;}).map(x=>({
+  time:String(Number(String(x.time||"").slice(11,13))+1).padStart(2,"0")+":00",mm:x.precipitation??null,rain:x.precipitation_probability??null,
   temp:x.temperature_2m??null,feel:x.apparent_temperature??null,wind:x.wind_speed_10m??null,
   gust:x.wind_gusts_10m??null,dir:x.wind_direction_10m??null,rh:x.relative_humidity_2m??null,
   cloud:x.cloud_cover??null,uv:x.uv_index??null,code:null,available:true
