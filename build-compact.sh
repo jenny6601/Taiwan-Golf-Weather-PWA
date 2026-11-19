@@ -2,6 +2,7 @@
 set -euo pipefail
 rm -rf dist
 mkdir -p dist/assets
+python3 -m pip install --quiet Pillow
 cp compact/index.html dist/index.html
 cp compact/icon-192.png dist/icon-192.png
 cp compact/icon-512.png dist/icon-512.png
@@ -25,8 +26,13 @@ m=json.loads(Path("compact/manifest.json").read_text(encoding="utf-8"))
 m["id"]="/"
 m["start_url"]="/"
 m["scope"]="/"
+from PIL import Image
+source=Image.open(Path("compact/icon-512.png")).convert("RGBA")
+source.resize((192,192),Image.Resampling.LANCZOS).save("dist/icon-192.png",optimize=True)
+source.resize((512,512),Image.Resampling.LANCZOS).save("dist/icon-512.png",optimize=True)
 m["icons"]=[
- {"src":"/icon-512.png","sizes":"256x256","type":"image/png","purpose":"any"}
+ {"src":"/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+ {"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}
 ]
 Path("dist/manifest.json").write_text(json.dumps(m,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 
