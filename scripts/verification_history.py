@@ -497,11 +497,11 @@ def verify_and_weight(now: datetime) -> dict:
                             forecast_hour = int(str(row.get("time", ""))[:2])
                             if not 6 <= forecast_hour <= 18:
                                 continue
-                            # Open-Meteo and Visual Crossing hourly precipitation
-                            # amounts are accumulated over the preceding hour.
-                            # A 06:00 forecast therefore verifies against CWA
-                            # observations covering 05:00-06:00.
-                            hour = forecast_hour - 1
+                            # Open-Meteo precipitation/probability are valid for
+                            # the preceding hour (06:00 verifies 05:00-06:00).
+                            # Visual Crossing hourly records are aligned to the
+                            # timestamped hourly period (06:00 verifies 06:00-07:00).
+                            hour = forecast_hour if source == "Visual Crossing" else forecast_hour - 1
                         except Exception:
                             continue
                         observed = actual.get(course_key, {}).get((valid_date, hour))
