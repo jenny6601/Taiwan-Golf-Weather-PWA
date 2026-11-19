@@ -291,7 +291,7 @@ def archive_forecast_vintage(now: datetime) -> dict:
                     }
                     for r in vc_rows
                     if str(r.get("time", ""))[11:13].isdigit()
-                    and 6 <= int(str(r.get("time", ""))[11:13]) <= 18
+                    and 5 <= int(str(r.get("time", ""))[11:13]) <= 17
                 ]
             valid[valid_date] = {"lead_days": lead, "sources": model_rows}
         course_id = course_id_by_name.get(name_key(name))
