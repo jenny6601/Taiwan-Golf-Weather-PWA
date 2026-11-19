@@ -30,7 +30,7 @@ VC_MAX_AGE_HOURS = 36
 MIN_STATION_DISTANCE_KM = 15.0
 MIN_10M_SAMPLES = 6
 MIN_GLOBAL_PAIRS = 200
-MIN_COURSE_PAIRS = 40
+MIN_COURSE_PAIRS = 100
 SOURCES = (
     "ECMWF IFS", "NOAA GFS", "DWD ICON", "JMA GSM",
     "Canada GEM", "ECMWF AIFS", "Visual Crossing",
@@ -560,7 +560,7 @@ def verify_and_weight(now: datetime) -> dict:
             key = str(lead)
             rows = {source: score.result() for source, score in leads[key].items()}
             course_out[key] = rows
-            local_weights = normalized_weights(rows, "MAE_mm", MIN_COURSE_PAIRS, 2000)
+            local_weights = normalized_weights(rows, "MAE_mm", MIN_COURSE_PAIRS, 500)
             if local_weights:
                 course_weight_out[key] = local_weights
         metrics["by_course"][course_name] = course_out
