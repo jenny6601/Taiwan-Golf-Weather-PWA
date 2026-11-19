@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/verification_history.py'
+      - 'index.html'
       - '.github/workflows/verification-history.yml'
   schedule:
     # Run five minutes after the 10-minute CWA live-data publisher.
@@ -38,6 +39,32 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Validate inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.current=None; self.parts=[]; self.files=[]
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower()=="script":
+                      attrs=dict(attrs)
+                      self.current=not attrs.get("src") and attrs.get("type","").lower() not in ("application/json","application/ld+json")
+                      self.parts=[]
+              def handle_data(self, data):
+                  if self.current: self.parts.append(data)
+              def handle_endtag(self, tag):
+                  if tag.lower()=="script" and self.current:
+                      p=Path(f"/tmp/pwa-inline-{len(self.files)}.js")
+                      p.write_text("".join(self.parts),encoding="utf-8")
+                      self.files.append(str(p)); self.current=None
+          parser=Scripts()
+          parser.feed(Path("source/index.html").read_text(encoding="utf-8"))
+          Path("/tmp/pwa-script-list.txt").write_text("\\n".join(parser.files),encoding="utf-8")
+          print("Inline JavaScript blocks:",len(parser.files))
+          PY
+          while IFS= read -r file; do node --check "$file"; done < /tmp/pwa-script-list.txt
       - name: Archive CWA observations and daily forecast vintage
         run: python source/scripts/verification_history.py auto history
       - name: Publish append-only history and verification weights
