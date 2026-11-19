@@ -152,6 +152,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 #coursePickerPanel .course-item small{font-size:11px;line-height:1.35}
 #coursePickerPanel .course-item button.course-selected{background:#126b4c;color:#fff;outline:3px solid #b7e4d1}
 @media(max-width:600px){#coursePickerPanel .course-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#coursePickerPanel .course-item{padding:6px}#coursePickerPanel .course-item button{min-height:50px;padding:8px 5px;font-size:14px}}
+.tee-time-picker{margin-top:12px;padding:11px 12px;border:1px solid #cfe4d9;border-radius:10px;background:#f5fbf7;max-width:360px}.tee-time-picker label{font-size:15px;color:#155b43}.tee-time-picker select{width:100%;min-height:46px;font-size:16px;font-weight:700}.tee-time-picker .muted{margin-top:5px}
 
 .provider-panel{margin-top:14px}.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.provider-card{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fff}.provider-card strong{display:block;font-size:16px}.provider-status{font-size:12px;color:#64748b;margin:6px 0}.provider-links{display:flex;gap:10px;flex-wrap:wrap;font-size:13px}.provider-pill{display:inline-block;border-radius:999px;padding:3px 8px;background:#fff7e6;color:#8a5a00;font-size:11px;font-weight:700}.provider-table-wrap{overflow-x:auto}.provider-table{width:100%;border-collapse:collapse;font-size:13px}.provider-table th,.provider-table td{border-bottom:1px solid var(--line);padding:7px;text-align:right;white-space:nowrap}.provider-table th:first-child,.provider-table td:first-child{text-align:left}.provider-note{background:#f4f8fb;border-radius:9px;padding:10px;font-size:13px;color:#475569;line-height:1.6}@media(max-width:600px){.provider-grid{grid-template-columns:1fr}}
 @media(min-width:601px){#mobileDetailWrap{display:none!important}} @media(max-width:600px){#mobileDetailWrap .tablewrap{overflow-x:auto!important}#mobileDetailWrap table{min-width:760px!important;table-layout:auto!important;font-size:12px!important}#mobileDetailWrap th,#mobileDetailWrap td{white-space:nowrap!important;padding:8px 7px!important}}
@@ -330,7 +331,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="muted" id="courseAutoStatus" style="margin:4px 0 12px">共57座球場。先選日期，再選縣市，最後點選球場按鈕，即以固定座標載入當日天氣。</div>
 <details id="apiDiagnostics" style="margin:8px 0 12px"><summary>API 診斷資訊（載入失敗時展開）</summary><pre id="apiDiagnosticsText" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;color:#475569">尚未執行 API 請求。</pre></details>
 <div aria-label="57座高爾夫球場" class="course-list" id="courseList"></div>
-<div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
+<div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div><div class="tee-time-picker"><label for="teeTimeSelect">⛳ 開球時間（選填）</label><select id="teeTimeSelect"><option value="">不指定｜顯示完整 06:00–18:00</option><option value="06:00">06:00</option><option value="07:00">07:00</option><option value="08:00">08:00</option><option value="09:00">09:00</option><option value="10:00">10:00</option><option value="11:00">11:00</option><option value="12:00">12:00</option><option value="13:00">13:00</option></select><div class="muted">選擇後，①～④僅顯示開球起算連續6小時</div></div></div>
 </section>
 <section class="card live-observation-card" id="liveObservationPanel">
  <div class="live-observation-heading"><h3 id="liveObservationHeading" style="margin:0">即時天氣觀測｜—</h3></div>
@@ -1251,19 +1252,33 @@ function golfDateLabel(value){
  const m=String(value||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
  return m?m[1]+"/"+m[2]+"/"+m[3]:"日期未定";
 }
+function selectedTeeTimeRows(rows){
+ const selected=$("teeTimeSelect")?.value||"";
+ if(!selected)return rows;
+ const start=Number(selected.slice(0,2));
+ return rows.filter(x=>{const hour=Number(String(x.time||"").slice(0,2));return Number.isFinite(hour)&&hour>=start&&hour<start+6;});
+}
+function renderSelectedHourlySections(rows){
+ const shown=selectedTeeTimeRows(rows||[]);
+ const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
+ $("hourRows").innerHTML=shown.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${rainInterpretation(x.rain,x.mm,x.code)}</td><td>${thermometerHTML(x.temp)}</td><td>${apparentFeelHTML(x.feel)}</td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
+ const times=shown.map(x=>x.time);
+ const maxOf=k=>{const a=shown.map(x=>x[k]).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v)));return a.length?Math.max(...a.map(Number)):null;};
+ chart("rainChart",[shown.map(x=>x.rain)],100,["#15966a"],times,"%","rainProbability");
+ chart("rainAmountChart",[shown.map(x=>x.mm)],Math.max(1,Math.ceil((maxOf("mm")||0)*1.2)),["#2563eb"],times," mm","rainAmount");
+ chart("tempChart",[shown.map(x=>x.temp),shown.map(x=>x.feel)],Math.max(40,maxOf("temp")||40,maxOf("feel")||40),["#1769aa","#dc2626"],times,"°C","temperature",shown.map(x=>({code:x.code,mm:x.mm})));
+ const select=$("teeTimeSelect"),dateLabel=golfDateLabel(active?.date);
+ const range=select?.value?select.value+"–"+String(Number(select.value.slice(0,2))+5).padStart(2,"0")+":00":"06:00–18:00";
+ [["hourlyForecastHeading","① 逐時天氣預報｜"+dateLabel+"（"+range+"）"],["rainProbabilityHeading","② 每小時降雨機率圖（%）｜"+dateLabel+"（"+range+"）"],["rainAmountHeading","③ 每小時預報雨量圖（mm）｜"+dateLabel+"（"+range+"）"],["temperatureHeading","④ 逐小時氣溫與體感溫度（°C）｜"+dateLabel+"（"+range+"）"]].forEach(([id,label])=>{const el=$(id);if(el)el.textContent=label;});
+}
 function updateWeatherDateHeadings(liveDate,forecastDate){
  const live=$("liveObservationHeading");
  // 即時觀測維持台灣當地今日日期；四個預報區塊共用使用者選取的預報日期。
  const taiwanToday=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
  const dateLabel=golfDateLabel(forecastDate);
  if(live)live.textContent="即時天氣觀測｜"+golfDateLabel(taiwanToday);
- const headings=[
-  ["hourlyForecastHeading","① 逐時天氣預報｜"+dateLabel+"（06:00–18:00）"],
-  ["rainProbabilityHeading","② 每小時降雨機率圖（%）｜"+dateLabel],
-  ["rainAmountHeading","③ 每小時預報雨量圖（mm）｜"+dateLabel],
-  ["temperatureHeading","④ 逐小時氣溫與體感溫度（°C）｜"+dateLabel]
- ];
- headings.forEach(([id,label])=>{const el=$(id);if(el)el.textContent=label;});
+ renderSelectedHourlySections(active?.rows||[]);
+
 }
 function liveFmt(value,digits,suffix){
  if(digits===undefined)digits=1;if(suffix===undefined)suffix="";
@@ -2041,7 +2056,7 @@ async function loadForecast(p,date,forceRefresh=false){
    $("status").textContent="即時預報更新中｜已取得 "+completedModels+"/6 組模型";
    if(!provisionalShown){
     provisionalShown=true;
-    $("hourRows").innerHTML=rows.map(x=>'<tr><td><b>'+x.time+'</b></td><td><span class="wxcell"><span class="wxemoji">'+wxIcon(x.code)+'</span>'+wx(x.code)+'</span></td><td>'+rainProbHTML(x.rain)+'</td><td>'+amountRangeHTML(x)+'</td><td>'+rainInterpretation(x.rain,x.mm,x.code)+'</td><td>'+thermometerHTML(x.temp)+'</td><td>'+apparentFeelHTML(x.feel)+'</td><td>'+(x.wind??"—")+'</td><td>'+(x.gust??"—")+'</td><td>'+(x.dir===null||x.dir===undefined?"—":dir(x.dir)+" "+Math.round(x.dir)+"°")+'</td><td>'+(x.rh??"—")+'%</td><td>'+(x.cloud??"—")+'%</td><td>'+(x.uv??"—")+'</td><td>計算中</td></tr>').join("");
+    $("hourRows").innerHTML=selectedTeeTimeRows(rows).map(x=>'<tr><td><b>'+x.time+'</b></td><td><span class="wxcell"><span class="wxemoji">'+wxIcon(x.code)+'</span>'+wx(x.code)+'</span></td><td>'+rainProbHTML(x.rain)+'</td><td>'+amountRangeHTML(x)+'</td><td>'+rainInterpretation(x.rain,x.mm,x.code)+'</td><td>'+thermometerHTML(x.temp)+'</td><td>'+apparentFeelHTML(x.feel)+'</td><td>'+(x.wind??"—")+'</td><td>'+(x.gust??"—")+'</td><td>'+(x.dir===null||x.dir===undefined?"—":dir(x.dir)+" "+Math.round(x.dir)+"°")+'</td><td>'+(x.rh??"—")+'%</td><td>'+(x.cloud??"—")+'%</td><td>'+(x.uv??"—")+'</td><td>計算中</td></tr>').join("");
     $("courseAutoStatus").textContent=p.name+"｜"+date+"｜已先顯示首組完成模型，其餘模型持續更新。";
    }
    return data;
@@ -2100,12 +2115,9 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
  const rainTotal=valid.reduce((z,x)=>z+(x.mm||0),0),wet=valid.filter(x=>(x.mm||0)>0.1).sort((a,b)=>(b.mm||0)-(a.mm||0))[0],four=valid.map((x,i)=>({start:x.time,total:valid.slice(i,i+4).reduce((z,y)=>z+(y.mm||0),0)})).filter(x=>valid.findIndex(y=>y.time===x.start)+3<valid.length).sort((a,b)=>b.total-a.total)[0];
  $("rainMetrics").innerHTML=[["06–18時最高降雨機率",fmt(mx("rain"),0)+"%"],["06–18時累積雨量",fmt(rainTotal)+" mm"],["雨量最大小時",wet?wet.time+"｜"+fmt(wet.mm)+" mm":"—"],["最大連續4小時雨量",four?four.start+"起｜"+fmt(four.total)+" mm":"—"],["機率資料來源",rainProbInfo.source]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong style="font-size:18px">${b}</strong></div>`).join("");
  $("rainMethodStatus").textContent=rainProbInfo.detail+`。雨量為六模型可用欄位逐時融合；${weightingLabel}；每小時同時呈現模型範圍，累積雨量為06:00–18:00逐時合計。`;
- $("hourRows").innerHTML=base.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${rainInterpretation(x.rain,x.mm,x.code)}</td><td>${thermometerHTML(x.temp)}</td><td>${apparentFeelHTML(x.feel)}</td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
+ renderSelectedHourlySections(base);
  const chartTimes=base.map(x=>x.time);
  chart("windChart",[base.map(x=>x.wind),base.map(x=>x.gust)],Math.max(30,mx("gust")||30),["#1769aa","#d97706"],chartTimes," km/h");
- chart("rainChart",[base.map(x=>x.rain)],100,["#15966a"],chartTimes,"%","rainProbability");
- chart("rainAmountChart",[base.map(x=>x.mm)],Math.max(1,Math.ceil((Math.max(...base.map(x=>x.mm||0),0))*1.2)),["#2563eb"],chartTimes," mm","rainAmount");
- chart("tempChart",[base.map(x=>x.temp),base.map(x=>x.feel)],Math.max(40,mx("temp")||40,mx("feel")||40),["#1769aa","#dc2626"],chartTimes,"°C","temperature",base.map(x=>({code:x.code,mm:x.mm})));
  const windows=[];for(let i=0;i<=base.length-4;i++){const group=base.slice(i,i+4);if(group.length===4){const v=golfabilityScore(group);if(v!==null)windows.push({time:group[0].time,v,rain:group.reduce((z,x)=>z+(x.mm||0),0),gust:Math.max(...group.map(x=>x.gust||0))});}}
  windows.sort((a,b)=>b.v-a.v);
  $("teeAdvice").innerHTML=windows.length?windows.slice(0,3).map((x,i)=>`<p><b>推薦時段 ${i+1}：${x.time} 起連續4小時</b>｜${x.v}/100｜${golfScoreLabel(x.v)}｜雨量 ${x.rain.toFixed(1)} mm｜最大陣風 ${x.gust.toFixed(1)} km/h</p>`).join(""):"目前沒有完整四小時資料可供評估。";
@@ -2148,6 +2160,13 @@ document.getElementById('downloadValidationTemplate').addEventListener('click',(
 renderValidation();
 initForecastDatePicker();
 initCourseDatabase();
+$("teeTimeSelect")?.addEventListener("change",()=>{
+ if(active?.rows?.length)renderSelectedHourlySections(active.rows);
+ else{
+  const date=$("courseDate")?.value;
+  if(date)updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
+ }
+});
 
 // V32.2：首次開啟頁面，自動載入礁溪球場當日預報；即時觀測仍由獨立流程同步載入。
 function autoLoadDefaultCourse(){
