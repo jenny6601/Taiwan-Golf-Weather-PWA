@@ -352,6 +352,9 @@ class Score:
         self.abs_error = 0.0
         self.squared_error = 0.0
         self.bias = 0.0
+        self.wet_abs_error = 0.0
+        self.wet_squared_error = 0.0
+        self.wet_sample_count = 0
         self.hit = self.miss = self.false_alarm = self.correct_negative = 0
         self.brier_sum = 0.0
         self.prob_n = 0
@@ -361,6 +364,10 @@ class Score:
         self.abs_error += abs(error)
         self.squared_error += error * error
         self.bias += error
+        if actual >= 0.1:
+            self.wet_abs_error += abs(error)
+            self.wet_squared_error += error * error
+            self.wet_sample_count += 1
         event_actual = actual >= 0.1
         event_forecast = forecast >= 0.1
         if event_forecast and event_actual: self.hit += 1
@@ -382,6 +389,12 @@ class Score:
             "MAE_mm": round(self.abs_error / n, 3) if n else None,
             "RMSE_mm": round(math.sqrt(self.squared_error / n), 3) if n else None,
             "Bias_mm": round(self.bias / n, 3) if n else None,
+            "wet_sample_count": self.wet_sample_count,
+            "MAE_wet_mm": round(self.wet_abs_error / self.wet_sample_count, 3) if self.wet_sample_count else None,
+            "RMSE_wet_mm": round(math.sqrt(self.wet_squared_error / self.wet_sample_count), 3) if self.wet_sample_count else None,
+            "Weight_error_mm": round(
+                0.5 * (self.abs_error / n) + 0.5 * (self.wet_abs_error / self.wet_sample_count), 3
+            ) if n and self.wet_sample_count >= 20 else (round(self.abs_error / n, 3) if n else None),
             "POD": round(self.hit / pod_den, 4) if pod_den else None,
             "FAR": round(self.false_alarm / far_den, 4) if far_den else None,
             "CSI": round(self.hit / csi_den, 4) if csi_den else None,
@@ -570,7 +583,7 @@ def verify_and_weight(now: datetime) -> dict:
         key = str(lead)
         rows = {source: score.result() for source, score in global_scores[key].items()}
         metrics["lead_days"][key] = rows
-        amount_weights = normalized_weights(rows, "MAE_mm", MIN_GLOBAL_PAIRS, 2000)
+        amount_weights = normalized_weights(rows, "Weight_error_mm", MIN_GLOBAL_PAIRS, 2000)
         prob_scores = {
             source: {
                 "sample_count": row.get("probability_sample_count", 0),
@@ -597,7 +610,7 @@ def verify_and_weight(now: datetime) -> dict:
             key = str(lead)
             rows = {source: score.result() for source, score in leads[key].items()}
             course_out[key] = rows
-            local_weights = normalized_weights(rows, "MAE_mm", MIN_COURSE_PAIRS, 500)
+            local_weights = normalized_weights(rows, "Weight_error_mm", MIN_COURSE_PAIRS, 500)
             if local_weights:
                 course_weight_out[key] = local_weights
         metrics["by_course"][course_name] = course_out
