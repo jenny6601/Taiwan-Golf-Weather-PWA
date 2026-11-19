@@ -1729,7 +1729,7 @@ async function loadVerificationDashboard(courseName,leadDays){
    const values=Object.entries(rows).filter(([,v])=>v.sample_count>0);
    const best=values.filter(([,v])=>v.MAE_mm!==null).sort((a,b)=>a[1].MAE_mm-b[1].MAE_mm)[0];
    const bestProb=values.filter(([,v])=>v.Brier_score!==null).sort((a,b)=>a[1].Brier_score-b[1].Brier_score)[0];
-   const state=weights.lead_days?.[String(day)]?.weighting_active?"已啟用":"暖機中";
+   const weightState=weights.lead_days?.[String(day)]||{},state=[weightState.amount_weighting_active?"雨量":"",weightState.probability_weighting_active?"機率":""].filter(Boolean).join("＋")||"暖機中";
    const n=best?best[1].sample_count:0;
    return "<tr><td>"+day+" 天</td><td>"+(best?esc(best[0]):"—")+"</td><td>"+(best?num(best[1].MAE_mm,2):"—")+"</td><td>"+(bestProb?esc(bestProb[0]):"—")+"</td><td>"+(bestProb?num(bestProb[1].Brier_score,3):"—")+"</td><td>"+n+"</td><td>"+state+"</td></tr>";
   }).join("");
