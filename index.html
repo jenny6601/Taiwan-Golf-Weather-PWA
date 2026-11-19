@@ -1683,8 +1683,9 @@ async function loadV28ProviderCache(courseName,date){
    if(p.status!=="ok"||!hs.length)continue;
    const wanted=hs.filter(x=>{const h=Number(String(x.time||"").slice(11,13));return h>=6&&h<=18;});
    if(!wanted.length)continue;
-   const avg=k=>{const a=wanted.map(x=>Number(x[k])).filter(Number.isFinite);return a.length?(a.reduce((z,v)=>z+v,0)/a.length).toFixed(1):"—";};
-   const max=k=>{const a=wanted.map(x=>Number(x[k])).filter(Number.isFinite);return a.length?Math.max(...a).toFixed(1):"—";};
+   const values=k=>wanted.map(x=>x[k]).filter(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))).map(Number);
+   const avg=k=>{const a=values(k);return a.length?(a.reduce((z,v)=>z+v,0)/a.length).toFixed(1):"—";};
+   const max=k=>{const a=values(k);return a.length?Math.max(...a).toFixed(1):"—";};
    rows.push({provider:p.display_name||provider,temp:avg("temperature_2m"),feel:avg("apparent_temperature"),rain:max("precipitation_probability"),mm:avg("precipitation"),wind:avg("wind_speed_10m"),gust:max("wind_gusts_10m"),count:wanted.length});
   }
   if(!rows.length)throw Error("快取已存在，但所選日期沒有有效逐時資料");
