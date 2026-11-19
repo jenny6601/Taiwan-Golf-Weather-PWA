@@ -188,7 +188,13 @@ def archive_forecast_vintage(now: datetime) -> dict:
     issue_date = now.astimezone(TZ).date()
     out_path = ROOT / "forecasts" / f"{issue_date.isoformat()}.json.gz"
     if out_path.exists():
-        return {"status": "already_archived", "issue_date": issue_date.isoformat()}
+        try:
+            previous_vintage = read_gzip_json(out_path)
+            if len(previous_vintage.get("courses", {})) == 57:
+                return {"status": "already_archived", "issue_date": issue_date.isoformat()}
+        except Exception:
+            pass
+        out_path.unlink(missing_ok=True)
 
     course_index = get_json(COURSE_INDEX_URL)
     course_generated = parse_dt(course_index.get("generated_at"))
