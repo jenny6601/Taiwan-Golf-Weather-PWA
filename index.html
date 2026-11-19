@@ -1657,7 +1657,7 @@ async function getRainProbability(lat,lon,date){
  if(!Object.keys(fallback).length)throw Error('Best Match 未回傳所選日期的逐時降雨機率');
  return {rows:fallback,source:'Best Match 系集機率',detail:'系集成員API未取得有效資料，改用Open-Meteo Best Match的系集降雨機率（約30組模擬）'};
 }
-function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return rainAmountHTML(null);const lo=row.spreads?.mmMin,hi=row.spreads?.mmMax;const base=rainAmountHTML(n);return lo===undefined||hi===undefined?base:`<span title="六模型可用雨量${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)} mm">${base}<small style="display:block;color:#64748b;font-size:10px">${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)}</small></span>`;}
+function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return rainAmountHTML(null);const lo=row.spreads?.mmMin,hi=row.spreads?.mmMax;const base=rainAmountHTML(n);return lo===undefined||hi===undefined?base:`<span title="融合來源雨量${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)} mm">${base}<small style="display:block;color:#64748b;font-size:10px">${Number(lo).toFixed(1)}–${Number(hi).toFixed(1)}</small></span>`;}
 function median(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
 function spread(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return a.length>=2?Math.max(...a)-Math.min(...a):null;}
 function circularMean(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(!a.length)return null;let x=0,y=0;a.forEach(v=>{x+=Math.cos(v*Math.PI/180);y+=Math.sin(v*Math.PI/180)});return (Math.atan2(y,x)*180/Math.PI+360)%360;}
@@ -1669,17 +1669,33 @@ function weightedRainAmount(pairs,weights){
  if(total<=0)return null;
  return usable.reduce((z,x)=>z+Number(x.row.mm)*Number(weights[x.name]),0)/total;
 }
-function consensusRows(modelRows,amountWeights=null){
+function consensusRows(modelRows,amountWeights=null,externalRainRows={}){
  const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);
  return times.map(time=>{
   const pairs=names.map(n=>({name:n,row:modelRows[n].find(x=>x.time===time)})).filter(x=>x.row);
+  const rainPairs=pairs.concat(Object.entries(externalRainRows).map(([name,rows])=>({name,row:rows.find(x=>x.time===time)})).filter(x=>x.row));
   const rs=pairs.map(x=>x.row),get=k=>median(rs.map(x=>x[k])),codes=rs.map(x=>x.code).filter(x=>x!==null);
   let code=null;
   if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}
-  const amounts=rs.map(x=>x.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);
-  const weighted=weightedRainAmount(pairs,amountWeights);
+  const amounts=rainPairs.map(x=>x.row.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);
+  const weighted=weightedRainAmount(rainPairs,amountWeights);
   return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:get('rain'),mm:weighted===null?get('mm'):weighted,weightingApplied:weighted!==null,code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
  });
+}
+async function loadVisualCrossingRainRows(courseName,date){
+ const base="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/visual-crossing-cache/";
+ const index=await fetchJsonBounded(base+"index.json?ts="+Date.now(),6000,"no-store");
+ const rel=index.courses?.[courseName];
+ if(!rel)return [];
+ const cache=await fetchJsonBounded(base+rel+"?v="+encodeURIComponent(index.generated_at||"latest"),6000,"no-cache");
+ const key=(cache.courses||{})[courseName]||Object.entries(cache.courses||{}).find(([n])=>String(n).trim().normalize("NFC")===String(courseName).trim().normalize("NFC"))?.[1];
+ const hours=key?.[date]?.providers?.["Visual Crossing"]?.hourly||[];
+ return hours.filter(x=>{const h=Number(String(x.time||"").slice(11,13));return h>=6&&h<=18;}).map(x=>({
+  time:String(x.time||"").slice(11,16),mm:x.precipitation??null,rain:x.precipitation_probability??null,
+  temp:x.temperature_2m??null,feel:x.apparent_temperature??null,wind:x.wind_speed_10m??null,
+  gust:x.wind_gusts_10m??null,dir:x.wind_direction_10m??null,rh:x.relative_humidity_2m??null,
+  cloud:x.cloud_cover??null,uv:x.uv_index??null,code:null,available:true
+ }));
 }
 let verificationWeightsPromise=null;
 async function loadVerificationWeights(){
@@ -1864,7 +1880,15 @@ let amountWeights=null,weightingLabel="等權中位數（歷史資料累積中�
    }
   }catch(e){}
  }
- let base=consensusRows(active.modelRows,amountWeights);
+ let externalRainRows={};
+ if(amountWeights&&Number(amountWeights["Visual Crossing"])>0){
+  try{
+   const vcRows=await loadVisualCrossingRainRows(p.name,date);
+   if(vcRows.length){externalRainRows["Visual Crossing"]=vcRows;weightingLabel+="＋Visual Crossing";}
+   else weightingLabel+="（Visual Crossing該日資料缺漏）";
+  }catch(e){weightingLabel+="（Visual Crossing暫缺，使用可用模式權重）";}
+ }
+ let base=consensusRows(active.modelRows,amountWeights,externalRainRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
  let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'既有模式快取',detail:'降雨機率採有提供此欄位的模式逐時值中位數；AIFS 不提供原生降雨機率'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
