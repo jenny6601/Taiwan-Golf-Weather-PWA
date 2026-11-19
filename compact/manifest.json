@@ -1,7 +1,7 @@
 {
   "id": "/Taiwan-Golf-Weather-PWA/compact/index.html",
   "name": "台灣高爾夫球場天氣精簡版",
-  "short_name": "Golf 精簡版",
+  "short_name": "球場天氣精簡",
   "description": "台灣57座高爾夫球場16天白天趨勢與06:00–18:00逐時天氣",
   "lang": "zh-TW",
   "start_url": "/Taiwan-Golf-Weather-PWA/compact/index.html",
@@ -12,19 +12,19 @@
   "theme_color": "#103b31",
   "icons": [
     {
-      "src": "./icon-192.png?v=2",
+      "src": "/Taiwan-Golf-Weather-PWA/compact/icon-192.png?v=4",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512.png?v=2",
+      "src": "/Taiwan-Golf-Weather-PWA/compact/icon-512.png?v=4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512.png?v=2",
+      "src": "/Taiwan-Golf-Weather-PWA/compact/icon-512.png?v=4",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
