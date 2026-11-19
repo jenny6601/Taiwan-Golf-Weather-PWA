@@ -56,7 +56,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 #liveObservationPanel{background:#EAF3FC;border:1px solid #C6D9ED;border-radius:16px;padding:0;overflow:hidden}
 #liveObservationPanel .live-observation-heading{background:#173D68;color:#fff;padding:15px 16px;align-items:center}
 #liveObservationPanel .live-observation-heading h3{color:#fff;font-size:clamp(21px,3vw,26px);font-weight:850;letter-spacing:.02em}
-#liveObservationPanel .live-observation-heading:after{content:"LIVE";display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;background:#167C54;color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em}
+#liveObservationPanel .live-observation-heading:after{content:none!important;display:none!important}
 #liveObservationPanel .live-data-details{margin:12px 14px 0}
 #liveObservationPanel .live-data-details>summary{background:#F7FAFD;border-color:#C6D9ED;color:#526B88}
 #liveObservationPanel .live-observation-grid{padding:0 14px 14px;margin-top:12px}
@@ -1291,7 +1291,8 @@ function updateWeatherDateHeadings(liveDate,forecastDate){
  // 即時觀測維持台灣當地今日日期；四個預報區塊共用使用者選取的預報日期。
  const taiwanToday=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
  const dateLabel=golfDateLabel(forecastDate);
- if(live)live.textContent="即時天氣觀測｜"+golfDateLabel(taiwanToday);
+ const liveCourseName=(active?.name||$("locname")?.textContent||"").replace(/高爾夫球場/g,"").trim();
+ if(live)live.textContent="即時天氣觀測｜"+(liveCourseName?liveCourseName+"｜":"")+golfDateLabel(taiwanToday);
  renderSelectedHourlySections(active?.rows||[]);
 
 }
