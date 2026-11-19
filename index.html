@@ -1891,12 +1891,49 @@ const dailyForecastCache=new Map();
 function dailyMedian(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
 function dailyWx(code){const n=Number(code);if(!Number.isFinite(n))return {icon:"—",desc:"無資料"};if(n===0)return {icon:"☀️",desc:"晴"};if(n<=2)return {icon:"🌤️",desc:"多雲時晴"};if(n===3)return {icon:"☁️",desc:"陰／多雲"};if([45,48].includes(n))return {icon:"🌫️",desc:"霧"};if([51,53,55,56,57].includes(n))return {icon:"🌦️",desc:"毛毛雨"};if([61,63,65,66,67,80,81,82].includes(n))return {icon:"🌧️",desc:n>=80?"陣雨":"雨"};if([71,73,75,77,85,86].includes(n))return {icon:"🌨️",desc:"降雪"};if([95,96,99].includes(n))return {icon:"⛈️",desc:"雷雨"};return {icon:"☁️",desc:"多雲"};}
 async function fetchDailyForecast(lat,lon){
- const key=Number(lat).toFixed(4)+","+Number(lon).toFixed(4),cached=dailyForecastCache.get(key);if(cached&&Date.now()-cached.at<20*60*1000)return cached.rows;
- const fields="temperature_2m_max,temperature_2m_min,apparent_temperature_mean,precipitation_sum,precipitation_probability_max,weather_code";
- const results=await Promise.allSettled(modelDefs.map(async m=>{const days=m[1]==="ecmwf_aifs025_single"?15:16;const q=new URLSearchParams({latitude:String(lat),longitude:String(lon),daily:fields,timezone:"Asia/Taipei",forecast_days:String(days),wind_speed_unit:"kmh",models:m[1]});const d=await fetchJsonBounded("https://api.open-meteo.com/v1/forecast?"+q.toString(),18000,"no-cache");if(!d.daily||!Array.isArray(d.daily.time))throw Error(m[0]+"未回傳逐日資料");return {name:m[0],daily:d.daily};}));
- const good=results.filter(x=>x.status==="fulfilled").map(x=>x.value);if(!good.length)throw Error("六個氣象模型均未能取得逐日資料");
+ const key=Number(lat).toFixed(4)+","+Number(lon).toFixed(4),cached=dailyForecastCache.get(key);
+ if(cached&&Date.now()-cached.at<20*60*1000)return cached.rows;
+ // 每個模式先計算台灣時間06:00–18:00白天統計，再整合六模式中位數。
+ const hourlyFields="temperature_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m";
+ const results=await Promise.allSettled(modelDefs.map(async m=>{
+  const days=m[1]==="ecmwf_aifs025_single"?15:16;
+  const q=new URLSearchParams({latitude:String(lat),longitude:String(lon),hourly:hourlyFields,timezone:"Asia/Taipei",forecast_days:String(days),wind_speed_unit:"kmh",models:m[1]});
+  const d=await fetchJsonBounded("https://api.open-meteo.com/v1/forecast?"+q.toString(),18000,"no-cache");
+  if(!d.hourly||!Array.isArray(d.hourly.time))throw Error(m[0]+"未回傳逐時資料");
+  const h=d.hourly,byDate=new Map();
+  for(let i=0;i<h.time.length;i++){
+   const stamp=h.time[i],hour=Number(stamp.slice(11,13));
+   if(hour<6||hour>18)continue;
+   const date=stamp.slice(0,10),get=k=>h[k]?.[i]??null;
+   if(!byDate.has(date))byDate.set(date,{temp:[],feel:[],rain:[],prob:[],codes:[],wind:[],gust:[]});
+   const v=byDate.get(date);
+   for(const [key,field] of [["temp","temperature_2m"],["feel","apparent_temperature"],["rain","precipitation"],["prob","precipitation_probability"],["wind","wind_speed_10m"],["gust","wind_gusts_10m"]]){
+    const n=get(field);if(n!==null&&Number.isFinite(Number(n)))v[key].push(Number(n));
+   }
+   const code=get("weather_code");if(code!==null&&Number.isFinite(Number(code)))v.codes.push(Number(code));
+  }
+  const daily={};
+  for(const [date,v] of byDate){
+   const counts={};v.codes.forEach(n=>counts[n]=(counts[n]||0)+1);
+   const code=Object.keys(counts).length?Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]):null;
+   daily[date]={hi:v.temp.length?Math.max(...v.temp):null,lo:v.temp.length?Math.min(...v.temp):null,feel:dailyMedian(v.feel),rain:v.rain.length?v.rain.reduce((a,b)=>a+b,0):null,prob:v.prob.length?Math.max(...v.prob):null,code,wind:dailyMedian(v.wind),gust:v.gust.length?Math.max(...v.gust):null};
+  }
+  return {name:m[0],daily};
+ }));
+ const good=results.filter(x=>x.status==="fulfilled").map(x=>x.value);
+ if(!good.length)throw Error("六個氣象模型均未能取得白天逐時資料");
  const dates=Array.from({length:16},(_,i)=>taiwanYmd(i));
- const rows=dates.map(date=>{const vals={hi:[],lo:[],feel:[],rain:[],prob:[],codes:[]};for(const model of good){const d=model.daily,i=d.time.indexOf(date);if(i<0)continue;const get=k=>d[k]?.[i]??null;for(const [k,field] of [["hi","temperature_2m_max"],["lo","temperature_2m_min"],["feel","apparent_temperature_mean"],["rain","precipitation_sum"],["prob","precipitation_probability_max"]]){const v=get(field);if(v!==null&&Number.isFinite(Number(v)))vals[k].push(Number(v));}const code=get("weather_code");if(code!==null)vals.codes.push(Number(code));}const code=vals.codes.length?Number(Object.entries(vals.codes.reduce((o,v)=>(o[v]=(o[v]||0)+1,o),{})).sort((a,b)=>b[1]-a[1])[0][0]):null;return {date,hi:dailyMedian(vals.hi),lo:dailyMedian(vals.lo),feel:dailyMedian(vals.feel),rain:dailyMedian(vals.rain),prob:dailyMedian(vals.prob),code,modelCount:vals.hi.length};});
+ const rows=dates.map(date=>{
+  const vals={hi:[],lo:[],feel:[],rain:[],prob:[],codes:[],wind:[],gust:[]};
+  for(const model of good){
+   const d=model.daily[date];if(!d)continue;
+   for(const k of ["hi","lo","feel","rain","prob","wind","gust"]){const v=d[k];if(v!==null&&Number.isFinite(Number(v)))vals[k].push(Number(v));}
+   if(d.code!==null)vals.codes.push(d.code);
+  }
+  const counts={};vals.codes.forEach(n=>counts[n]=(counts[n]||0)+1);
+  const code=Object.keys(counts).length?Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]):null;
+  return {date,hi:dailyMedian(vals.hi),lo:dailyMedian(vals.lo),feel:dailyMedian(vals.feel),rain:dailyMedian(vals.rain),prob:dailyMedian(vals.prob),code,wind:dailyMedian(vals.wind),gust:dailyMedian(vals.gust),modelCount:vals.hi.length,probModelCount:vals.prob.length};
+ });
  dailyForecastCache.set(key,{at:Date.now(),rows});return rows;
 }
 function renderDailyForecast(rows,courseName){
@@ -1913,9 +1950,9 @@ function renderDailyForecast(rows,courseName){
  const grid=[min,Math.round((min+max)/2),max].map(v=>'<line x1="0" y1="'+y(v)+'" x2="'+(col*16)+'" y2="'+y(v)+'" stroke="#9aafbd" stroke-opacity=".25" stroke-dasharray="3 3"/><text x="3" y="'+(y(v)-3)+'" font-size="8" fill="#708697">'+v+'°</text>').join("");
  const dates=displayRows.map(r=>{const d=new Date(r.date+"T12:00:00+08:00"),wd=["日","一","二","三","四","五","六"][d.getDay()];return '<div class="daily-date-cell">星期'+wd+'<span class="date">'+r.date.slice(5).replace("-","/")+'</span></div>';}).join("");
  const weather=displayRows.map(r=>{const w=dailyWx(r.code);return '<div class="daily-weather-cell"><div class="daily-icon">'+w.icon+'</div><div class="daily-desc">'+w.desc+'</div></div>';}).join("");
- const rain=displayRows.map(r=>'<div class="daily-rain-cell"><small>降雨機率</small><div class="rain-prob">'+(r.prob===null?"—":Math.round(r.prob)+"%")+'</div><small>累積雨量</small><div class="rain-mm">'+(r.rain===null?"—":Number(r.rain).toFixed(1))+'</div><small>mm</small></div>').join("");
+ const rain=displayRows.map(r=>'<div class="daily-rain-cell"><small>06–18降雨機率</small><div class="rain-prob">'+(r.prob===null?"—":Math.round(r.prob)+"%")+'</div><small>白天累積雨量</small><div class="rain-mm">'+(r.rain===null?"—":Number(r.rain).toFixed(1))+'</div><small>mm</small><small style="margin-top:5px">平均風速</small><div class="rain-mm">'+(r.wind===null?"—":Number(r.wind).toFixed(1))+'</div><small>最大陣風</small><div class="rain-mm">'+(r.gust===null?"—":Number(r.gust).toFixed(1))+'</div><small>km/h</small></div>').join("");
  target.innerHTML='<div class="daily-grid">'+dates+'</div><svg class="daily-temp-chart" width="'+chartWidth+'" height="'+chartH+'" viewBox="0 0 '+chartWidth+' '+chartH+'" role="img" aria-label="僅顯示前16天最高溫、最低溫與體感溫度曲線"><defs><clipPath id="dailyTempCurveClip"><rect x="0" y="0" width="'+chartWidth+'" height="'+chartH+'"/></clipPath></defs><g clip-path="url(#dailyTempCurveClip)">'+grid+paths+points+'</g></svg><div class="daily-grid">'+weather+'</div><div class="daily-grid">'+rain+'</div>';
- const count=Math.max(...rows.map(x=>x.modelCount||0));if(heading)heading.textContent="⓪ 16天逐日天氣預報｜"+(courseName||"已選球場");if(status)status.textContent="逐日預報｜最多"+count+"個來源可用（六模型中位數）｜每日最高／最低溫、平均體感、降雨機率及全天累積雨量。AIFS可用天數較短時，後段日期以其他可用模式整合；雨量尚未套用逐時歷史權重。";const sc=$("dailyForecastScroll");if(sc)sc.scrollLeft=0;
+ const count=Math.max(...rows.map(x=>x.modelCount||0));if(heading)heading.textContent="⓪ 16天逐日天氣預報｜"+(courseName||"已選球場");if(status)status.textContent="白天逐日預報｜每日06:00–18:00｜各模型先計算白天逐時統計，再以可用模型中位數整合；顯示白天最高／最低溫、平均體感、最高逐時降雨機率、白天累積雨量、平均風速及最大陣風。可用模型數："+count+"；降雨機率可用模型數依日期而異。";const sc=$("dailyForecastScroll");if(sc)sc.scrollLeft=0;
 }
 async function loadAndRenderDailyForecast(p){const status=$("dailyForecastStatus");if(status)status.textContent="正在取得六模型16天逐日資料…";try{const rows=await fetchDailyForecast(p.lat,p.lon);renderDailyForecast(rows,p.name);}catch(e){const target=$("dailyForecastInner");if(target)target.innerHTML='<div class="daily-forecast-placeholder">逐日預報暫時無法取得：'+esc(e.message)+'</div>';if(status)status.textContent="逐日預報載入失敗；原有逐時預報不受影響。";}}
 async function loadForecast(p,date,forceRefresh=false){
