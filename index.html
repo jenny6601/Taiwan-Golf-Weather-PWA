@@ -1195,13 +1195,9 @@ function golfDateLabel(value){
 }
 function updateWeatherDateHeadings(liveDate,forecastDate){
  const live=$("liveObservationHeading"),forecast=$("hourlyForecastHeading");
- // 即時快照的 generated_at 為 UTC 時間，標題必須轉成台灣時區日期，避免午夜前後顯示前一天。
- let liveTaiwanDate=liveDate;
- if(liveDate){
-  const parsed=new Date(liveDate);
-  if(!Number.isNaN(parsed.getTime()))liveTaiwanDate=parsed.toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"});
- }
- if(live)live.textContent="即時天氣觀測｜"+golfDateLabel(liveTaiwanDate);
+ // 即時觀測標題固定採台灣當地今日日期，不使用CWA快照的UTC generated_at日期。
+ const taiwanToday=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ if(live)live.textContent="即時天氣觀測｜"+golfDateLabel(taiwanToday);
  if(forecast)forecast.textContent="① 逐時天氣預報｜"+golfDateLabel(forecastDate)+"（06:00–18:00）";
 }
 function liveFmt(value,digits,suffix){
