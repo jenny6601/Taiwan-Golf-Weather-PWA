@@ -1802,7 +1802,7 @@ async function loadV28ProviderCache(courseName,date){
   if(!rows.length)throw Error("快取已存在，但所選日期沒有有效逐時資料");
   target.innerHTML='<table class="provider-table"><thead><tr><th>外部來源</th><th>平均氣溫</th><th>平均體感</th><th>最高降雨機率</th><th>平均雨量</th><th>平均風速</th><th>最大陣風</th><th>時數</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.provider)+'</td><td>'+x.temp+'</td><td>'+x.feel+'</td><td>'+x.rain+'%</td><td>'+x.mm+' mm</td><td>'+x.wind+'</td><td>'+x.gust+'</td><td>'+x.count+'/13</td></tr>').join("")+'</tbody></table>';
   const stamp=index.generated_at||d.generated_at||"未提供";
-  status.textContent="Visual Crossing 獨立快取已載入｜全台 "+(index.course_count||57)+" 座｜更新："+stamp+"。不納入六模型中位數。";
+  status.textContent="Visual Crossing 獨立快取已載入｜全台 "+(index.course_count||57)+" 座｜更新："+stamp+"。不列入六模型等權中位數；達標時另依歷史權重參與雨量融合。";
   if(vcStatus)vcStatus.textContent="已啟用｜全台 "+(index.course_count||57)+" 座球場｜15天逐時｜更新 "+stamp;
  }catch(e){
   status.textContent="Visual Crossing 資料尚未載入："+e.message+"。原有六模型預報不受影響。";
