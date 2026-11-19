@@ -32,7 +32,7 @@ jobs:
           python-version: "3.12"
       - name: Fetch 57-course 15-day hourly forecasts
         env:
-          VISUAL_CROSSING_API_KEY: \${{ secrets.VISUAL_CROSSING_API_KEY }}
+          VISUAL_CROSSING_API_KEY: ${{ secrets.VISUAL_CROSSING_API_KEY }}
         run: python scripts/visual_crossing_pilot.py /tmp/visual-crossing-pilot.json
       - name: Split and validate per-course public cache
         run: python scripts/split_visual_crossing_cache.py /tmp/visual-crossing-pilot.json /tmp/visual-crossing-cache
