@@ -1739,7 +1739,8 @@ async function loadVerificationDashboard(courseName,leadDays){
   const hasCourse=Object.values(courseMetrics).some(x=>x.sample_count>0);
   const rows=hasCourse?courseMetrics:(metrics.lead_days?.[String(selected)]||{});
   const localAmountWeights=weights.by_course?.[courseName]?.[String(selected)];
-  const amountWeights=localAmountWeights||weights.lead_days?.[String(selected)]?.amount_weights||{};
+  const globalAmountWeights=weights.lead_days?.[String(selected)]?.amount_weights||{};
+  const amountWeights=localAmountWeights?{...globalAmountWeights,...localAmountWeights}:globalAmountWeights;
   const probabilityWeights=weights.lead_days?.[String(selected)]?.probability_weights||{};
   const sources=[...new Set([...Object.keys(rows),...Object.keys(amountWeights),...Object.keys(probabilityWeights)])];
   sources.sort((a,b)=>(rows[a]?.MAE_mm??Infinity)-(rows[b]?.MAE_mm??Infinity));
@@ -1922,9 +1923,10 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
   try{
    const weightDoc=await loadVerificationWeights(),lead=weightDoc?.lead_days?.[String(leadDays)];
    const courseWeights=weightDoc?.by_course?.[p.name]?.[String(leadDays)];
-   const amountCandidate=courseWeights||lead?.amount_weights;
+   const globalAmountWeights=lead?.amount_weights||{};
+   const amountCandidate=courseWeights?{...globalAmountWeights,...courseWeights}:globalAmountWeights;
    const probabilityCandidate=lead?.probability_weights;
-   if(amountCandidate&&Object.keys(amountCandidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3)amountWeights=amountCandidate;
+   if(Object.keys(amountCandidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3)amountWeights=amountCandidate;
    if(probabilityCandidate&&Object.keys(probabilityCandidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3)probabilityWeights=probabilityCandidate;
    if(amountWeights||probabilityWeights){
     const mode=courseWeights&&amountWeights?"逐球場雨量權重":"全台回測權重";
