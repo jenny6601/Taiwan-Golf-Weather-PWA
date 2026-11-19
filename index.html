@@ -223,6 +223,24 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .daily-rain-cell{background:#edf4f8;padding-top:8px;padding-bottom:9px}.daily-rain-cell .rain-prob{font-size:13px;font-weight:850;color:#b88718}.daily-rain-cell .rain-mm{font-size:13px;font-weight:850;color:#247db7;margin-top:7px}.daily-rain-cell small{display:block;font-size:9px;color:#60798b}
 .daily-forecast-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:11px;color:#526779}.daily-forecast-legend span{display:inline-flex;align-items:center;gap:5px}.daily-dot{width:9px;height:9px;border-radius:50%;display:inline-block}.daily-high{background:#e76b55}.daily-low{background:#399be0}.daily-feel{background:#d5a02c}
 @media(max-width:600px){.daily-temp-chart{height:178px}.daily-date-cell{font-size:10px}.daily-weather-cell{min-height:105px}.daily-weather-cell .daily-icon{font-size:22px}.daily-weather-cell .daily-desc{font-size:9px}.daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-size:12px}}
+
+/* Readability and compact weather-condition row */
+.daily-date-cell{font-weight:900;color:#172f40}
+.daily-date-cell .date{font-weight:800;color:#344f62}
+.daily-weather-cell{min-height:0!important;padding:4px 1px 5px!important}
+.daily-weather-cell .daily-icon{font-size:22px!important;line-height:1.1!important;min-height:24px!important}
+.daily-weather-cell .daily-desc{font-size:10px!important;font-weight:850!important;line-height:1.2!important;min-height:0!important;color:#20394b!important;overflow-wrap:anywhere}
+.daily-rain-cell{padding-top:5px!important;padding-bottom:6px!important}
+.daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-weight:900!important}
+.daily-rain-cell small{font-weight:750!important;color:#354f62!important}
+.daily-forecast-legend{font-weight:750!important;color:#334b5d!important}
+@media(max-width:600px){
+ .daily-weather-cell{min-height:0!important;padding:3px 1px 4px!important}
+ .daily-weather-cell .daily-icon{font-size:20px!important;min-height:22px!important}
+ .daily-weather-cell .daily-desc{font-size:9px!important;font-weight:900!important;line-height:1.15!important}
+ .daily-date-cell,.daily-date-cell .date{font-weight:900!important}
+ .daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-weight:900!important}
+}
 </style>
 <style>@media(max-width:600px){section.mobile-hide-sources{display:block!important}}</style>
 
