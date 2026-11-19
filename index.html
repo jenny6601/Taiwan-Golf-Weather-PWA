@@ -1713,6 +1713,47 @@ async function loadVerificationWeights(){
  }
  return verificationWeightsPromise;
 }
+async function loadVerificationDashboard(courseName,leadDays){
+ const status=$("verificationHistoryStatus"),leadTarget=$("verificationLeadTable"),sourceTarget=$("verificationSourceTable");
+ if(!status||!leadTarget||!sourceTarget)return;
+ try{
+  const base="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/verification-history/verification/";
+  const [metrics,weights]=await Promise.all([
+   fetchJsonBounded(base+"metrics/latest.json?ts="+Date.now(),6000,"no-store"),
+   loadVerificationWeights()
+  ]);
+  if(!metrics||!weights)throw Error("尚未產生歷史驗證報告");
+  const leads=[1,3,5,7,10,14],num=(v,d=2)=>v===null||v===undefined||!Number.isFinite(Number(v))?"—":Number(v).toFixed(d);
+  const summaryRows=leads.map(day=>{
+   const rows=metrics.lead_days?.[String(day)]||{};
+   const values=Object.entries(rows).filter(([,v])=>v.sample_count>0);
+   const best=values.filter(([,v])=>v.MAE_mm!==null).sort((a,b)=>a[1].MAE_mm-b[1].MAE_mm)[0];
+   const bestProb=values.filter(([,v])=>v.Brier_score!==null).sort((a,b)=>a[1].Brier_score-b[1].Brier_score)[0];
+   const state=weights.lead_days?.[String(day)]?.weighting_active?"已啟用":"暖機中";
+   const n=best?best[1].sample_count:0;
+   return "<tr><td>"+day+" 天</td><td>"+(best?esc(best[0]):"—")+"</td><td>"+(best?num(best[1].MAE_mm,2):"—")+"</td><td>"+(bestProb?esc(bestProb[0]):"—")+"</td><td>"+(bestProb?num(bestProb[1].Brier_score,3):"—")+"</td><td>"+n+"</td><td>"+state+"</td></tr>";
+  }).join("");
+  leadTarget.innerHTML='<div class="provider-table-wrap"><table class="provider-table"><thead><tr><th>提前期</th><th>雨量 MAE 最佳</th><th>MAE mm</th><th>Brier 最佳</th><th>Brier</th><th>樣本數</th><th>權重</th></tr></thead><tbody>'+summaryRows+'</tbody></table></div>';
+  const selected=leadDays>=1&&leadDays<=14?leadDays:1;
+  const courseMetrics=metrics.by_course?.[courseName]?.[String(selected)]||{};
+  const hasCourse=Object.values(courseMetrics).some(x=>x.sample_count>0);
+  const rows=hasCourse?courseMetrics:(metrics.lead_days?.[String(selected)]||{});
+  const localAmountWeights=weights.by_course?.[courseName]?.[String(selected)];
+  const amountWeights=localAmountWeights||weights.lead_days?.[String(selected)]?.amount_weights||{};
+  const probabilityWeights=weights.lead_days?.[String(selected)]?.probability_weights||{};
+  const sources=[...new Set([...Object.keys(rows),...Object.keys(amountWeights),...Object.keys(probabilityWeights)])];
+  sources.sort((a,b)=>(rows[a]?.MAE_mm??Infinity)-(rows[b]?.MAE_mm??Infinity));
+  const sourceRows=sources.map(name=>{
+   const r=rows[name]||{},wa=amountWeights[name],wp=probabilityWeights[name];
+   return "<tr><td>"+esc(name)+"</td><td>"+(r.sample_count||0)+"</td><td>"+num(r.MAE_mm)+"</td><td>"+num(r.RMSE_mm)+"</td><td>"+num(r.Bias_mm)+"</td><td>"+num(r.CSI,3)+"</td><td>"+num(r.Brier_score,3)+"</td><td>"+(wa===undefined?"—":(wa*100).toFixed(1)+"%")+"</td><td>"+(wp===undefined?"—":(wp*100).toFixed(1)+"%")+"</td></tr>";
+  }).join("");
+  sourceTarget.innerHTML='<h4 style="margin:12px 0 6px">'+esc(courseName)+'｜'+selected+'天提前期｜'+(hasCourse?"本球場":"全台統計（本球場樣本不足）")+'</h4><div class="provider-table-wrap"><table class="provider-table"><thead><tr><th>來源</th><th>N</th><th>MAE</th><th>RMSE</th><th>Bias</th><th>CSI</th><th>Brier</th><th>雨量權重</th><th>機率權重</th></tr></thead><tbody>'+(sourceRows||'<tr><td colspan="9">尚無足夠的已驗證逐時資料。</td></tr>')+'</tbody></table></div>';
+  status.textContent="資料更新："+(metrics.generated_at||"—")+"｜已評估預報版本："+(metrics.evaluated_vintages||0)+"｜權重狀態："+weights.status+"。雨量站距離限制 "+(metrics.station_distance_limit_km||15)+" km；10分鐘雨量優先累加，資料不足才使用1小時備援。";
+ }catch(e){
+  status.textContent="歷史驗證資料尚未就緒："+e.message;
+  leadTarget.innerHTML="";sourceTarget.innerHTML="";
+ }
+}
 // V29: 外部服務只讀取後端／GitHub Actions 產生的標準化快取，不在瀏覽器暴露 API Key。
 // 快取格式範例見 v28-provider-cache.schema.json；外部服務尚未經回測前，不混入六模型中位數。
 async function loadV28ProviderCache(courseName,date){
@@ -1927,6 +1968,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
  const uncertainty="以系集成員估算；尚未完成台灣球場歷史校準";
  $("v26Interpretation").textContent=`模型分歧判讀：${uncertainty}。最高降雨機率改以系集成員比例估算；六個確定性模式僅比較可用欄位；AIFS 缺少原生降雨機率與陣風；最高氣溫分歧 ${tempSpread===null?"無法計算":tempSpread.toFixed(1)+" °C"}；最高陣風分歧 ${gustSpread===null?"無法計算":gustSpread.toFixed(1)+" km/h"}。模型一致不代表一定準確，仍須參考雷達、官方警特報及球場公告。`;
  $("tableNote").textContent=`${date}｜06:00–18:00逐時資料｜雨量融合：${weightingLabel}；降雨機率另採系集成員統計。成功取得 ${names.length}/6 組模型。`;
+ loadVerificationDashboard(p.name,leadDays);
  $("status").textContent=`預報完成｜${names.length}/6 模式`;
  $("courseAutoStatus").textContent=`${p.name}｜${date}｜座標 ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜${forecastSource}${modelErrors.length?"；部分模型失敗，詳見 API 診斷":""}`;
  loadRadar(p.lat,p.lon);
