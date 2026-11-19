@@ -1867,31 +1867,35 @@ async function loadForecast(p,date,forceRefresh=false){
  $("status").textContent="預報完成｜"+names.length+"/6 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");
  const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
-let amountWeights=null,weightingLabel="等權中位數（歷史資料累積中）";
+let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數（歷史資料累積中）";
  const localToday=new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"});
  const leadDays=Math.round((new Date(date+"T00:00:00+08:00")-new Date(localToday+"T00:00:00+08:00"))/86400000);
  if(leadDays>=1&&leadDays<=14){
   try{
    const weightDoc=await loadVerificationWeights(),lead=weightDoc?.lead_days?.[String(leadDays)];
    const courseWeights=weightDoc?.by_course?.[p.name]?.[String(leadDays)];
-   const candidate=courseWeights||lead?.amount_weights;
-   if(candidate&&Object.keys(candidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3){
-    amountWeights=candidate;
-    weightingLabel=courseWeights?"逐球場歷史回測權重（"+leadDays+"天）":"全台歷史回測權重（"+leadDays+"天）";
+   const amountCandidate=courseWeights||lead?.amount_weights;
+   const probabilityCandidate=lead?.probability_weights;
+   if(amountCandidate&&Object.keys(amountCandidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3)amountWeights=amountCandidate;
+   if(probabilityCandidate&&Object.keys(probabilityCandidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3)probabilityWeights=probabilityCandidate;
+   if(amountWeights||probabilityWeights){
+    const mode=courseWeights&&amountWeights?"逐球場雨量權重":"全台回測權重";
+    weightingLabel=mode+"（"+leadDays+"天）";
+    if(probabilityWeights)weightingLabel+="＋降雨機率校準";
    }
   }catch(e){}
  }
  let externalRainRows={};
- if(amountWeights&&Number(amountWeights["Visual Crossing"])>0){
+ if(Number(amountWeights?.["Visual Crossing"]||0)>0||Number(probabilityWeights?.["Visual Crossing"]||0)>0){
   try{
    const vcRows=await loadVisualCrossingRainRows(p.name,date);
    if(vcRows.length){externalRainRows["Visual Crossing"]=vcRows;weightingLabel+="＋Visual Crossing";}
    else weightingLabel+="（Visual Crossing該日資料缺漏）";
   }catch(e){weightingLabel+="（Visual Crossing暫缺，使用可用模式權重）";}
  }
- let base=consensusRows(active.modelRows,amountWeights,externalRainRows);
+ let base=consensusRows(active.modelRows,amountWeights,probabilityWeights,externalRainRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
- let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'既有模式快取',detail:'降雨機率採有提供此欄位的模式逐時值中位數；AIFS 不提供原生降雨機率'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
+ let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'既有模式快取',detail:'降雨機率採有提供欄位的模型資料；有歷史 Brier 權重時採加權融合，否則使用既有系集／模式機率；AIFS 不提供原生降雨機率'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
  const valid=base.filter(x=>x.available),avg=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?a.reduce((z,v)=>z+v,0)/a.length:null;},mx=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?Math.max(...a):null;};
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
