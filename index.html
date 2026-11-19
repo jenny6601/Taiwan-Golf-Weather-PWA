@@ -1606,7 +1606,8 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  for(let t=0;t<=tickCount;t++){
   const value=tempMin+(top-tempMin)*t/tickCount,y=yAt(value);
   ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();
-  ctx.fillStyle="#475569";ctx.fillText(`${Number(value.toFixed(0))}${unit}`,left-7,y);
+  ctx.fillStyle="#475569";const tickText=chartTheme==="rainAmount"?value.toFixed(1):Number(value.toFixed(0));
+  ctx.fillText(`${tickText}${unit}`,left-7,y);
  }
  ctx.strokeStyle="#94a3b8";ctx.beginPath();ctx.moveTo(left,topPad);ctx.lineTo(left,topPad+plotH);ctx.lineTo(w-right,topPad+plotH);ctx.stroke();
  const n=Math.max(1,series[0]?.length||0),xAt=i=>left+(i*plotW/Math.max(1,n-1));
