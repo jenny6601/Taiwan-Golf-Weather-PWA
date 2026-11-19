@@ -135,6 +135,12 @@ def archive_observations(now: datetime) -> dict:
     courses = snapshot.get("courses", {})
     if len(courses) != 57:
         raise RuntimeError(f"CWA live snapshot must contain all 57 courses; found {len(courses)}")
+    coverage = snapshot.get("coverage") or {}
+    if coverage and (
+        coverage.get("weather_courses", 0) < 50
+        or coverage.get("rainfall_courses", 0) < 50
+    ):
+        raise RuntimeError(f"CWA station coverage below verification threshold: {coverage}")
     day = generated_dt.astimezone(TZ).date().isoformat()
     path = ROOT / "observations" / f"{day}.jsonl.gz"
     history = read_gzip_jsonl(path)
