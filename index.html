@@ -1713,13 +1713,20 @@ async function loadVerificationWeights(){
  }
  return verificationWeightsPromise;
 }
+let verificationMetricsPromise=null;
+async function loadVerificationMetrics(){
+ if(!verificationMetricsPromise){
+  const url="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/verification-history/verification/metrics/latest.json?ts="+Date.now();
+  verificationMetricsPromise=fetchJsonBounded(url,6000,"no-store").catch(()=>null);
+ }
+ return verificationMetricsPromise;
+}
 async function loadVerificationDashboard(courseName,leadDays){
  const status=$("verificationHistoryStatus"),leadTarget=$("verificationLeadTable"),sourceTarget=$("verificationSourceTable");
  if(!status||!leadTarget||!sourceTarget)return;
  try{
-  const base="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/verification-history/verification/";
   const [metrics,weights]=await Promise.all([
-   fetchJsonBounded(base+"metrics/latest.json?ts="+Date.now(),6000,"no-store"),
+   loadVerificationMetrics(),
    loadVerificationWeights()
   ]);
   if(!metrics||!weights)throw Error("尚未產生歷史驗證報告");
