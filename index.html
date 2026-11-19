@@ -1661,15 +1661,15 @@ function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return r
 function median(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
 function spread(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return a.length>=2?Math.max(...a)-Math.min(...a):null;}
 function circularMean(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(!a.length)return null;let x=0,y=0;a.forEach(v=>{x+=Math.cos(v*Math.PI/180);y+=Math.sin(v*Math.PI/180)});return (Math.atan2(y,x)*180/Math.PI+360)%360;}
-function weightedRainAmount(pairs,weights){
+function weightedRainValue(pairs,weights,key){
  if(!weights)return null;
- const usable=pairs.filter(x=>x.row&&x.row.mm!==null&&x.row.mm!==undefined&&Number.isFinite(Number(x.row.mm))&&Number(weights[x.name])>0);
+ const usable=pairs.filter(x=>x.row&&x.row[key]!==null&&x.row[key]!==undefined&&Number.isFinite(Number(x.row[key]))&&Number(weights[x.name])>0);
  if(usable.length<3)return null;
  const total=usable.reduce((z,x)=>z+Number(weights[x.name]),0);
  if(total<=0)return null;
- return usable.reduce((z,x)=>z+Number(x.row.mm)*Number(weights[x.name]),0)/total;
+ return usable.reduce((z,x)=>z+Number(x.row[key])*Number(weights[x.name]),0)/total;
 }
-function consensusRows(modelRows,amountWeights=null,externalRainRows={}){
+function consensusRows(modelRows,amountWeights=null,probabilityWeights=null,externalRainRows={}){
  const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);
  return times.map(time=>{
   const pairs=names.map(n=>({name:n,row:modelRows[n].find(x=>x.time===time)})).filter(x=>x.row);
@@ -1678,8 +1678,9 @@ function consensusRows(modelRows,amountWeights=null,externalRainRows={}){
   let code=null;
   if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}
   const amounts=rainPairs.map(x=>x.row.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);
-  const weighted=weightedRainAmount(rainPairs,amountWeights);
-  return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:get('rain'),mm:weighted===null?get('mm'):weighted,weightingApplied:weighted!==null,code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
+  const weightedAmount=weightedRainValue(rainPairs,amountWeights,"mm");
+  const weightedProbability=weightedRainValue(rainPairs,probabilityWeights,"rain");
+  return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:weightedProbability===null?get('rain'):weightedProbability,mm:weightedAmount===null?get('mm'):weightedAmount,weightingApplied:weightedAmount!==null,probabilityWeightingApplied:weightedProbability!==null,code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
  });
 }
 async function loadVisualCrossingRainRows(courseName,date){
