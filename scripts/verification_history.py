@@ -133,8 +133,8 @@ def archive_observations(now: datetime) -> dict:
     if age_min < -5 or age_min > OBS_MAX_AGE_MIN:
         raise RuntimeError(f"CWA live snapshot is stale: age={age_min:.1f} minutes")
     courses = snapshot.get("courses", {})
-    if len(courses) < 50:
-        raise RuntimeError(f"CWA live snapshot contains only {len(courses)} courses")
+    if len(courses) != 57:
+        raise RuntimeError(f"CWA live snapshot must contain all 57 courses; found {len(courses)}")
     day = generated_dt.astimezone(TZ).date().isoformat()
     path = ROOT / "observations" / f"{day}.jsonl.gz"
     history = read_gzip_jsonl(path)
@@ -198,8 +198,8 @@ def archive_forecast_vintage(now: datetime) -> dict:
     if age_h < -1 or age_h > FORECAST_MAX_AGE_HOURS:
         raise RuntimeError(f"Course forecast cache is stale: age={age_h:.1f} hours")
     names = course_index.get("courses", {})
-    if len(names) < 50:
-        raise RuntimeError(f"Course forecast index contains only {len(names)} courses")
+    if len(names) != 57:
+        raise RuntimeError(f"Course forecast index must contain all 57 courses; found {len(names)}")
     model_names = course_index.get("model_names", [])
     if len(model_names) < 6 or "ECMWF AIFS" not in model_names:
         raise RuntimeError(f"Expected six model names, found {model_names}")
@@ -293,8 +293,8 @@ def archive_forecast_vintage(now: datetime) -> dict:
                 archive["courses"][name] = value
             except Exception as exc:
                 archive["errors"].append(str(exc))
-    if len(archive["courses"]) < 50:
-        raise RuntimeError(f"Forecast vintage incomplete: {len(archive['courses'])}/{len(course_items)} courses")
+    if len(archive["courses"]) != 57:
+        raise RuntimeError(f"Forecast vintage incomplete: {len(archive['courses'])}/{len(course_items)} courses; refusing partial archive")
     model_coverage = {
         model: sum(
             1 for course in archive["courses"].values()
@@ -536,13 +536,15 @@ def verify_and_weight(now: datetime) -> dict:
             for source, row in rows.items()
         }
         probability_weights = normalized_weights(prob_scores, "Brier_score", MIN_GLOBAL_PAIRS, 2000, 0.4)
-        if amount_weights:
+        if amount_weights or probability_weights:
             active_leads += 1
         weights["lead_days"][key] = {
             "sample_count_by_source": {source: row.get("sample_count", 0) for source, row in rows.items()},
             "amount_weights": amount_weights,
             "probability_weights": probability_weights,
-            "weighting_active": bool(amount_weights),
+            "weighting_active": bool(amount_weights or probability_weights),
+            "amount_weighting_active": bool(amount_weights),
+            "probability_weighting_active": bool(probability_weights),
         }
 
     for course_name, leads in course_scores.items():
