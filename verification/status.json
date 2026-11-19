@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-19T22:03:58.043611+08:00",
-  "latest_observation_snapshot_at": "2026-11-19T14:02:01.093853+00:00",
+  "generated_at": "2026-11-20T01:45:47.309874+08:00",
+  "latest_observation_snapshot_at": "2026-11-19T17:41:37.635203+00:00",
   "observation_archive": {
     "status": "archived",
-    "snapshot_at": "2026-11-19T14:02:01.093853+00:00",
+    "snapshot_at": "2026-11-19T17:41:37.635203+00:00",
     "course_count": 57,
-    "age_minutes": 1.9,
+    "age_minutes": 4.2,
     "coverage": {
       "weather_courses": 57,
       "rainfall_courses": 57,
