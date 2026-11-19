@@ -1593,8 +1593,10 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  ctx.clearRect(0,0,cw,ch);
  const vals=series.flat().filter(v=>v!==null&&Number.isFinite(v));if(!vals.length)return;
  const left=48,right=12,topPad=chartTheme==="temperature"?42:chartTheme==="rainProbability"?50:20,bottom=42,plotH=ch-topPad-bottom,plotW=cw-left-right;
- const tempMin=chartTheme==="temperature"?5:0;
- const top=chartTheme==="temperature"?35:(maxVal||Math.max(...vals,1));
+ const rawMin=Math.min(...vals),rawMax=Math.max(...vals);
+ const tempMin=chartTheme==="temperature"?Math.floor((rawMin-3)/5)*5:0;
+ let top=chartTheme==="temperature"?Math.ceil((rawMax+3)/5)*5:(maxVal||Math.max(...vals,1));
+ if(chartTheme==="temperature"&&top-tempMin<10)top=tempMin+10;
  const yAt=value=>topPad+plotH-((value-tempMin)/(top-tempMin))*plotH;
  ctx.font=(chartTheme==="temperature"?"14px":"12px")+" sans-serif";ctx.textAlign="right";ctx.textBaseline="middle";
  const tickCount=chartTheme==="temperature"?6:4;
