@@ -1662,19 +1662,38 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  if(chartTheme==="temperature"&&series.length>=2){
   ctx.save();ctx.font="bold 12px system-ui,sans-serif";ctx.textAlign="center";
   const red=series[1],blue=series[0],labelGap=14;
-  red.forEach((v,i)=>{
+  // 每個時點依氣溫與體感溫度的高低決定標籤位置：
+  // 數值較高（畫面位置較上方）的曲線，數字放在線上方；
+  // 數值較低的曲線，數字放在線下方。
+  function drawTempLabel(v,i,color,placeAbove){
    if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=yAt(v),labelY=Math.max(topPad+15,y-labelGap);
-   ctx.textBaseline="bottom";
-   ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-13,labelY-14,26,16);
-   ctx.fillStyle="#dc2626";ctx.fillText(Math.round(v)+"°",x,labelY);
-  });
-  blue.forEach((v,i)=>{
-   if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=yAt(v),labelY=Math.min(ch-bottom-1,y+labelGap);
-   ctx.textBaseline="top";
-   ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-13,labelY-1,26,16);
-   ctx.fillStyle="#1769aa";ctx.fillText(Math.round(v)+"°",x,labelY);
+   const x=xAt(i),y=yAt(v);
+   let labelY=placeAbove?y-labelGap:y+labelGap;
+   if(placeAbove){
+    labelY=Math.max(topPad+14,labelY);
+    ctx.textBaseline="bottom";
+    ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-14,labelY-14,28,16);
+    ctx.fillStyle=color;ctx.fillText(Math.round(v)+"°",x,labelY);
+   }else{
+    labelY=Math.min(ch-bottom-16,labelY);
+    ctx.textBaseline="top";
+    ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-14,labelY-1,28,16);
+    ctx.fillStyle=color;ctx.fillText(Math.round(v)+"°",x,labelY);
+   }
+  }
+  red.forEach((rv,i)=>{
+   const bv=blue[i];
+   if(rv===null||!Number.isFinite(rv)||bv===null||!Number.isFinite(bv))return;
+   if(rv>bv){
+    drawTempLabel(rv,i,"#dc2626",true);
+    drawTempLabel(bv,i,"#1769aa",false);
+   }else if(bv>rv){
+    drawTempLabel(bv,i,"#1769aa",true);
+    drawTempLabel(rv,i,"#dc2626",false);
+   }else{
+    drawTempLabel(bv,i,"#1769aa",true);
+    drawTempLabel(rv,i,"#dc2626",false);
+   }
   });
   ctx.restore();
  }
