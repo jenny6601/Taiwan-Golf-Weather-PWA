@@ -145,7 +145,10 @@ def archive_observations(now: datetime) -> dict:
     path = ROOT / "observations" / f"{day}.jsonl.gz"
     history = read_gzip_jsonl(path)
     if any(x.get("snapshot_at") == generated for x in history):
-        return {"status": "duplicate", "snapshot_at": generated, "course_count": len(courses)}
+        return {
+            "status": "duplicate", "snapshot_at": generated,
+            "course_count": len(courses), "coverage": coverage,
+        }
     normalized = {}
     for course_id, item in courses.items():
         rain = item.get("rainfall") or {}
