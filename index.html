@@ -360,6 +360,13 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="provider-table-wrap" id="providerComparison"></div>
 </section>
 <section class="card" id="v27ConsensusPanel"><h3>V30 降雨機率與雨量驗證中心</h3><p class="muted">主表採六模型可用欄位逐時中位數整合；模型分歧以模型間範圍呈現。此為即時多模型共識，尚非經歷史回測校準的機率預報。</p><div class="v26-grid" id="v26Stats"><div class="v26-stat">整合模型<b>—</b></div><div class="v26-stat">降雨機率分歧<b>—</b></div><div class="v26-stat">氣溫分歧<b>—</b></div><div class="v26-stat">陣風分歧<b>—</b></div></div><div class="status" id="v26Interpretation">選擇球場後顯示模型共識與分歧。</div></section>
+<section class="card" id="forecastVerificationPanel">
+ <h3>歷史降雨預報驗證與動態權重</h3>
+ <p class="muted">每日留存六個數值模型與 Visual Crossing 的預報版本，使用 CWA 雨量站逐時實況驗證。提前期分為 1、3、5、7、10、14 天；樣本不足時不調整權重，避免過度擬合。</p>
+ <div class="status" id="verificationHistoryStatus">歷史資料累積中；尚未啟用動態權重。</div>
+ <div id="verificationLeadTable"></div>
+ <div id="verificationSourceTable"></div>
+</section>
 <section class="grid2">
 <div class="card mobile-hide-wind"><h3>逐小時風速／陣風（km/h）</h3><canvas height="260" id="windChart" width="900"></canvas><div class="muted">平均風速與陣風。陣風明顯高於平均風速時，擊球穩定性較差。</div></div>
 </section>
