@@ -32,3 +32,15 @@ This repository is separate from `Taiwan-Golf-Weather`. Do not change the origin
 - Visual Crossing Timeline API collects 15-day hourly forecasts for all 57 courses through \`.github/workflows/visual-crossing-hourly-pilot.yml\`. The workflow publishes per-course JSON to the \`visual-crossing-cache\` branch.
 - The Visual Crossing API key is stored as the GitHub Actions secret \`VISUAL_CROSSING_API_KEY\`; it is never exposed in the browser.
 - Visual Crossing is displayed as an independent external comparison and is not included in the six-model median until historical verification supports that change.
+
+## Historical rainfall verification and adaptive fusion
+
+- Workflow: \`.github/workflows/verification-history.yml\`; runs every 10 minutes, five minutes after the CWA live-data publisher.
+- Persistent archive branch: \`verification-history\`. It stores immutable daily forecast vintages and compressed CWA observation snapshots, retaining 180 days.
+- Forecast vintages are captured once per Taiwan local day after the forecast cache refresh. The archive keeps the 06:00–18:00 hourly precipitation amount and probability for lead days 1, 3, 5, 7, 10 and 14 for each course and each of the six Open-Meteo models plus Visual Crossing.
+- CWA rainfall observations are archived per course every 10 minutes. A verified hourly actual prefers six valid 10-minute rainfall accumulations from the same quality-passed station within 15 km; if the complete six-sample hour is unavailable, it may use a rolling one-hour CWA value close to the hour boundary. Missing values are never converted to zero.
+- Daily verification calculates precipitation MAE, RMSE, bias, POD, FAR, CSI and probability Brier score, both by course and across all courses.
+- Rainfall amount weights use inverse MAE with equal-prior shrinkage; probability weights use Brier score. A lead-time weight is enabled only when at least three sources have at least 200 valid hourly pairs. Per-course amount weights require at least 40 pairs from at least three sources; otherwise the app falls back to the all-course lead-time weights.
+- Each source weight is capped at 35%. Until sufficient observations are accumulated, the app retains its existing equal-weight/median fallback. The calibrated amount and probability weights are applied only to rainfall fusion; temperature, wind and other fields remain unchanged.
+- PWA verification dashboard: \`verification/metrics/latest.json\` and \`verification/weights.json\` on the \`verification-history\` branch. The app displays lead-time scores, sample counts and active weights.
+- Initial status is expected to be **warming up**. The 14-day lead cannot be evaluated until the first archived 14-day forecasts have completed their target dates. Do not interpret early low-sample scores as stable model rankings.
