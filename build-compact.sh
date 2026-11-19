@@ -26,8 +26,7 @@ m["id"]="/"
 m["start_url"]="/"
 m["scope"]="/"
 m["icons"]=[
- {"src":"/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
- {"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}
+ {"src":"/icon-512.png","sizes":"256x256","type":"image/png","purpose":"any"}
 ]
 Path("dist/manifest.json").write_text(json.dumps(m,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 
