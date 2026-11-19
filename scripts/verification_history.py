@@ -196,7 +196,10 @@ def archive_forecast_vintage(now: datetime) -> dict:
     if out_path.exists():
         try:
             previous_vintage = read_gzip_json(out_path)
-            if len(previous_vintage.get("courses", {})) == 57:
+            if (
+                len(previous_vintage.get("courses", {})) == 57
+                and previous_vintage.get("hour_alignment_version") == 2
+            ):
                 return {"status": "already_archived", "issue_date": issue_date.isoformat()}
         except Exception:
             pass
@@ -239,6 +242,11 @@ def archive_forecast_vintage(now: datetime) -> dict:
     valid_dates = { (issue_date + timedelta(days=lead)).isoformat(): lead for lead in LEADS }
     archive = {
         "schema_version": 1,
+        "hour_alignment_version": 2,
+        "source_hour_alignment": {
+            "Open-Meteo": "preceding-hour",
+            "Visual Crossing": "timestamped-hour-period",
+        },
         "issued_at": now.astimezone(TZ).isoformat(),
         "issue_date": issue_date.isoformat(),
         "timezone": "Asia/Taipei",
