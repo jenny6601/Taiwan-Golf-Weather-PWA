@@ -257,11 +257,12 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .daily-rain-cell small{font-weight:750!important;color:#354f62!important}
 .daily-forecast-legend{font-weight:750!important;color:#334b5d!important}
 /* 16-day forecast: subtle alternating day bands and clear selected-date highlight */
-.daily-date-cell:nth-child(odd),.daily-weather-cell:nth-child(odd),.daily-rain-cell:nth-child(odd){background:#f1f6fa!important}
-.daily-date-cell:nth-child(even),.daily-weather-cell:nth-child(even),.daily-rain-cell:nth-child(even){background:#e6eef5!important}
-.daily-date-cell[aria-pressed="true"]{background:#c7e5f7!important;color:#073b60!important;box-shadow:inset 0 0 0 2px #1682bd,inset 0 4px 0 #1682bd}
+.daily-date-cell:nth-child(odd),.daily-weather-cell:nth-child(odd),.daily-rain-cell:nth-child(odd){background:#f3f6f9!important}
+.daily-date-cell:nth-child(even),.daily-weather-cell:nth-child(even),.daily-rain-cell:nth-child(even){background:#d5e2ed!important}
+.daily-date-cell:nth-child(odd){border-right:1px solid #cbd7e1!important}
+.daily-date-cell:nth-child(even){border-right:1px solid #b8c9d7!important}
+.daily-date-cell[aria-pressed="true"]{background:#b8def4!important;color:#073b60!important;box-shadow:inset 0 0 0 2px #087bb8,inset 0 4px 0 #087bb8}
 .daily-date-cell[aria-pressed="true"] .date{color:#164f73!important;font-weight:950!important}
-.daily-weather-cell:has(+ .daily-weather-cell){} 
 
 @media(max-width:600px){
  .daily-weather-cell{min-height:0!important;padding:3px 1px 4px!important}
@@ -2007,7 +2008,7 @@ function renderDailyForecast(rows,courseName){
  const selectedDailyDate=active?.date||$("courseDate")?.value||"";const dates=displayRows.map(r=>{const d=new Date(r.date+"T12:00:00+08:00"),wd=["日","一","二","三","四","五","六"][d.getDay()];return '<button type="button" class="daily-date-cell" data-daily-date="'+r.date+'" onclick="window.selectDailyForecastDate(this.dataset.dailyDate)" aria-label="點選查看'+r.date+'逐時天氣" aria-pressed="'+(selectedDailyDate===r.date?'true':'false')+'">星期'+wd+'<span class="date">'+r.date.slice(5).replace("-","/")+'</span></button>';}).join("");
  const weather=displayRows.map(r=>{const w=dailyWx(r.code);return '<div class="daily-weather-cell"><div class="daily-icon">'+w.icon+'</div><div class="daily-desc">'+w.desc+'</div></div>';}).join("");
  const rain=displayRows.map(r=>'<div class="daily-rain-cell"><small>降雨機率</small><div class="rain-prob">'+(r.prob===null?"—":Math.round(r.prob)+"%")+'</div><small>累積雨量</small><div class="rain-mm">'+(r.rain===null?"—":Number(r.rain).toFixed(1))+'</div><small>mm</small></div>').join("");
- const dayBands=displayRows.map((r,i)=>'<rect x="'+(i*col)+'" y="0" width="'+col+'" height="'+chartH+'" fill="'+(selectedDailyDate===r.date?"#c7e5f7":i%2===0?"#f1f6fa":"#e6eef5")+'" fill-opacity="'+(selectedDailyDate===r.date?"0.95":"0.72")+'"/>'+(selectedDailyDate===r.date?'<rect x="'+(i*col+1)+'" y="1" width="'+(col-2)+'" height="'+(chartH-2)+'" fill="none" stroke="#1682bd" stroke-width="2"/>':"")).join("");target.innerHTML='<div class="daily-grid">'+dates+'</div><svg class="daily-temp-chart" width="'+chartWidth+'" height="'+chartH+'" viewBox="0 0 '+chartWidth+' '+chartH+'" role="img" aria-label="僅顯示前16天最高溫、最低溫與體感溫度曲線"><defs><clipPath id="dailyTempCurveClip"><rect x="0" y="0" width="'+chartWidth+'" height="'+chartH+'"/></clipPath></defs><g clip-path="url(#dailyTempCurveClip)">'+dayBands+grid+paths+points+'</g></svg><div class="daily-grid">'+weather+'</div><div class="daily-grid">'+rain+'</div>';
+ const dayBands=displayRows.map((r,i)=>'<rect x="'+(i*col)+'" y="0" width="'+col+'" height="'+chartH+'" fill="'+(selectedDailyDate===r.date?"#b8def4":i%2===0?"#f3f6f9":"#d5e2ed")+'" fill-opacity="'+(selectedDailyDate===r.date?"0.95":"0.72")+'"/>'+(selectedDailyDate===r.date?'<rect x="'+(i*col+1)+'" y="1" width="'+(col-2)+'" height="'+(chartH-2)+'" fill="none" stroke="#1682bd" stroke-width="2"/>':"")).join("");target.innerHTML='<div class="daily-grid">'+dates+'</div><svg class="daily-temp-chart" width="'+chartWidth+'" height="'+chartH+'" viewBox="0 0 '+chartWidth+' '+chartH+'" role="img" aria-label="僅顯示前16天最高溫、最低溫與體感溫度曲線"><defs><clipPath id="dailyTempCurveClip"><rect x="0" y="0" width="'+chartWidth+'" height="'+chartH+'"/></clipPath></defs><g clip-path="url(#dailyTempCurveClip)">'+dayBands+grid+paths+points+'</g></svg><div class="daily-grid">'+weather+'</div><div class="daily-grid">'+rain+'</div>';
  const count=Math.max(...rows.map(x=>x.modelCount||0));if(heading)heading.textContent="⓪ 16天白天高爾夫天氣預報｜"+(courseName||"已選球場");if(status)status.textContent="白天逐日預報｜每日06:00–18:00｜各模型先計算白天逐時統計，再以可用模型中位數整合；顯示白天最高／最低溫、平均體感、降雨機率及累積雨量。可用模型數："+count+"；降雨機率可用模型數依日期而異。";const sc=$("dailyForecastScroll");if(sc)sc.scrollLeft=0;
 }
 async function loadAndRenderDailyForecast(p){const status=$("dailyForecastStatus");if(status)status.textContent="正在取得六模型16天逐日資料…";try{const rows=await fetchDailyForecast(p.lat,p.lon);renderDailyForecast(rows,p.name);}catch(e){const target=$("dailyForecastInner");if(target)target.innerHTML='<div class="daily-forecast-placeholder">逐日預報暫時無法取得：'+esc(e.message)+'</div>';if(status)status.textContent="逐日預報載入失敗；原有逐時預報不受影響。";}}
