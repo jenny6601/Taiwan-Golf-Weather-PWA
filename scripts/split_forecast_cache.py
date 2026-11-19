@@ -32,6 +32,8 @@ index = {
     "timezone": cache.get("timezone", "Asia/Taipei"),
     "course_count": len(courses),
     "model_names": cache.get("model_names", []),
+    "model_metadata": cache.get("model_metadata", {}),
+    "model_generated_at": cache.get("model_generated_at", {}),
     "courses": {},
 }
 for name, entry in sorted(courses.items(), key=lambda item: item[0]):
@@ -43,6 +45,8 @@ for name, entry in sorted(courses.items(), key=lambda item: item[0]):
         "timezone": cache.get("timezone", "Asia/Taipei"),
         "course_count": 1,
         "model_names": cache.get("model_names", []),
+        "model_metadata": cache.get("model_metadata", {}),
+        "model_generated_at": cache.get("model_generated_at", {}),
         "courses": {name: entry},
     }
     (OUT / rel).write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
