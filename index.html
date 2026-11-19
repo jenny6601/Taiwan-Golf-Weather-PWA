@@ -1391,8 +1391,8 @@ async function loadLiveObservation(course){
   const windKm=Number.isFinite(Number(wind))?Number(wind)*3.6:null,gustKm=Number.isFinite(Number(gust))?Number(gust)*3.6:null;
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
-   liveMetric("目前天氣",'<span class="wxcell">'+weatherIcon+weatherText+'</span>'),
-   liveMetric("氣溫",liveFmt(temp,1," °C"),liveTemperatureClass(temp,"air")),liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C"),liveTemperatureClass(feel,"feel")),liveMetric("濕度",liveFmt(rh,0," %")),
+   liveMetric("氣溫",liveFmt(temp,1," °C"),liveTemperatureClass(temp,"air")),liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C"),liveTemperatureClass(feel,"feel")),
+   liveMetric("濕度",liveFmt(rh,0," %")),liveMetric("目前天氣",'<span class="wxcell">'+weatherIcon+weatherText+'</span>'),
    liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml,liveRainClass(rain10)),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm"),liveRainClass(rain1h)),
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
   ].join("");
@@ -1414,7 +1414,7 @@ async function loadLiveObservation(course){
   const dateTimeEl=$("liveObservationDateTime");if(dateTimeEl)dateTimeEl.textContent="日期時間暫缺";
   updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
   summary.textContent=course.name+"｜"+err.message+"。逐時預報仍可獨立使用。";
-  metrics.innerHTML=["目前天氣","氣溫","估算體感","濕度","近10分鐘雨量","近1小時雨量","風速","陣風"].map(x=>liveMetric(x,"—")).join("");
+  metrics.innerHTML=["氣溫","估算體感","濕度","目前天氣","近10分鐘雨量","近1小時雨量","風速","陣風"].map(x=>liveMetric(x,"—")).join("");
   times.textContent="不以預報值代替實際觀測值，也不將缺漏資料視為零。";
  }
 }
