@@ -16,6 +16,7 @@ with urllib.request.urlopen(req, timeout=90) as response:
     cache = json.load(response)
 
 courses = cache.get("courses")
+model_names = cache.get("model_names", [])
 if not isinstance(courses, dict) or not courses:
     raise SystemExit("Source forecast cache has no courses.")
 generated_at = cache.get("generated_at")
@@ -31,7 +32,8 @@ index = {
     "generated_at": generated_at,
     "timezone": cache.get("timezone", "Asia/Taipei"),
     "course_count": len(courses),
-    "model_names": cache.get("model_names", []),
+    "model_names": model_names,
+    "model_count": len(model_names),
     "model_metadata": cache.get("model_metadata", {}),
     "model_generated_at": cache.get("model_generated_at", {}),
     "courses": {},
@@ -44,7 +46,8 @@ for name, entry in sorted(courses.items(), key=lambda item: item[0]):
         "generated_at": generated_at,
         "timezone": cache.get("timezone", "Asia/Taipei"),
         "course_count": 1,
-        "model_names": cache.get("model_names", []),
+        "model_names": model_names,
+        "model_count": len(model_names),
         "model_metadata": cache.get("model_metadata", {}),
         "model_generated_at": cache.get("model_generated_at", {}),
         "courses": {name: entry},
@@ -53,4 +56,11 @@ for name, entry in sorted(courses.items(), key=lambda item: item[0]):
     index["courses"][name] = rel
 
 (OUT / "index.json").write_text(json.dumps(index, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-print(f"Validated and split {len(courses)} courses from source cache generated_at={generated_at}")
+coverage = {
+    model: sum(
+        1 for entry in courses.values()
+        if any(day.get("modelRows", {}).get(model) for day in entry.get("dates", {}).values())
+    )
+    for model in model_names
+}
+print(f"Validated and split {len(courses)} courses; models={model_names}; coverage={coverage}; generated_at={generated_at}")
