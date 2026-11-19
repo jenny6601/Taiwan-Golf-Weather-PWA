@@ -306,7 +306,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <canvas height="260" id="tempChart" width="900"></canvas>
 <div class="legend"><span style="color:#1769aa;font-weight:800">🔵 氣溫（2公尺高度）</span><span class="feel-label">🔴 體感溫度（Apparent temperature）</span></div>
 <div class="muted">比較實際預報氣溫與人體感受的估算溫度；體感溫度會受濕度、風速及日照等因素影響，並非人體核心溫度。</div>
-</section><section class="card" id="rainFocusPanel"><h3>降雨專項摘要｜V30</h3><p class="muted">降雨機率改由系集成員統計（每小時降雨量 &gt;0.1 mm 的成員比例）；若系集 API 無法取得，退回 Open-Meteo Best Match 的系集降雨機率。雨量則以五個確定性模式逐時中位數為主，並顯示模式範圍與時段累積量。</p><div class="cards" id="rainMetrics"><div class="metric"><small>06–18時降雨機率最高值</small><strong>—</strong></div><div class="metric"><small>06–18時預報累積雨量</small><strong>—</strong></div><div class="metric"><small>雨量最大時段</small><strong>—</strong></div><div class="metric"><small>連續4小時累積雨量</small><strong>—</strong></div><div class="metric"><small>降雨資料來源</small><strong>—</strong></div></div><div class="status" id="rainMethodStatus">尚未取得降雨資料。</div><div class="hint">注意：系集成員比例是模式機率，不等於已用台灣球場歷史資料校準的真實機率；雨量中位數與模式上界並列，避免只看平均值低估局部強降雨。</div></section>
+</section><section class="card" id="rainFocusPanel"><h3>降雨專項摘要｜V30</h3><p class="muted">降雨機率改由系集成員統計（每小時降雨量 &gt;0.1 mm 的成員比例）；若系集 API 無法取得，退回 Open-Meteo Best Match 的系集降雨機率。雨量以六個確定性模式可用欄位逐時中位數為主；AIFS 不提供原生降雨機率，並顯示模式範圍與時段累積量。</p><div class="cards" id="rainMetrics"><div class="metric"><small>06–18時降雨機率最高值</small><strong>—</strong></div><div class="metric"><small>06–18時預報累積雨量</small><strong>—</strong></div><div class="metric"><small>雨量最大時段</small><strong>—</strong></div><div class="metric"><small>連續4小時累積雨量</small><strong>—</strong></div><div class="metric"><small>降雨資料來源</small><strong>—</strong></div></div><div class="status" id="rainMethodStatus">尚未取得降雨資料。</div><div class="hint">注意：系集成員比例是模式機率，不等於已用台灣球場歷史資料校準的真實機率；雨量中位數與模式上界並列，避免只看平均值低估局部強降雨。</div></section>
 <section class="panel">
 <div class="row"><div><h2 id="locname" style="margin:0">宜蘭縣礁溪鄉礁溪高爾夫球場</h2><div class="muted" id="coords">搜尋球場後顯示實際座標</div></div><span class="pill">V28 多來源擴充架構（六模型核心）</span></div>
 </section>
@@ -356,10 +356,10 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="provider-card"><strong>Foreca Weather API</strong><span class="provider-pill">免費但限非商業用途</span><div class="provider-status" id="forecaProviderStatus">尚未設定 API Key；Freemium 每日 2,000 次呼叫，限個人、學校及研究等非商業用途。</div><div class="provider-links"><a href="https://business.foreca.com/weather-api/free-weather-api" rel="noopener" target="_blank">免費方案</a><a href="https://developer.foreca.com/" rel="noopener" target="_blank">API 文件</a></div></div>
 </div>
 <div class="provider-note" style="margin-top:12px"><b>資料安全：</b>API Key 不可放在 HTML、GitHub Pages 前端或公開 Repository。請放在 GitHub Repository → Settings → Secrets and variables → Actions。預定 Secret 名稱：<code>METEOBLUE_API_KEY</code>、<code>ACCUWEATHER_API_KEY</code>、<code>FORECA_API_KEY</code>、<code>WINDY_API_KEY</code>。Windy Trial 不可作正式預報；免費優先時先不啟用 Windy 生產資料。</div>
-<div class="status" id="providerCacheStatus" style="margin-top:10px">外部服務資料：尚未載入快取。未設定 API 或尚未執行後端時，六模型仍正常運作。</div>
+<div class="status" id="providerCacheStatus" style="margin-top:10px">外部服務資料：尚未載入快取。Visual Crossing 尚未載入時，六模型仍正常運作。</div>
 <div class="provider-table-wrap" id="providerComparison"></div>
 </section>
-<section class="card" id="v27ConsensusPanel"><h3>V30 降雨機率與雨量驗證中心</h3><p class="muted">主表採五組模型逐時中位數整合；模型分歧以模型間範圍呈現。此為即時多模型共識，尚非經歷史回測校準的機率預報。</p><div class="v26-grid" id="v26Stats"><div class="v26-stat">整合模型<b>—</b></div><div class="v26-stat">降雨機率分歧<b>—</b></div><div class="v26-stat">氣溫分歧<b>—</b></div><div class="v26-stat">陣風分歧<b>—</b></div></div><div class="status" id="v26Interpretation">選擇球場後顯示模型共識與分歧。</div></section>
+<section class="card" id="v27ConsensusPanel"><h3>V30 降雨機率與雨量驗證中心</h3><p class="muted">主表採六模型可用欄位逐時中位數整合；模型分歧以模型間範圍呈現。此為即時多模型共識，尚非經歷史回測校準的機率預報。</p><div class="v26-grid" id="v26Stats"><div class="v26-stat">整合模型<b>—</b></div><div class="v26-stat">降雨機率分歧<b>—</b></div><div class="v26-stat">氣溫分歧<b>—</b></div><div class="v26-stat">陣風分歧<b>—</b></div></div><div class="status" id="v26Interpretation">選擇球場後顯示模型共識與分歧。</div></section>
 <section class="grid2">
 <div class="card mobile-hide-wind"><h3>逐小時風速／陣風（km/h）</h3><canvas height="260" id="windChart" width="900"></canvas><div class="muted">平均風速與陣風。陣風明顯高於平均風速時，擊球穩定性較差。</div></div>
 </section>
@@ -370,7 +370,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 </section>
 <section class="card mobile-hide-sources"><h3>氣象來源資料庫（57個）</h3><p class="muted">V28 將原始57筆來源逐筆建立整合狀態。狀態標示代表本頁實際使用方式，不代表網站品質排名；外部參考網站不會被假稱為已自動抓取。</p><div id="sources"></div>
 <div class="v27-registry" id="v27SourceRegistry"></div></section>
-<section class="card mobile-hide-quality"><h3>資料品質、球場搜尋來源與使用限制</h3><ul class="muted"><li>本版球場資料庫內建57座球場地址；選取球場及日期後，以該地址向 OpenStreetMap Nominatim 地理編碼取得座標，再呼叫 Open-Meteo 預報。若地址無法定位，不使用行政區中心點代替。</li><li>OpenStreetMap Nominatim 於使用者選取球場及日期後執行單次地址定位；不做批次請求，遵守服務使用政策及資料來源標示要求。OpenStreetMap 資料採 ODbL 授權。</li><li>V29 降雨機率獨立使用系集成員頻率（每小時&gt;0.1 mm），系集API不可用時退回Best Match系集機率；此仍非以台灣57球場歷史觀測完成校準的真實機率。雨量以五個確定性模式逐時中位數呈現，並列模式範圍。多模型差異越大，預報不確定性越高；尤其台灣複雜地形、季風及局部陣雨情境，不宜只看單一模型。</li><li>本版逐一查詢 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM 五組模型，氣溫、風等以逐時中位數整合；雨量以逐時中位數及最小–最大範圍呈現；模型來源有不同解析度、更新週期及系統性誤差，且並非完全統計獨立。模型覆蓋範圍、解析度及更新時間不同。</li><li>降雨機率、累積雨量、平均風速及陣風是不同變數，不能互相替代。</li><li>RainViewer雷達免費API適用個人／教育用途，需標示來源，且不保證服務可用性。</li><li>CWA API需授權碼；本版採使用者自行輸入，若瀏覽器跨域限制阻擋，需改用後端代理，不能將授權碼公開放在GitHub。</li><li>預報分數不代表球場可開放或安全。雷電、豪雨、強風警報及球場公告優先；聽到雷聲或有雷電警示時應立即停止戶外活動並依球場指示避難。</li><li>Open-Meteo免費API適用非商業使用；商用或高流量部署請先確認授權及服務條款。</li></ul><p><a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">OpenStreetMap attribution</a> ｜ <a href="https://nominatim.org/release-docs/latest/api/Search/" rel="noopener" target="_blank">Nominatim搜尋文件</a> ｜ <a href="https://open-meteo.com/en/docs/geocoding-api" rel="noopener" target="_blank">Open-Meteo地理編碼文件</a> ｜ <a href="https://open-meteo.com/en/docs" rel="noopener" target="_blank">Open-Meteo預報文件</a> ｜ <a href="https://open-meteo.com/en/docs/ensemble-api" rel="noopener" target="_blank">Open-Meteo系集API文件</a> ｜ <a href="https://www.rainviewer.com/api.html" rel="noopener" target="_blank">RainViewer API文件</a> ｜ <a href="https://opendata.cwa.gov.tw/devManual/description" rel="noopener" target="_blank">CWA API文件</a></p></section>
+<section class="card mobile-hide-quality"><h3>資料品質、球場搜尋來源與使用限制</h3><ul class="muted"><li>本版球場資料庫內建57座球場地址；選取球場及日期後，以該地址向 OpenStreetMap Nominatim 地理編碼取得座標，再呼叫 Open-Meteo 預報。若地址無法定位，不使用行政區中心點代替。</li><li>OpenStreetMap Nominatim 於使用者選取球場及日期後執行單次地址定位；不做批次請求，遵守服務使用政策及資料來源標示要求。OpenStreetMap 資料採 ODbL 授權。</li><li>V29 降雨機率獨立使用系集成員頻率（每小時&gt;0.1 mm），系集API不可用時退回Best Match系集機率；此仍非以台灣57球場歷史觀測完成校準的真實機率。雨量以六個確定性模式可用欄位逐時中位數呈現，並列模式範圍。多模型差異越大，預報不確定性越高；尤其台灣複雜地形、季風及局部陣雨情境，不宜只看單一模型。</li><li>本版逐一查詢 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM 五組模型，氣溫、風等以逐時中位數整合；雨量以逐時中位數及最小–最大範圍呈現；模型來源有不同解析度、更新週期及系統性誤差，且並非完全統計獨立。模型覆蓋範圍、解析度及更新時間不同。</li><li>降雨機率、累積雨量、平均風速及陣風是不同變數，不能互相替代。</li><li>RainViewer雷達免費API適用個人／教育用途，需標示來源，且不保證服務可用性。</li><li>CWA API需授權碼；本版採使用者自行輸入，若瀏覽器跨域限制阻擋，需改用後端代理，不能將授權碼公開放在GitHub。</li><li>預報分數不代表球場可開放或安全。雷電、豪雨、強風警報及球場公告優先；聽到雷聲或有雷電警示時應立即停止戶外活動並依球場指示避難。</li><li>Open-Meteo免費API適用非商業使用；商用或高流量部署請先確認授權及服務條款。</li></ul><p><a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">OpenStreetMap attribution</a> ｜ <a href="https://nominatim.org/release-docs/latest/api/Search/" rel="noopener" target="_blank">Nominatim搜尋文件</a> ｜ <a href="https://open-meteo.com/en/docs/geocoding-api" rel="noopener" target="_blank">Open-Meteo地理編碼文件</a> ｜ <a href="https://open-meteo.com/en/docs" rel="noopener" target="_blank">Open-Meteo預報文件</a> ｜ <a href="https://open-meteo.com/en/docs/ensemble-api" rel="noopener" target="_blank">Open-Meteo系集API文件</a> ｜ <a href="https://www.rainviewer.com/api.html" rel="noopener" target="_blank">RainViewer API文件</a> ｜ <a href="https://opendata.cwa.gov.tw/devManual/description" rel="noopener" target="_blank">CWA API文件</a></p></section>
 <footer>台灣高爾夫球場天氣預測V31｜API穩定性修復版｜全台57球場・降雨機率／雨量驗證與校正｜06:00–18:00逐時預報｜資料可能延遲或缺漏，請以官方警特報、即時觀測及球場公告為準。</footer>
 </main>
 <script>
@@ -1120,7 +1120,7 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
  const all=sources.flatMap(([group,items])=>items.map(([name,url,desc])=>({group,name,url,desc})));
  const classify=x=>{
   const u=x.url.toLowerCase(),n=x.name.toLowerCase();
-  if(u.includes('open-meteo.com'))return {code:'live',label:'自動預報資料',detail:'主表逐時資料；五組模式分別查詢後取中位數'};
+  if(u.includes('open-meteo.com'))return {code:'live',label:'自動預報資料',detail:'主表逐時資料；六組模式分別查詢後取中位數'};
   if(u.includes('rainviewer.com'))return {code:'radar',label:'自動雷達資料',detail:'載入過去雷達影像；不是未來降雨預報'};
   if(u.includes('cwa.gov.tw'))return {code:'limited',label:'選用／有限整合',detail:'需使用者輸入授權碼；目前程式僅查宜蘭 F-D0047-001，非全台57球場通用'};
   return {code:'manual',label:'人工交叉查證',detail:'提供來源入口；未由本頁自動擷取或納入中位數計算'};
@@ -1133,7 +1133,7 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
  </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
- <p class="v27-note">重要：官方氣象機構與模型供應者可能是同一底層資料鏈；不能把網站筆數當成獨立模型數。Open-Meteo 預報主資料使用 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、Canada GEM 五組模式；逐時中位數及模式差距沿用 V26。</p>
+ <p class="v27-note">重要：官方氣象機構與模型供應者可能是同一底層資料鏈；不能把網站筆數當成獨立模型數。Open-Meteo 預報主資料使用 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、Canada GEM、ECMWF AIFS 六組模式；逐時中位數及模式差距沿用 V26。</p>
  <div class="v27-controls"><input id="v27SourceSearch" type="search" placeholder="搜尋網站名稱、分類或用途"><select id="v27SourceFilter"><option value="all">全部狀態</option><option value="live">自動預報資料</option><option value="radar">自動雷達資料</option><option value="limited">選用／有限整合</option><option value="manual">人工交叉查證</option></select></div>
  <div class="v27-table-wrap"><table class="v27-table"><thead><tr><th>#</th><th>來源／分類</th><th>目前狀態</th><th>V28使用方式</th></tr></thead><tbody id="v27SourceRows"></tbody></table></div>
  <p class="v27-note">目前自動資料的實際接入數：1個預報API平台（內含5組數值模式）＋1個過去雷達影像API。CWA為選用且目前僅宜蘭資料集。其餘來源均保留為人工核對入口，尚未取得其API資料。</p>`;
@@ -1790,7 +1790,7 @@ async function loadForecast(p,date,forceRefresh=false){
   const diagApi=$("apiDiagnosticsText");
   if(diagApi)diagApi.textContent="球場："+p.name+"\n日期："+date+"\n\n正在呼叫 Open-Meteo 六組模型 API（每組最多重試2次，單次逾時18秒）…";
   let completedModels=0,provisionalShown=false;
-  // 同步啟動 Best Match 備援，避免五組指定模式全部逾時後才開始備援。
+  // 同步啟動 Best Match 備援，避免六組指定模式全部逾時後才開始備援。
   bestMatchFallbackPromise=getModel(p.lat,p.lon,null).then(data=>{const rows=extract(data,date);if(!rows.length)throw Error("Best Match 沒有所選日期逐時資料");return {data,rows};}).then(x=>({value:x})).catch(error=>({error}));
   const results=await Promise.allSettled(modelDefs.map(async m=>{
    const data=await getModel(p.lat,p.lon,m[1]),rows=extract(data,date);
@@ -1816,7 +1816,7 @@ async function loadForecast(p,date,forceRefresh=false){
  if(!names.length){
   const fallback=await (bestMatchFallbackPromise||getModel(p.lat,p.lon,null).then(data=>({value:{data,rows:extract(data,date)}})).catch(error=>({error})));
   if(fallback.value){active.modelRows["Open-Meteo Best Match"]=fallback.value.rows;names=Object.keys(active.modelRows);forecastSource="Open-Meteo Best Match 備援";}
-  else{const detail="快取、五組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+(fallback.error?.message||"未知錯誤");const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
+  else{const detail="快取、六組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+(fallback.error?.message||"未知錯誤");const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
  }
  active.forecastSource=forecastSource;
  $("status").textContent="預報完成｜"+names.length+"/6 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");
@@ -1824,7 +1824,7 @@ async function loadForecast(p,date,forceRefresh=false){
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
 let base=consensusRows(active.modelRows);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
- let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'五組模式快取',detail:'降雨機率採預報快取中各模式逐時值的中位數'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
+ let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'既有模式快取',detail:'降雨機率採有提供此欄位的模式逐時值中位數；AIFS 不提供原生降雨機率'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
  const valid=base.filter(x=>x.available),avg=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?a.reduce((z,v)=>z+v,0)/a.length:null;},mx=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?Math.max(...a):null;};
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
@@ -1854,7 +1854,7 @@ let base=consensusRows(active.modelRows);
  loadRadar(p.lat,p.lon);
  loadV28ProviderCache(p.name,date);
  if(!forceRefresh&&cacheAgeMinutes!==null&&cacheAgeMinutes>360&&cacheAgeMinutes<=720&&Object.keys(cachedCourseModels(cacheCandidate,p.name,date)).length){
-  $("status").textContent="舊快取已先顯示｜正在背景更新五組即時模型…";
+  $("status").textContent="舊快取已先顯示｜正在背景更新六組即時模型…";
   setTimeout(()=>loadForecast(p,date,true).catch(e=>{const b=$("apiDiagnosticsText");if(b)b.textContent+="\n\n背景更新失敗："+(e.message||String(e));$("status").textContent="目前顯示舊快取｜背景更新失敗，請稍後重試。";}),0);
  }
 }
