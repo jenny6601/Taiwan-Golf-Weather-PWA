@@ -470,9 +470,10 @@ def build_actual_hourly(now: datetime):
     return actual
 
 def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_strength: float, cap: float = 0.35):
+    count_key = "probability_sample_count" if metric_key == "Brier_score" else "sample_count"
     eligible = {
         name: row for name, row in scores.items()
-        if row.get("sample_count", 0) >= minimum_n and isinstance(row.get(metric_key), (int, float))
+        if row.get(count_key, 0) >= minimum_n and isinstance(row.get(metric_key), (int, float))
     }
     if len(eligible) < 3:
         return None
@@ -482,7 +483,7 @@ def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_stre
     prior = 1.0 / len(eligible)
     out = {}
     for name, row in eligible.items():
-        n = row.get("sample_count", 0)
+        n = row.get(count_key, 0)
         shrink = n / (n + prior_strength)
         out[name] = prior * (1 - shrink) + empirical[name] * shrink
     for _ in range(5):
