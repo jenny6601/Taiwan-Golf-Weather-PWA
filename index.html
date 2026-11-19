@@ -1661,7 +1661,34 @@ function amountRangeHTML(row){const n=row.mm;if(n===null||n===undefined)return r
 function median(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number).sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
 function spread(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return a.length>=2?Math.max(...a)-Math.min(...a):null;}
 function circularMean(values){const a=values.filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);if(!a.length)return null;let x=0,y=0;a.forEach(v=>{x+=Math.cos(v*Math.PI/180);y+=Math.sin(v*Math.PI/180)});return (Math.atan2(y,x)*180/Math.PI+360)%360;}
-function consensusRows(modelRows){const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);return times.map(time=>{const rs=names.map(n=>modelRows[n].find(x=>x.time===time)).filter(Boolean),get=k=>median(rs.map(x=>x[k])),codes=rs.map(x=>x.code).filter(x=>x!==null);let code=null;if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}const amounts=rs.map(x=>x.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:get('rain'),mm:get('mm'),code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};});}
+function weightedRainAmount(pairs,weights){
+ if(!weights)return null;
+ const usable=pairs.filter(x=>x.row&&x.row.mm!==null&&x.row.mm!==undefined&&Number.isFinite(Number(x.row.mm))&&Number(weights[x.name])>0);
+ if(usable.length<3)return null;
+ const total=usable.reduce((z,x)=>z+Number(weights[x.name]),0);
+ if(total<=0)return null;
+ return usable.reduce((z,x)=>z+Number(x.row.mm)*Number(weights[x.name]),0)/total;
+}
+function consensusRows(modelRows,amountWeights=null){
+ const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);
+ return times.map(time=>{
+  const pairs=names.map(n=>({name:n,row:modelRows[n].find(x=>x.time===time)})).filter(x=>x.row);
+  const rs=pairs.map(x=>x.row),get=k=>median(rs.map(x=>x[k])),codes=rs.map(x=>x.code).filter(x=>x!==null);
+  let code=null;
+  if(codes.length){const counts={};codes.forEach(v=>counts[v]=(counts[v]||0)+1);code=Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]);}
+  const amounts=rs.map(x=>x.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);
+  const weighted=weightedRainAmount(pairs,amountWeights);
+  return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:get('rain'),mm:weighted===null?get('mm'):weighted,weightingApplied:weighted!==null,code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
+ });
+}
+let verificationWeightsPromise=null;
+async function loadVerificationWeights(){
+ if(!verificationWeightsPromise){
+  const url="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/verification-history/verification/weights.json?ts="+Date.now();
+  verificationWeightsPromise=fetchJsonBounded(url,5000,"no-store").catch(()=>null);
+ }
+ return verificationWeightsPromise;
+}
 // V29: 外部服務只讀取後端／GitHub Actions 產生的標準化快取，不在瀏覽器暴露 API Key。
 // 快取格式範例見 v28-provider-cache.schema.json；外部服務尚未經回測前，不混入六模型中位數。
 async function loadV28ProviderCache(courseName,date){
@@ -1823,7 +1850,21 @@ async function loadForecast(p,date,forceRefresh=false){
  $("status").textContent="預報完成｜"+names.length+"/6 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");
  const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
-let base=consensusRows(active.modelRows);
+let amountWeights=null,weightingLabel="等權中位數（歷史資料累積中）";
+ const localToday=new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"});
+ const leadDays=Math.round((new Date(date+"T00:00:00+08:00")-new Date(localToday+"T00:00:00+08:00"))/86400000);
+ if(leadDays>=1&&leadDays<=14){
+  try{
+   const weightDoc=await loadVerificationWeights(),lead=weightDoc?.lead_days?.[String(leadDays)];
+   const courseWeights=weightDoc?.by_course?.[p.name]?.[String(leadDays)];
+   const candidate=courseWeights||lead?.amount_weights;
+   if(candidate&&Object.keys(candidate).filter(k=>active.modelRows[k]).length>=3){
+    amountWeights=candidate;
+    weightingLabel=courseWeights?"逐球場歷史回測權重（"+leadDays+"天）":"全台歷史回測權重（"+leadDays+"天）";
+   }
+  }catch(e){}
+ }
+ let base=consensusRows(active.modelRows,amountWeights);
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
  let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'既有模式快取',detail:'降雨機率採有提供此欄位的模式逐時值中位數；AIFS 不提供原生降雨機率'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
