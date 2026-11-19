@@ -77,7 +77,7 @@ def local_date(value: str) -> date:
     return dt.astimezone(TZ).date()
 
 def name_key(value: str) -> str:
-    return "".join(str(value).split()).casefold().strip().normalize("NFC") if False else "".join(unicodedata.normalize("NFC", str(value)).split()).casefold()
+    return "".join(unicodedata.normalize("NFC", str(value)).split()).casefold()
 
 def read_gzip_jsonl(path: Path):
     if not path.exists():
@@ -247,7 +247,11 @@ def archive_forecast_vintage(now: datetime) -> dict:
         name, rel = item
         entry = fetch_course_cache(name, rel)
         vc_rel_item = vc_name_lookup.get(name_key(name))
-        vc_entry = fetch_vc_cache(name, vc_rel_item[1]) if vc_rel_item else {}
+        try:
+            vc_entry = fetch_vc_cache(name, vc_rel_item[1]) if vc_rel_item else {}
+        except Exception as exc:
+            vc_entry = {}
+            print(f"Visual Crossing cache unavailable for {name}: {exc}")
         valid = {}
         for valid_date, lead in valid_dates.items():
             day = entry.get("dates", {}).get(valid_date, {})
