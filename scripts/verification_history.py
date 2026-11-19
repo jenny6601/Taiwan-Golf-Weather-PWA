@@ -168,8 +168,10 @@ def archive_observations(now: datetime) -> dict:
         }
     history.append({
         "snapshot_at": generated,
+        "snapshot_schema_version": snapshot.get("schema_version", 1),
         "source": snapshot.get("source", "CWA"),
         "course_count": len(normalized),
+        "coverage": coverage,
         "courses": normalized,
     })
     history.sort(key=lambda x: x.get("snapshot_at", ""))
@@ -403,6 +405,10 @@ def build_actual_hourly(now: datetime):
         if day < cutoff:
             continue
         for snapshot in read_gzip_jsonl(path):
+            # Only use the new direct-CWA nationwide snapshot format for
+            # verification; older static seed snapshots are retained but excluded.
+            if snapshot.get("snapshot_schema_version", 1) < 2:
+                continue
             for course_id, item in snapshot.get("courses", {}).items():
                 name = item.get("course_name") or course_id
                 station = item.get("station_code")
