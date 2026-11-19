@@ -242,7 +242,17 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
  .daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-weight:900!important}
 }
 </style>
-<style id="daily-forecast-interaction-readability">\n.daily-date-button{display:block;width:100%;border:0;border-radius:7px;background:transparent;color:#172f40;padding:5px 1px;font:inherit;font-size:13px;font-weight:900;line-height:1.35;cursor:pointer;touch-action:manipulation}\n.daily-date-button .date{display:block;font-size:13px;font-weight:900;color:#344f62;margin-top:4px}\n.daily-date-button.is-selected{background:#d7eaf7;box-shadow:inset 0 0 0 2px #23618a;color:#123d5b}\n.daily-date-button:focus-visible{outline:3px solid #e0a326;outline-offset:1px}\n.daily-rain-cell small{font-size:12px!important;font-weight:850!important;line-height:1.35}\n.daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-size:18px!important;font-weight:950!important;line-height:1.3}\n.daily-weather-cell .daily-desc{font-size:12px!important;font-weight:900!important;line-height:1.25}\n@media(max-width:600px){.daily-date-button,.daily-date-button .date{font-size:12px}.daily-rain-cell small{font-size:11px!important}.daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-size:17px!important}.daily-weather-cell .daily-desc{font-size:11px!important}}\n</style>\n<style>@media(max-width:600px){section.mobile-hide-sources{display:block!important}}</style>
+<style id="daily-forecast-interaction-readability">
+.daily-date-button{display:block;width:100%;border:0;border-radius:7px;background:transparent;color:#172f40;padding:5px 1px;font:inherit;font-size:13px;font-weight:900;line-height:1.35;cursor:pointer;touch-action:manipulation}
+.daily-date-button .date{display:block;font-size:13px;font-weight:900;color:#344f62;margin-top:4px}
+.daily-date-button.is-selected{background:#d7eaf7;box-shadow:inset 0 0 0 2px #23618a;color:#123d5b}
+.daily-date-button:focus-visible{outline:3px solid #e0a326;outline-offset:1px}
+.daily-rain-cell small{font-size:12px!important;font-weight:850!important;line-height:1.35}
+.daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-size:18px!important;font-weight:950!important;line-height:1.3}
+.daily-weather-cell .daily-desc{font-size:12px!important;font-weight:900!important;line-height:1.25}
+@media(max-width:600px){.daily-date-button,.daily-date-button .date{font-size:12px}.daily-rain-cell small{font-size:11px!important}.daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-size:17px!important}.daily-weather-cell .daily-desc{font-size:11px!important}}
+</style>
+<style>@media(max-width:600px){section.mobile-hide-sources{display:block!important}}</style>
 
 <style id="v30-mobile-core-fit">
 /* 手機：核心六欄（時間＋五項天氣資訊）完整置於同一螢幕；延伸欄位接續於右側 */
@@ -1395,7 +1405,10 @@ async function autoLoadDatabaseCourse(c,button){
    $("courseList").querySelectorAll("button[data-course]").forEach(x=>x.disabled=false);
  }
 }
-window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};\n// 點選16天白天預報日期：沿用目前球場座標，重新載入該日06:00–18:00逐時資料。\n$("dailyForecastInner").addEventListener("click",event=>{const button=event.target.closest("button[data-daily-date]");if(!button||databaseAutoBusy||!selectedCourseForReload)return;const date=button.dataset.dailyDate;if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;const picker=$("courseDate");if(picker)picker.value=date;autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);});\n
+window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};
+// 點選16天白天預報日期：沿用目前球場座標，重新載入該日06:00–18:00逐時資料。
+$("dailyForecastInner").addEventListener("click",event=>{const button=event.target.closest("button[data-daily-date]");if(!button||databaseAutoBusy||!selectedCourseForReload)return;const date=button.dataset.dailyDate;if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return;const picker=$("courseDate");if(picker)picker.value=date;autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);});
+
 document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
 // 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
 $("courseDate").addEventListener("change",()=>{
