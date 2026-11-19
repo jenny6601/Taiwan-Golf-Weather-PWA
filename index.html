@@ -1942,6 +1942,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
   }catch(e){weightingLabel+="（Visual Crossing暫缺，使用可用模式權重）";}
  }
  let base=consensusRows(active.modelRows,amountWeights,probabilityWeights,externalRainRows);
+ if(probabilityWeights&&!base.some(x=>x.probabilityWeightingApplied))weightingLabel+="（本次機率採系集資料，尚未套用來源機率權重）";
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
  let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'既有模式快取',detail:'降雨機率採有提供欄位的模型資料；有歷史 Brier 權重時採加權融合，否則使用既有系集／模式機率；AIFS 不提供原生降雨機率'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
