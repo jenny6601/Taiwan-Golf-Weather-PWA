@@ -1,0 +1,73 @@
+name: Forecast history and CWA verification (57 courses)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/verification_history.py'
+      - '.github/workflows/verification-history.yml'
+  schedule:
+    # Run five minutes after the 10-minute CWA live-data publisher.
+    - cron: "5,15,25,35,45,55 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: verification-history-writer
+  cancel-in-progress: false
+
+jobs:
+  archive-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout PWA scripts
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: source
+      - name: Checkout persistent verification history
+        uses: actions/checkout@v4
+        with:
+          ref: verification-history
+          path: history
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Archive CWA observations and daily forecast vintage
+        run: python source/scripts/verification_history.py auto history
+      - name: Publish append-only history and verification weights
+        run: |
+          git -C history config user.name "github-actions[bot]"
+          git -C history config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C history add observations forecasts verification
+          if git -C history diff --cached --quiet; then
+            echo "No new observation or verification records."
+          else
+            git -C history commit -m "Archive CWA observations and forecast verification"
+            git -C history push origin HEAD:verification-history
+          fi
+      - name: Summarize archive and verification status
+        if: always()
+        run: |
+          {
+            echo "## Taiwan Golf Weather verification"
+            echo "- Run time (UTC): $(date -u +'%Y-%m-%d %H:%M:%S')"
+            if [ -f history/verification/weights.json ]; then
+              python - <<'PY'
+          import json
+          from pathlib import Path
+          p=json.loads(Path("history/verification/weights.json").read_text(encoding="utf-8"))
+          print(f"- Weight status: {p.get('status')}")
+          print(f"- Updated: {p.get('generated_at')}")
+          for lead,row in p.get("lead_days",{}).items():
+              print(f"- {lead}-day: active={row.get('weighting_active')}, samples={row.get('sample_count_by_source',{})}")
+          PY
+            else
+              echo "- Weight status: warming up; waiting for completed forecast/observation pairs."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
