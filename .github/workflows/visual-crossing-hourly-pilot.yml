@@ -1,4 +1,4 @@
-name: Visual Crossing 15-day hourly pilot (5 courses)
+name: Visual Crossing 15-day hourly forecast (57 courses)
 
 on:
   workflow_dispatch:
@@ -7,12 +7,13 @@ on:
     paths:
       - '.github/workflows/visual-crossing-hourly-pilot.yml'
       - 'scripts/visual_crossing_pilot.py'
+      - 'scripts/split_visual_crossing_cache.py'
   schedule:
-    # 05:15 Asia/Taipei (UTC+8), separate from the 05:30 crosscheck workflow.
+    # 05:15 Asia/Taipei (UTC+8).
     - cron: "15 21 * * *"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: visual-crossing-hourly-pilot
@@ -21,39 +22,60 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout PWA
         uses: actions/checkout@v4
-      - name: Fetch five-course 15-day hourly forecasts
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch 57-course 15-day hourly forecasts
         env:
-          VISUAL_CROSSING_API_KEY: ${{ secrets.VISUAL_CROSSING_API_KEY }}
-        run: |
-          python scripts/visual_crossing_pilot.py visual-crossing-pilot.json
+          VISUAL_CROSSING_API_KEY: \${{ secrets.VISUAL_CROSSING_API_KEY }}
+        run: python scripts/visual_crossing_pilot.py /tmp/visual-crossing-pilot.json
+      - name: Split and validate per-course public cache
+        run: python scripts/split_visual_crossing_cache.py /tmp/visual-crossing-pilot.json /tmp/visual-crossing-cache
       - name: Add run summary
         if: always()
         run: |
-          if [ -f visual-crossing-pilot.json ]; then
+          if [ -f /tmp/visual-crossing-pilot.json ]; then
             python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
-          d=json.load(open("visual-crossing-pilot.json",encoding="utf-8"))
-          print("## Visual Crossing 15-day hourly pilot")
+          d=json.load(open("/tmp/visual-crossing-pilot.json",encoding="utf-8"))
+          print("## Visual Crossing 15-day hourly forecast")
           print(f"- Generated: {d.get('generated_at')}")
           print(f"- Authentication: {d.get('api_key_mode')}")
-          print(f"- Successful courses: {len(d.get('courses',{}))}/5")
+          print(f"- Successful courses: {len(d.get('courses',{}))}/57")
           print("| Course | Dates | Hourly records | Query cost |")
           print("|---|---:|---:|---:|")
-          for name,c in d.get("courses",{}).items():
+          for name,c in sorted(d.get("courses",{}).items()):
               print(f"| {name} | {c.get('date_count')} | {c.get('hour_count')} | {c.get('query_cost')} |")
           for e in d.get("errors",[]):
               print(f"- ERROR {e.get('course')}: {e.get('error')}")
           PY
           fi
-      - name: Upload Visual Crossing JSON report
+      - name: Upload Visual Crossing JSON report and cache
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: visual-crossing-pilot-${{ github.run_number }}
-          path: visual-crossing-pilot.json
+          name: visual-crossing-57-course-artifact
+          path: |
+            /tmp/visual-crossing-pilot.json
+            /tmp/visual-crossing-cache
           if-no-files-found: warn
           retention-days: 30
+      - name: Publish Visual Crossing cache branch
+        env:
+          VC_OUT: /tmp/visual-crossing-cache
+        run: |
+          test -s "$VC_OUT/index.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan visual-crossing-cache
+          git rm -rf . >/dev/null 2>&1 || true
+          git clean -fdx
+          cp -R "$VC_OUT/." .
+          git add -A
+          git commit -m "Publish 57-course Visual Crossing hourly cache"
+          git push origin HEAD:refs/heads/visual-crossing-cache --force
