@@ -1484,7 +1484,6 @@ window.selectDailyForecastDate=async function(date){
  window.dailyForecastKeepScrollLeft=dailyScroll?.scrollLeft||0;
  syncForecastDatePickerDisplay(date);
  syncDailyForecastSelection(date);
- syncDailyForecastToSelectedDate();
  if(databaseAutoBusy)return;
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
