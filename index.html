@@ -1565,10 +1565,17 @@ $("courseDate").addEventListener("change",async()=>{
 function syncForecastDatePickerDisplay(date){
  const input=$("courseDate");if(!input||!date)return;
  input.value=date;
- const label=$("forecastDateTrigger")?.querySelector(".forecast-date-label");
+ const trigger=$("forecastDateTrigger");
+ const label=trigger?.querySelector(".forecast-date-label");
  if(label)label.textContent=date.replaceAll("-","/");
+ else if(trigger)trigger.textContent=date.replaceAll("-","/");
+ if(trigger)trigger.setAttribute("aria-label","預報日期："+date.replaceAll("-","/"));
  const calendar=$("forecastCalendar");
- if(calendar)calendar.querySelectorAll(".forecast-calendar-day").forEach(button=>button.classList.toggle("selected",button.dataset.date===date));
+ if(calendar){
+  calendar.querySelectorAll(".forecast-calendar-day").forEach(button=>button.classList.toggle("selected",button.dataset.date===date));
+  const title=$("forecastCalendarTitle");
+  if(title)title.textContent=Number(date.slice(0,4))+"年"+Number(date.slice(5,7))+"月";
+ }
 }
 window.selectDailyForecastDate=async function(date){
  const input=$("courseDate"),dailyScroll=$("dailyForecastScroll");
@@ -1580,6 +1587,8 @@ window.selectDailyForecastDate=async function(date){
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
  await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+ // 預報載入流程結束後再次同步，避免任何重繪覆寫頁首日期。
+ syncForecastDatePickerDisplay(date);
  // 等待逐日資料重新繪製及版面完成後，恢復原水平位置。
  const restore=()=>{const el=$("dailyForecastScroll");if(el)el.scrollLeft=window.dailyForecastKeepScrollLeft||0;};
  requestAnimationFrame(restore);
