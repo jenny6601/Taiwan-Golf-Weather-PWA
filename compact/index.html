@@ -1473,8 +1473,13 @@ function syncDailyForecastSelection(date){
 }
 function syncForecastDatePickerDisplay(date){
  const input=$("courseDate");if(!input||!date)return;
+ // 同步原生日期欄位的即時值與預設值，並觸發 input 事件，
+ // 讓 Android WebView／PWA 的日期欄位立即刷新可見文字。
  input.value=date;
+ input.defaultValue=date;
+ input.setAttribute("value",date);
  input.setAttribute("aria-label","預報日期："+date.replaceAll("-","/"));
+ input.dispatchEvent(new Event("input",{bubbles:true}));
 }
 window.selectDailyForecastDate=async function(date){
  const input=$("courseDate"),dailyScroll=$("dailyForecastScroll");
