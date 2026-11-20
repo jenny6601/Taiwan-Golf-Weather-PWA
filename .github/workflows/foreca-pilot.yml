@@ -1,0 +1,75 @@
+name: Foreca independent forecast pilot (57 Taiwan golf courses)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/foreca-pilot.yml'
+      - 'scripts/foreca_pilot.py'
+      - 'scripts/split_foreca_cache.py'
+  schedule:
+    # Twice daily: 08:10 and 20:10 Taiwan time (UTC 00:10 and 12:10).
+    - cron: "10 0,12 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: foreca-independent-pilot
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout PWA
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch independent Foreca forecasts for all 57 courses
+        env:
+          FORECA_API_KEY: ${{ secrets.FORECA_API_KEY }}
+        run: python scripts/foreca_pilot.py /tmp/foreca-pilot.json
+      - name: Split and validate independent course cache
+        run: python scripts/split_foreca_cache.py /tmp/foreca-pilot.json /tmp/foreca-cache
+      - name: Add run summary
+        if: always()
+        run: |
+          if [ -f /tmp/foreca-pilot.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d=json.load(open("/tmp/foreca-pilot.json",encoding="utf-8"))
+          print("## Foreca independent pilot")
+          print(f"- Generated: {d.get('generated_at')}")
+          print(f"- Successful courses: {len(d.get('courses',{}))}/57")
+          print(f"- Hourly records: {sum(c.get('hourly_count',0) for c in d.get('courses',{}).values())}")
+          print(f"- Daily records: {sum(c.get('daily_count',0) for c in d.get('courses',{}).values())}")
+          for e in d.get("errors",[]): print(f"- ERROR {e.get('course')}: {e.get('error')}")
+          PY
+          fi
+      - name: Upload private Foreca pilot artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foreca-57-course-pilot
+          path: /tmp/foreca-pilot.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Publish Foreca cache branch
+        env:
+          FORECA_OUT: /tmp/foreca-cache
+        run: |
+          test -s "$FORECA_OUT/index.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan foreca-cache
+          git rm -rf . >/dev/null 2>&1 || true
+          git clean -fdx
+          cp -R "$FORECA_OUT/." .
+          git add -A
+          git commit -m "Publish 57-course independent Foreca cache"
+          git push origin HEAD:refs/heads/foreca-cache --force
