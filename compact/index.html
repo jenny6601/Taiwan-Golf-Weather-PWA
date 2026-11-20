@@ -1453,7 +1453,9 @@ $("courseDate").addEventListener("change",()=>{
 // 以日期按鈕的直接 onclick 觸發，避免 PWA 內事件委派失效。
 // 16天日期點選後，同步更新精簡版頁首日期欄位。
 function syncForecastDatePickerDisplay(date){
- const input=$("courseDate");if(input&&date)input.value=date;
+ const input=$("courseDate");if(!input||!date)return;
+ input.value=date;
+ input.setAttribute("aria-label","預報日期："+date.replaceAll("-","/"));
 }
 window.selectDailyForecastDate=async function(date){
  const input=$("courseDate"),dailyScroll=$("dailyForecastScroll");
@@ -1465,6 +1467,8 @@ window.selectDailyForecastDate=async function(date){
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
  await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+ // 載入結束後再次確認頁首日期欄位維持所選日期。
+ syncForecastDatePickerDisplay(date);
  // 等待逐日資料重新繪製及版面完成後，恢復原水平位置。
  const restore=()=>{const el=$("dailyForecastScroll");if(el)el.scrollLeft=window.dailyForecastKeepScrollLeft||0;};
  requestAnimationFrame(restore);
