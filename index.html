@@ -1530,7 +1530,7 @@ async function autoLoadDatabaseCourse(c,button){
  if(databaseAutoBusy)return;
  selectedCourseForReload=c;selectedCourseButton=button;
  databaseAutoBusy=true;
- $("courseDate").disabled=true;
+ // 日期欄位保持可操作；載入期間的新選擇會排入下一次載入。
  $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x===button);});
  try{
    const lat=Number(c.lat),lon=Number(c.lon);
@@ -1546,22 +1546,41 @@ async function autoLoadDatabaseCourse(c,button){
    const diag=$("apiDiagnosticsText");if(diag)diag.textContent=e.message;
  }finally{
    databaseAutoBusy=false;
-   $("courseDate").disabled=false;
+   // 不鎖定日期欄位，確保使用者可在載入期間更改日期。
    $("courseList").querySelectorAll("button[data-course]").forEach(x=>x.disabled=false);
+   // 若載入期間使用者又選了另一日期，立即以最後選取日期補載，避免舊請求覆蓋新選擇。
+   const latestDate=$("courseDate")?.value;
+   if(latestDate&&latestDate!==selectedDate){
+    syncForecastDatePickerDisplay(latestDate);
+    syncDailyForecastSelection(latestDate);
+    setTimeout(()=>autoLoadDatabaseCourse(c,button),0);
+   }
  }
 }
 window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};
 document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
 // 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
 $("courseDate").addEventListener("change",async()=>{
- if(!selectedCourseForReload||databaseAutoBusy)return;
+ if(!selectedCourseForReload)return;
  const chosenDate=$("courseDate").value;
+ syncForecastDatePickerDisplay(chosenDate);
+ syncDailyForecastSelection(chosenDate);
  syncDailyForecastToSelectedDate();
+ if(databaseAutoBusy)return;
  await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
- if($("courseDate").value===chosenDate)syncDailyForecastToSelectedDate();
+ if($("courseDate").value===chosenDate){syncDailyForecastSelection(chosenDate);syncDailyForecastToSelectedDate();}
 });
 // 以日期按鈕的直接 onclick 觸發，避免 PWA 內事件委派失效。
 // 16天日期點選後，同步更新頁首日期選擇器與月曆選取狀態。
+function syncDailyForecastSelection(date){
+ if(!date)return;
+ const root=$("dailyForecastInner");if(!root)return;
+ root.querySelectorAll(".daily-date-cell").forEach(el=>{
+  const selected=el.dataset.dailyDate===date;
+  el.setAttribute("aria-pressed",selected?"true":"false");
+  el.classList.toggle("is-selected",selected);
+ });
+}
 function syncForecastDatePickerDisplay(date){
  const input=$("courseDate");if(!input||!date)return;
  input.value=date;
@@ -1579,11 +1598,14 @@ function syncForecastDatePickerDisplay(date){
 }
 window.selectDailyForecastDate=async function(date){
  const input=$("courseDate"),dailyScroll=$("dailyForecastScroll");
- if(!date||!input||!selectedCourseForReload||databaseAutoBusy)return;
+ if(!date||!input||!selectedCourseForReload)return;
  if(date<input.min||date>input.max)return;
  // 點選前記住16天區塊的水平位置；切換日期不移動頁面垂直位置。
  window.dailyForecastKeepScrollLeft=dailyScroll?.scrollLeft||0;
  syncForecastDatePickerDisplay(date);
+ syncDailyForecastSelection(date);
+ syncDailyForecastToSelectedDate();
+ if(databaseAutoBusy)return;
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
  await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
