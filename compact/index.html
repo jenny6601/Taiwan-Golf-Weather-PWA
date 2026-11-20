@@ -236,6 +236,31 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .daily-date-cell:hover{background:#dcebf5}
 .daily-date-cell[aria-pressed="true"]{background:#d7edfb!important;color:#075985!important;font-weight:900!important;box-shadow:inset 0 0 0 2px #1682bd}
 #dailyForecastStatus{display:none!important}
+
+/* V32.5：自訂16天預報日期月曆 */
+.forecast-date-control{position:relative;max-width:360px;margin:0 0 12px}
+#courseDate{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;padding:0!important;border:0!important}
+.forecast-date-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:50px;padding:10px 14px;background:#fff;color:#17212b;border:1px solid #94a3b8;border-radius:10px;font-weight:800;text-align:left}
+.forecast-date-trigger:after{content:"▾";font-size:18px;color:#1769aa}
+.forecast-calendar{position:absolute;z-index:50;top:calc(100% + 7px);left:0;width:min(100%,360px);padding:12px;background:#fff;border:1px solid #cbd5e1;border-radius:14px;box-shadow:0 12px 32px #0f172a26}
+.forecast-calendar[hidden]{display:none}
+.forecast-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.forecast-calendar-title{font-size:17px;font-weight:850;color:#17212b}
+.forecast-calendar-nav{display:flex;gap:6px}
+.forecast-calendar-nav button{width:36px;height:36px;padding:0;background:#edf3f8;color:#334155;font-size:20px;border:1px solid #dbe3eb}
+.forecast-calendar-week,.forecast-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.forecast-calendar-week span{padding:5px 0;color:#64748b;font-size:12px;font-weight:800}
+.forecast-calendar-day{height:39px;padding:0!important;border-radius:9px!important;background:#f1f5f9!important;color:#b8c1cc!important;border:1px solid transparent!important;font-weight:650!important}
+.forecast-calendar-day.available{background:#e8eef5!important;color:#243447!important}
+.forecast-calendar-day.available:active{background:#dbeafe!important}
+.forecast-calendar-day.selected{background:#1769aa!important;color:#fff!important;border-color:#12558c!important;box-shadow:0 0 0 2px #bfdbfe}
+.forecast-calendar-day:disabled{opacity:1!important;cursor:not-allowed!important}
+.forecast-calendar-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:10px;padding-top:8px;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px}
+.forecast-calendar-legend span{display:inline-flex;align-items:center;gap:5px}
+.forecast-calendar-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;background:#e8eef5}
+.forecast-calendar-legend .disabled i{background:#f1f5f9;border:1px solid #e2e8f0}
+.forecast-calendar-legend .chosen i{background:#1769aa}
+@media(max-width:600px){.forecast-calendar{width:min(100%,340px)}.forecast-calendar-day{height:40px}}
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
@@ -337,7 +362,17 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <section class="panel" id="coursePickerPanel">
 <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
 <label for="courseDate">預報日期</label>
-<input id="courseDate" style="max-width:320px" type="date" required/>
+<label for="courseDate">預報日期</label>
+<div class="forecast-date-control">
+<input id="courseDate" type="date" required aria-hidden="true" tabindex="-1"/>
+<button type="button" id="forecastDateTrigger" class="forecast-date-trigger" aria-haspopup="dialog" aria-expanded="false"><span class="forecast-date-label"></span></button>
+<div id="forecastCalendar" class="forecast-calendar" role="dialog" aria-label="選擇預報日期" hidden>
+ <div class="forecast-calendar-head"><strong id="forecastCalendarTitle" class="forecast-calendar-title"></strong><div class="forecast-calendar-nav"><button type="button" id="forecastCalendarPrev" aria-label="上一個月">‹</button><button type="button" id="forecastCalendarNext" aria-label="下一個月">›</button></div></div>
+ <div class="forecast-calendar-week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+ <div id="forecastCalendarDays" class="forecast-calendar-days"></div>
+ <div class="forecast-calendar-legend"><span><i></i>可選日期</span><span class="disabled"><i></i>不可選日期</span><span class="chosen"><i></i>已選日期</span></div>
+</div>
+</div>
 <label for="countySelect" style="display:block;margin-top:12px">選擇縣市</label>
 <select id="countySelect" style="width:100%;max-width:320px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff">
 <option value="">請選擇縣市</option>
@@ -1147,12 +1182,48 @@ function taiwanYmd(offsetDays=0){
  const p=Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d).map(x=>[x.type,x.value]));
  return p.year+"-"+p.month+"-"+p.day;
 }
+
 function initForecastDatePicker(){
  const input=$("courseDate");if(!input)return;
  const today=taiwanYmd(0),last=taiwanYmd(15);
  input.type="date";input.min=today;input.max=last;input.value=today;input.defaultValue=today;
  input.setAttribute("aria-label","選擇未來16天內的預報日期");
- const note=$("courseAutoStatus");if(note)note.textContent="預報日期："+today+" 至 "+last+"（共16天）。選擇縣市後點球場即可載入。";
+ const trigger=$("forecastDateTrigger"),calendar=$("forecastCalendar");
+ if(trigger&&calendar){
+  let shownMonth=today.slice(0,7);
+  const parseYmd=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+  const fmt=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const render=()=>{
+   const [yy,mm]=shownMonth.split("-").map(Number),first=new Date(yy,mm-1,1),start=new Date(yy,mm-1,1-first.getDay());
+   $("forecastCalendarTitle").textContent=yy+"年"+mm+"月";
+   const minMonth=today.slice(0,7),maxMonth=last.slice(0,7);
+   $("forecastCalendarPrev").disabled=shownMonth<=minMonth;
+   $("forecastCalendarNext").disabled=shownMonth>=maxMonth;
+   const html=[];
+   for(let i=0;i<42;i++){
+    const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i),ymd=fmt(d);
+    const inMonth=d.getMonth()===mm-1,available=ymd>=today&&ymd<=last;
+    const cls=["forecast-calendar-day",available?"available":"",ymd===input.value?"selected":""].filter(Boolean).join(" ");
+    html.push('<button type="button" class="'+cls+'" data-date="'+ymd+'" '+(!available?"disabled":"")+' aria-label="'+ymd+'">'+d.getDate()+'</button>');
+   }
+   $("forecastCalendarDays").innerHTML=html.join("");
+  };
+  const open=()=>{shownMonth=(input.value||today).slice(0,7);render();calendar.hidden=false;trigger.setAttribute("aria-expanded","true");};
+  const close=()=>{calendar.hidden=true;trigger.setAttribute("aria-expanded","false");};
+  trigger.addEventListener("click",()=>calendar.hidden?open():close());
+  $("forecastCalendarPrev").addEventListener("click",()=>{const [y,m]=shownMonth.split("-").map(Number);shownMonth=fmt(new Date(y,m-2,1)).slice(0,7);render();});
+  $("forecastCalendarNext").addEventListener("click",()=>{const [y,m]=shownMonth.split("-").map(Number);shownMonth=fmt(new Date(y,m,1)).slice(0,7);render();});
+  $("forecastCalendarDays").addEventListener("click",e=>{
+   const b=e.target.closest("button[data-date]");if(!b||b.disabled)return;
+   input.value=b.dataset.date;trigger.querySelector(".forecast-date-label").textContent=b.dataset.date.replaceAll("-","/");
+   close();input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  document.addEventListener("click",e=>{if(!calendar.hidden&&!e.target.closest(".forecast-date-control"))close();});
+  input.addEventListener("change",()=>{trigger.querySelector(".forecast-date-label").textContent=input.value.replaceAll("-","/");shownMonth=input.value.slice(0,7);render();});
+  trigger.querySelector(".forecast-date-label").textContent=today.replaceAll("-","/");
+  render();
+ }
+ const note=$("courseAutoStatus");if(note)note.textContent="預報日期："+today+" 至 "+last+"（共16天）。深色為可選日期，淺色為不可選日期。選擇縣市後點球場即可載入。";
 }
 function initCourseDatabase(){
  const counties=[...new Set(taiwanCourses.map(c=>c.city).filter(Boolean))];
