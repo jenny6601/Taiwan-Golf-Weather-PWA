@@ -360,6 +360,20 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 @media(max-width:600px){.forecast-calendar{width:min(100%,340px)}.forecast-calendar-day{height:40px}}
 
 </style>
+
+<style id="full-edition-weather-icon-sizing">
+/* Keep the 16-day and hourly custom SVG icon sizing identical to the full edition. */
+
+.hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji svg.daily-weather-svg{display:block!important;width:42px!important;height:42px!important;max-width:none!important;object-fit:contain!important}
+
+.forecast-weather-item .wx-icon.daily-weather-svg{display:block!important;width:36px!important;height:36px!important}
+
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji svg.daily-weather-svg{width:38px!important;height:38px!important}
+
+ .forecast-weather-item .wx-icon.daily-weather-svg{width:32px!important;height:32px!important}
+.daily-weather-cell .daily-weather-svg{display:block;width:40px;height:40px;max-width:100%;filter:drop-shadow(0 1px 1px rgba(20,45,70,.16))}
+.daily-weather-cell .daily-weather-svg{width:36px;height:36px}
+</style>
 </head>
 <body>
 <header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣｜精簡版</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
