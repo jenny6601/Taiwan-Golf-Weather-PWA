@@ -152,7 +152,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 #coursePickerPanel .course-item small{font-size:11px;line-height:1.35}
 #coursePickerPanel .course-item button.course-selected{background:#126b4c;color:#fff;outline:3px solid #b7e4d1}
 @media(max-width:600px){#coursePickerPanel .course-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#coursePickerPanel .course-item{padding:6px}#coursePickerPanel .course-item button{min-height:50px;padding:8px 5px;font-size:14px}}
-.tee-time-picker{display:block;clear:both;margin:12px 0 14px;padding:12px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;max-width:360px}.tee-time-picker label{display:block;font-size:15px;font-weight:800;color:#334155;margin-bottom:7px}.tee-time-picker select{width:100%;min-height:46px;font-size:16px;font-weight:700;background:#fff;border:1px solid #94a3b8;border-radius:8px;color:#1e293b;padding:8px 10px}.tee-time-picker .muted{margin-top:5px;color:#64748b}
+.date-field-title{display:block;font-size:17px;font-weight:900;color:#173f35;margin:0 0 8px}.tee-time-picker{display:block;clear:both;margin:12px 0 14px;padding:14px 15px;border:2px solid #8ab9a7;border-radius:12px;background:#eaf4ef;max-width:360px;box-shadow:0 2px 7px #145c4312}.tee-time-picker label{display:block;font-size:18px;font-weight:900;color:#0f513d;margin-bottom:10px;letter-spacing:.02em}.tee-time-picker select{width:100%;min-height:50px;font-size:17px;font-weight:700;background:#fff;border:1.5px solid #6f9f8c;border-radius:8px;color:#1e293b;padding:8px 10px}.tee-time-picker .muted{margin-top:5px;font-size:13px;color:#49685d}
 
 .provider-panel{margin-top:14px}.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.provider-card{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fff}.provider-card strong{display:block;font-size:16px}.provider-status{font-size:12px;color:#64748b;margin:6px 0}.provider-links{display:flex;gap:10px;flex-wrap:wrap;font-size:13px}.provider-pill{display:inline-block;border-radius:999px;padding:3px 8px;background:#fff7e6;color:#8a5a00;font-size:11px;font-weight:700}.provider-table-wrap{overflow-x:auto}.provider-table{width:100%;border-collapse:collapse;font-size:13px}.provider-table th,.provider-table td{border-bottom:1px solid var(--line);padding:7px;text-align:right;white-space:nowrap}.provider-table th:first-child,.provider-table td:first-child{text-align:left}.provider-note{background:#f4f8fb;border-radius:9px;padding:10px;font-size:13px;color:#475569;line-height:1.6}@media(max-width:600px){.provider-grid{grid-template-columns:1fr}}
 @media(min-width:601px){#mobileDetailWrap{display:none!important}} @media(max-width:600px){#mobileDetailWrap .tablewrap{overflow-x:auto!important}#mobileDetailWrap table{min-width:760px!important;table-layout:auto!important;font-size:12px!important}#mobileDetailWrap th,#mobileDetailWrap td{white-space:nowrap!important;padding:8px 7px!important}}
@@ -369,8 +369,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <main class="wrap">
 <section class="panel" id="coursePickerPanel">
 <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
-<label for="courseDate">預報日期</label>
-<label for="courseDate">預報日期</label>
+<label for="courseDate" class="date-field-title">選擇日期</label>
 <div class="forecast-date-control">
 <input id="courseDate" type="date" required aria-hidden="true" tabindex="-1"/>
 <button type="button" id="forecastDateTrigger" class="forecast-date-trigger" aria-haspopup="dialog" aria-expanded="false"><span class="forecast-date-label"></span></button>
@@ -2246,7 +2245,7 @@ async function loadForecast(p,date,forceRefresh=false){
   else{const detail="快取、六組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+(fallback.error?.message||"未知錯誤");const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
  }
  active.forecastSource=forecastSource;
- $("status").textContent="預報完成｜"+names.length+"/6 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");
+ $("status").textContent="預報完成｜"+names.length+"/6 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
  const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
 let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數（歷史資料累積中）";
@@ -2302,7 +2301,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
  $("v26Interpretation").textContent=`模型分歧判讀：${uncertainty}。最高降雨機率改以系集成員比例估算；六個確定性模式僅比較可用欄位；AIFS 缺少原生降雨機率與陣風；最高氣溫分歧 ${tempSpread===null?"無法計算":tempSpread.toFixed(1)+" °C"}；最高陣風分歧 ${gustSpread===null?"無法計算":gustSpread.toFixed(1)+" km/h"}。模型一致不代表一定準確，仍須參考雷達、官方警特報及球場公告。`;
  $("tableNote").textContent=`${date}｜06:00–18:00逐時資料｜雨量融合：${weightingLabel}；${base.some(x=>x.probabilityWeightingApplied)?"降雨機率採歷史 Brier 加權。":"降雨機率採系集成員統計。"} 成功取得 ${names.length}/6 組模型。`;
  loadVerificationDashboard(p.name,leadDays);
- $("status").textContent=`預報完成｜${names.length}/6 模式`;
+ $("status").textContent=`預報完成｜${names.length}/6 模式`;$("status").style.display="none";
  $("courseAutoStatus").textContent=`${p.name}｜${date}｜座標 ${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜${forecastSource}${modelErrors.length?"；部分模型失敗，詳見 API 診斷":""}`;
  loadAndRenderDailyForecast(p);
  loadRadar(p.lat,p.lon);
