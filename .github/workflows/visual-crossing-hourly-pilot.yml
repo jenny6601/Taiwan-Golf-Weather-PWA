@@ -8,6 +8,7 @@ on:
       - '.github/workflows/visual-crossing-hourly-pilot.yml'
       - 'scripts/visual_crossing_pilot.py'
       - 'scripts/split_visual_crossing_cache.py'
+      - 'scripts/push_cache_snapshot.py'
   schedule:
     # 05:15 Asia/Taipei (UTC+8).
     - cron: "15 21 * * *"
@@ -69,6 +70,7 @@ jobs:
         env:
           VC_OUT: /tmp/visual-crossing-cache
         run: |
+          cp scripts/push_cache_snapshot.py /tmp/push_cache_snapshot.py
           test -s "$VC_OUT/index.json"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -78,4 +80,4 @@ jobs:
           cp -R "$VC_OUT/." .
           git add -A
           git commit -m "Publish 57-course Visual Crossing hourly cache"
-          git push origin HEAD:refs/heads/visual-crossing-cache --force
+          python /tmp/push_cache_snapshot.py visual-crossing-cache
