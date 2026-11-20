@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-19T09:12:58.268143+08:00",
+  "generated_at": "2026-11-20T11:31:28.948933+08:00",
   "status": "warming_up",
   "method": "inverse-error with equal-prior shrinkage and 0.35 maximum source weight",
   "verification_source": "CWA rainfall observations",
@@ -9,37 +9,49 @@
       "sample_count_by_source": {},
       "amount_weights": null,
       "probability_weights": null,
-      "weighting_active": false
+      "weighting_active": false,
+      "amount_weighting_active": false,
+      "probability_weighting_active": false
     },
     "3": {
       "sample_count_by_source": {},
       "amount_weights": null,
       "probability_weights": null,
-      "weighting_active": false
+      "weighting_active": false,
+      "amount_weighting_active": false,
+      "probability_weighting_active": false
     },
     "5": {
       "sample_count_by_source": {},
       "amount_weights": null,
       "probability_weights": null,
-      "weighting_active": false
+      "weighting_active": false,
+      "amount_weighting_active": false,
+      "probability_weighting_active": false
     },
     "7": {
       "sample_count_by_source": {},
       "amount_weights": null,
       "probability_weights": null,
-      "weighting_active": false
+      "weighting_active": false,
+      "amount_weighting_active": false,
+      "probability_weighting_active": false
     },
     "10": {
       "sample_count_by_source": {},
       "amount_weights": null,
       "probability_weights": null,
-      "weighting_active": false
+      "weighting_active": false,
+      "amount_weighting_active": false,
+      "probability_weighting_active": false
     },
     "14": {
       "sample_count_by_source": {},
       "amount_weights": null,
       "probability_weights": null,
-      "weighting_active": false
+      "weighting_active": false,
+      "amount_weighting_active": false,
+      "probability_weighting_active": false
     }
   },
   "by_course": {}
