@@ -73,7 +73,13 @@ jobs:
           if [ -s /tmp/verification-run.json ]; then
             python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json
-          d=json.load(open("/tmp/verification-run.json",encoding="utf-8"))
+          from pathlib import Path
+          raw=Path("/tmp/verification-run.json").read_text(encoding="utf-8")
+          # The archive script may print a warning before its final JSON document.
+          start=raw.find("{")
+          if start < 0:
+              raise SystemExit("No JSON result found in verification run output")
+          d=json.loads(raw[start:])
           print("## Archive result")
           for key in ("observation_archive","forecast_archive","verification"):
               value=d.get(key)
