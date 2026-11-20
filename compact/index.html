@@ -1454,9 +1454,12 @@ async function autoLoadDatabaseCourse(c,button){
 window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};
 document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
 // 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
-$("courseDate").addEventListener("change",()=>{
+$("courseDate").addEventListener("change",async()=>{
  if(!selectedCourseForReload||databaseAutoBusy)return;
- autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+ const chosenDate=$("courseDate").value;
+ syncDailyForecastToSelectedDate();
+ await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+ if($("courseDate").value===chosenDate)syncDailyForecastToSelectedDate();
 });
 // 以日期按鈕的直接 onclick 觸發，避免 PWA 內事件委派失效。
 window.selectDailyForecastDate=async function(date){
@@ -2054,20 +2057,25 @@ async function fetchDailyForecast(lat,lon){
  dailyForecastCache.set(key,{at:Date.now(),rows});return rows;
 }
 function syncDailyForecastToSelectedDate(){
-  const input=$("courseDate");
-  if(!input?.value)return;
-  const date=input.value;
-  const move=()=>{
-   const el=$("dailyForecastScroll");
-   if(!el)return;
-   const cell=Array.from(el.querySelectorAll(".daily-date-cell")).find(x=>x.dataset.dailyDate===date);
-   if(!cell)return;
-   const er=cell.getBoundingClientRect(),sr=el.getBoundingClientRect();
-   const left=el.scrollLeft+(er.left-sr.left)-(el.clientWidth-er.width)/2;
-   el.scrollTo({left:Math.max(0,Math.min(el.scrollWidth-el.clientWidth,left)),behavior:"auto"});
-  };
-  move();requestAnimationFrame(move);setTimeout(move,120);setTimeout(move,360);
+ const input=$("courseDate"),el=$("dailyForecastScroll");
+ if(!input?.value||!el)return;
+ const date=input.value;
+ const move=()=>{
+  const scroller=$("dailyForecastScroll");
+  if(!scroller)return;
+  const cell=Array.from(scroller.querySelectorAll(".daily-date-cell")).find(x=>x.dataset.dailyDate===date);
+  if(!cell)return;
+  const er=cell.getBoundingClientRect(),sr=scroller.getBoundingClientRect();
+  const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+  const next=Math.max(0,Math.min(max,scroller.scrollLeft+er.left-sr.left-(scroller.clientWidth-er.width)/2));
+  scroller.scrollLeft=next;
+ };
+ move();
+ requestAnimationFrame(()=>{move();requestAnimationFrame(move);});
+ setTimeout(move,160);
+ setTimeout(move,420);
 }
+
 function renderDailyForecast(rows,courseName){
  const target=$("dailyForecastInner"),status=$("dailyForecastStatus"),heading=$("dailyForecastHeading"),dailyScroll=$("dailyForecastScroll"),dailyScrollLeft=window.dailyForecastKeepScrollLeft??dailyScroll?.scrollLeft??0;if(!target)return;if(!rows?.length){target.innerHTML='<div class="daily-forecast-placeholder">目前沒有可用逐日資料</div>';return;}
  // 逐日預報固定以16天為同一顯示範圍；日期、曲線、天氣及降雨共用完全相同的資料列，避免最右端橫向滑動時各列寬度不一致。
