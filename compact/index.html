@@ -1451,13 +1451,17 @@ $("courseDate").addEventListener("change",()=>{
  autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
 });
 // 以日期按鈕的直接 onclick 觸發，避免 PWA 內事件委派失效。
+// 16天日期點選後，同步更新精簡版頁首日期欄位。
+function syncForecastDatePickerDisplay(date){
+ const input=$("courseDate");if(input&&date)input.value=date;
+}
 window.selectDailyForecastDate=async function(date){
  const input=$("courseDate"),dailyScroll=$("dailyForecastScroll");
  if(!date||!input||!selectedCourseForReload||databaseAutoBusy)return;
  if(date<input.min||date>input.max)return;
  // 點選前記住16天區塊的水平位置；切換日期不移動頁面垂直位置。
  window.dailyForecastKeepScrollLeft=dailyScroll?.scrollLeft||0;
- input.value=date;
+ syncForecastDatePickerDisplay(date);
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
  await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
