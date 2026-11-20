@@ -56,11 +56,12 @@ Path("dist/pwa-install.js").write_text(
  '(()=>{if(!("serviceWorker"in navigator))return;window.addEventListener("load",async()=>{try{const r=await navigator.serviceWorker.register("/sw.js",{scope:"/",updateViaCache:"none"});await r.update();console.log("Compact PWA service worker:",r.scope);}catch(e){console.error("Compact PWA service worker registration failed:",e);}});})();\n',
  encoding="utf-8")
 Path("dist/_headers").write_text(
- "/\\n  Cache-Control: no-cache, no-store, must-revalidate\\n"
- "/index.html\\n  Cache-Control: no-cache, no-store, must-revalidate\\n"
- "/sw.js\\n  Cache-Control: no-cache, no-store, must-revalidate\\n",
+ "/\n  Cache-Control: no-cache, no-store, must-revalidate\n"
+ "/index.html\\n  Cache-Control: no-cache, no-store, must-revalidate\n"
+ "/sw.js\\n  Cache-Control: no-cache, no-store, must-revalidate\n",
  encoding="utf-8")
-\nPath("dist/sw.js").write_text(
+
+Path("dist/sw.js").write_text(
  'const CACHE_NAME="golf-weather-compact-netlify-v22";\n'
  'const APP_SHELL=["/","/index.html","/manifest.json","/pwa-install.js","/icon.svg","/icon-192.png","/icon-512.png","/offline.html","/assets/rain-levels-original.webp"];\n'
  'self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting())));\n'
