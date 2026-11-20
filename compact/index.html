@@ -1472,10 +1472,8 @@ window.selectDailyForecastDate=async function(date){
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
  await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
- // 等待逐日資料重新繪製及版面完成後，恢復原水平位置。
- const restore=()=>{const el=$("dailyForecastScroll");if(el)el.scrollLeft=window.dailyForecastKeepScrollLeft||0;};
- requestAnimationFrame(restore);
- setTimeout(restore,180);
+ // 逐日資料重新繪製後，依目前選取日期重新定位；不可恢復舊位置覆蓋日期同步。
+ syncDailyForecastToSelectedDate();
 };
 setInterval(()=>{if(selectedCourseForReload&&!document.hidden)loadLiveObservation(selectedCourseForReload);},10*60*1000);
 const modelDefs=[
