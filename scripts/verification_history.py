@@ -27,19 +27,22 @@ RETENTION_DAYS = 180
 OBS_MAX_AGE_MIN = 28
 FORECAST_MAX_AGE_HOURS = 4
 VC_MAX_AGE_HOURS = 36
+FORECA_MAX_AGE_HOURS = 36
 MIN_STATION_DISTANCE_KM = 15.0
 MIN_10M_SAMPLES = 6
 MIN_GLOBAL_PAIRS = 200
 MIN_COURSE_PAIRS = 100
 SOURCES = (
     "ECMWF IFS", "NOAA GFS", "DWD ICON", "JMA GSM",
-    "Canada GEM", "ECMWF AIFS", "Visual Crossing",
+    "Canada GEM", "ECMWF AIFS", "Visual Crossing", "Foreca",
 )
 LIVE_URL = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/live_observations.json"
 COURSE_INDEX_URL = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/course-cache/index.json"
 COURSE_BASE = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/course-cache/"
 VC_INDEX_URL = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/visual-crossing-cache/index.json"
 VC_BASE = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/visual-crossing-cache/"
+FORECA_INDEX_URL = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/foreca-cache/index.json"
+FORECA_BASE = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/foreca-cache/"
 ROOT = Path(sys.argv[2] if len(sys.argv) > 2 else "history")
 
 def get_json(url: str, timeout: int = 45) -> dict:
@@ -199,6 +202,13 @@ def fetch_vc_cache(name: str, rel: str):
         entry = next((v for k, v in payload.get("courses", {}).items() if name_key(k) == name_key(name)), None)
     return entry if isinstance(entry, dict) else {}
 
+def fetch_foreca_cache(name: str, rel: str):
+    payload = get_json(FORECA_BASE + rel)
+    entry = payload.get("courses", {}).get(name)
+    if not isinstance(entry, dict):
+        entry = next((v for k, v in payload.get("courses", {}).items() if name_key(k) == name_key(name)), None)
+    return entry if isinstance(entry, dict) else {}
+
 def archive_forecast_vintage(now: datetime) -> dict:
     issue_date = now.astimezone(TZ).date()
     out_path = ROOT / "forecasts" / f"{issue_date.isoformat()}.json.gz"
@@ -207,7 +217,7 @@ def archive_forecast_vintage(now: datetime) -> dict:
             previous_vintage = read_gzip_json(out_path)
             if (
                 len(previous_vintage.get("courses", {})) == 57
-                and previous_vintage.get("hour_alignment_version") == 2
+                and previous_vintage.get("hour_alignment_version") == 3
             ):
                 return {"status": "already_archived", "issue_date": issue_date.isoformat()}
         except Exception:
@@ -240,6 +250,18 @@ def archive_forecast_vintage(now: datetime) -> dict:
     except Exception as exc:
         print(f"Visual Crossing unavailable for this vintage: {exc}")
 
+    foreca_index = {}
+    foreca_age_h = None
+    try:
+        foreca_index = get_json(FORECA_INDEX_URL)
+        foreca_generated = parse_dt(foreca_index.get("generated_at"))
+        if foreca_generated:
+            foreca_age_h = (now.astimezone(timezone.utc) - foreca_generated).total_seconds() / 3600
+        if not foreca_generated or foreca_age_h < -1 or foreca_age_h > FORECA_MAX_AGE_HOURS:
+            foreca_index = {}
+    except Exception as exc:
+        print(f"Foreca unavailable for this vintage: {exc}")
+
     live = get_json(LIVE_URL)
     course_id_by_name = {
         name_key(v.get("course_name") or v.get("name") or ""): str(k)
@@ -248,13 +270,16 @@ def archive_forecast_vintage(now: datetime) -> dict:
     course_items = list(names.items())
     vc_names = vc_index.get("courses", {}) if vc_index else {}
     vc_name_lookup = {name_key(k): (k, v) for k, v in vc_names.items()}
+    foreca_names = foreca_index.get("courses", {}) if foreca_index else {}
+    foreca_name_lookup = {name_key(k): (k, v) for k, v in foreca_names.items()}
     valid_dates = { (issue_date + timedelta(days=lead)).isoformat(): lead for lead in LEADS }
     archive = {
         "schema_version": 1,
-        "hour_alignment_version": 2,
+        "hour_alignment_version": 3,
         "source_hour_alignment": {
             "Open-Meteo": "preceding-hour",
             "Visual Crossing": "timestamped-hour-period",
+            "Foreca": "preceding-hour",
         },
         "issued_at": now.astimezone(TZ).isoformat(),
         "issue_date": issue_date.isoformat(),
@@ -267,7 +292,7 @@ def archive_forecast_vintage(now: datetime) -> dict:
         "visual_crossing_generated_at": vc_index.get("generated_at") if vc_index else None,
         "visual_crossing_age_hours": round(vc_age_h, 2) if vc_age_h is not None else None,
         "course_count": len(course_items),
-        "sources": list(model_names) + (["Visual Crossing"] if vc_index else []),
+        "sources": list(model_names) + (["Visual Crossing"] if vc_index else []) + (["Foreca"] if foreca_index else []),
         "courses": {},
         "errors": [],
     }
@@ -310,6 +335,24 @@ def archive_forecast_vintage(now: datetime) -> dict:
                     if str(r.get("time", ""))[11:13].isdigit()
                     and 5 <= int(str(r.get("time", ""))[11:13]) <= 17
                 ]
+            foreca_rel_item = foreca_name_lookup.get(name_key(name))
+            try:
+                foreca_entry = fetch_foreca_cache(name, foreca_rel_item[1]) if foreca_rel_item else {}
+            except Exception as exc:
+                foreca_entry = {}
+                print(f"Foreca cache unavailable for {name}: {exc}")
+            foreca_day = foreca_entry.get(valid_date, {})
+            foreca_provider = (foreca_day.get("providers") or {}).get("Foreca", {})
+            foreca_rows = foreca_provider.get("hourly", []) if foreca_provider.get("status") == "ok" else []
+            if foreca_rows:
+                model_rows["Foreca"] = [
+                    {"time": str(r.get("time", ""))[11:16],
+                     "precip_mm": r.get("precipitation"),
+                     "precip_probability_pct": r.get("precipitation_probability")}
+                    for r in foreca_rows
+                    if str(r.get("time", ""))[11:13].isdigit()
+                    and 6 <= int(str(r.get("time", ""))[11:13]) <= 18
+                ]
             valid[valid_date] = {"lead_days": lead, "sources": model_rows}
         course_id = course_id_by_name.get(name_key(name))
         return name, {"course_id": course_id, "valid_dates": valid}
@@ -335,6 +378,10 @@ def archive_forecast_vintage(now: datetime) -> dict:
     archive["visual_crossing_course_coverage"] = sum(
         1 for course in archive["courses"].values()
         if any(day.get("sources", {}).get("Visual Crossing") for day in course["valid_dates"].values())
+    )
+    archive["foreca_course_coverage"] = sum(
+        1 for course in archive["courses"].values()
+        if any(day.get("sources", {}).get("Foreca") for day in course["valid_dates"].values())
     )
     write_gzip_json(out_path, archive)
     return {
