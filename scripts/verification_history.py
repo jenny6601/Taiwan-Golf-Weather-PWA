@@ -212,6 +212,7 @@ def fetch_foreca_cache(name: str, rel: str):
 def archive_forecast_vintage(now: datetime) -> dict:
     issue_date = now.astimezone(TZ).date()
     out_path = ROOT / "forecasts" / f"{issue_date.isoformat()}.json.gz"
+    previous_vintage = None
     if out_path.exists():
         try:
             previous_vintage = read_gzip_json(out_path)
@@ -261,6 +262,9 @@ def archive_forecast_vintage(now: datetime) -> dict:
             foreca_index = {}
     except Exception as exc:
         print(f"Foreca unavailable for this vintage: {exc}")
+    if previous_vintage and previous_vintage.get("hour_alignment_version") == 2 and not foreca_index:
+        write_gzip_json(out_path, previous_vintage)
+        return {"status": "awaiting_fresh_foreca_cache", "issue_date": issue_date.isoformat()}
 
     live = get_json(LIVE_URL)
     course_id_by_name = {
