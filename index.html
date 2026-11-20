@@ -56,7 +56,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 #liveObservationPanel{background:#EAF3FC;border:1px solid #C6D9ED;border-radius:16px;padding:0;overflow:hidden}
 #liveObservationPanel .live-observation-heading{background:#173D68;color:#fff;padding:15px 16px;align-items:center}
 #liveObservationPanel .live-observation-heading h3{color:#fff;font-size:clamp(21px,3vw,26px);font-weight:850;letter-spacing:.02em}
-#liveObservationPanel .live-observation-heading:after{content:"LIVE";display:inline-flex;align-items:center;padding:3px 9px;border-radius:99px;background:#167C54;color:#fff;font-size:11px;font-weight:800;letter-spacing:.08em}
+#liveObservationPanel .live-observation-heading:after{content:none!important;display:none!important}
 #liveObservationPanel .live-data-details{margin:12px 14px 0}
 #liveObservationPanel .live-data-details>summary{background:#F7FAFD;border-color:#C6D9ED;color:#526B88}
 #liveObservationPanel .live-observation-grid{padding:0 14px 14px;margin-top:12px}
@@ -1405,10 +1405,12 @@ async function loadLiveObservation(course){
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
    liveMetric("目前天氣",'<span class="wxcell">'+weatherIcon+weatherText+'</span>'),
-   liveMetric(liveTemperatureIcon(temp)+"氣溫",liveFmt(temp,1," °C"),liveTemperatureClass(temp,"air")),liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C"),liveTemperatureClass(feel,"feel")),liveMetric("濕度",liveFmt(rh,0," %")),
+   liveMetric("濕度",liveFmt(rh,0," %")),
+   liveMetric(liveTemperatureIcon(temp)+"氣溫",liveFmt(temp,1," °C"),liveTemperatureClass(temp,"air")),
+   liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C"),liveTemperatureClass(feel,"feel")),
    liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml,liveRainClass(rain10)),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm"),liveRainClass(rain1h)),
    liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
-  ].join("");
+  ].join("");;;
   const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
   const snapshotAge=Math.max(0,(Date.now()-new Date(snap.generated_at).getTime())/60000);
   const maxAge=ages.length?Math.max.apply(null,ages)+snapshotAge:null,stale=maxAge===null||maxAge>60,warning=maxAge!==null&&maxAge>30&&maxAge<=60;
