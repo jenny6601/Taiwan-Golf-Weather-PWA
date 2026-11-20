@@ -2196,7 +2196,10 @@ async function loadForecast(p,date,forceRefresh=false){
   if(!Object.keys(cached).length)modelErrors.push("快取沒有此球場／日期的逐時資料");
   else if(cacheAgeMinutes<=360){
    active.modelRows=cached;forecastSource="GitHub Actions 預報快取（"+Object.keys(cached).length+"/6組模式）";
-   if(cacheAgeMinutes>180)cacheNotice="｜提醒：預報快取已超過3小時（"+Math.floor(cacheAgeMinutes/60)+"小時），資料稍舊";
+   if(cacheAgeMinutes>180){
+    staleCacheInUse=true;
+    cacheNotice="｜預報快取已超過3小時（"+Math.floor(cacheAgeMinutes/60)+"小時），先顯示快取並在背景更新";
+   }
   }else if(cacheAgeMinutes<=720){
    active.modelRows=cached;forecastSource="GitHub Actions 舊快取（"+Object.keys(cached).length+"/6組模式）";
    staleCacheInUse=true;
@@ -2304,7 +2307,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
  loadAndRenderDailyForecast(p);
  loadRadar(p.lat,p.lon);
  loadV28ProviderCache(p.name,date);
- if(!forceRefresh&&cacheAgeMinutes!==null&&cacheAgeMinutes>360&&cacheAgeMinutes<=720&&Object.keys(cachedCourseModels(cacheCandidate,p.name,date)).length){
+ if(!forceRefresh&&cacheAgeMinutes!==null&&cacheAgeMinutes>180&&cacheAgeMinutes<=720&&Object.keys(cachedCourseModels(cacheCandidate,p.name,date)).length){
   $("status").textContent="舊快取已先顯示｜正在背景更新六組即時模型…";
   setTimeout(()=>loadForecast(p,date,true).catch(e=>{const b=$("apiDiagnosticsText");if(b)b.textContent+="\n\n背景更新失敗："+(e.message||String(e));$("status").textContent="目前顯示舊快取｜背景更新失敗，請稍後重試。";}),0);
  }
