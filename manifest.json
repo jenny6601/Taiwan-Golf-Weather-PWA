@@ -1,8 +1,8 @@
 {
   "id": "./index.html",
-  "name": "台灣球場天氣",
-  "short_name": "台灣球場天氣",
-  "description": "台灣57座高爾夫球場即時觀測與天氣預報",
+  "name": "亞洲高爾夫球場天氣",
+  "short_name": "亞洲球場天氣",
+  "description": "亞洲高爾夫球場即時觀測與天氣預報",
   "lang": "zh-TW",
   "start_url": "./index.html",
   "scope": "./",
