@@ -1823,8 +1823,9 @@ function renderV2SpecialReports(rows){
  const host=$("playabilitySpecialReports");if(!host)return;
  const a=(rows||[]).filter(x=>x&&x.available!==false);
  const n=(v,d=1)=>v===null||v===undefined||!Number.isFinite(Number(v))?"—":Number(v).toFixed(d);
- const rain=a.filter(x=>Number.isFinite(Number(x.mm))),prob=a.filter(x=>Number.isFinite(Number(x.rain)));
- const feel=a.filter(x=>Number.isFinite(Number(x.feel)));
+ const validNum=v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v));
+ const rain=a.filter(x=>validNum(x.mm)),prob=a.filter(x=>validNum(x.rain));
+ const feel=a.filter(x=>validNum(x.feel));
  const total=rain.reduce((z,x)=>z+Number(x.mm),0);
  const maxP=prob.length?Math.max(...prob.map(x=>Number(x.rain))):null;
  const maxR=rain.length?rain.reduce((x,y)=>Number(x.mm)>Number(y.mm)?x:y):null;
