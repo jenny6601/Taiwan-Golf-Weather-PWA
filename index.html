@@ -274,6 +274,12 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .forecast-calendar-legend .chosen i{background:#1769aa}
 @media(max-width:600px){.forecast-calendar{width:min(100%,340px)}.forecast-calendar-day{height:40px}}
 
+
+.playability-special-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
+.playability-special-value{font-size:19px;font-weight:900;color:#173f35;margin-top:4px;overflow-wrap:anywhere}
+.playability-special-details{margin-top:10px}
+@media(max-width:600px){.playability-special-grid{gap:7px}.playability-special-value{font-size:16px}}
+
 /* Course playability analysis V1 preview */
 .playability-card{border:1px solid #c9ded5;background:linear-gradient(180deg,#fbfefc,#fff)}
 .playability-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
@@ -430,6 +436,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   <span class="playability-tag">五項指標</span>
  </div>
  <div id="playabilityContent" class="playability-content">
+  <div id="playabilitySpecialReports"></div>
   <div class="playability-placeholder">請先選擇球場，系統將整合降雨、風勢、氣溫、天氣穩定度及能見度。</div>
  </div>
 </section>
@@ -1806,17 +1813,54 @@ function playabilityFactorScore(rows){
  if(gusts.length&&max(gusts)>=40)alerts.push({type:"warn",text:"最大陣風達"+max(gusts).toFixed(1)+" km/h：注意開球方向、球道落點及短桿穩定性。"});
  if(winds.length&&mean(winds)>=25)alerts.push({type:"warn",text:"平均風速約"+mean(winds).toFixed(1)+" km/h：球路及球桿距離可能受持續風勢影響。"});
  if(probs.length&&max(probs)>=30)alerts.push({type:"warn",text:"至少一小時降雨機率達"+Math.round(max(probs))+"%：建議攜帶雨具並留意降雨時段。"});
- if(feels.length&&mean(feels)<15)alerts.push({type:"warn",text:"平均體感低於15°C：建議分層穿著並充分暖身。"});
+ if(feels.length&&mean(feels)<=10)alerts.push({type:"danger",text:"平均體感溫度達10°C以下：屬極低溫，建議評估延後開球並加強保暖。"}); else if(feels.length&&mean(feels)<=15)alerts.push({type:"warn",text:"平均體感溫度達15°C以下：屬低溫，建議分層穿著並充分暖身。"});
  if(feels.length&&max(feels)>30)alerts.push({type:"warn",text:"部分時段體感超過30°C：注意補水、防曬及休息。"});
  if(!alerts.length)alerts.push({type:"good",text:"目前逐時資料未顯示明顯降雨、強風或霧況警訊；仍請於出發前確認最新預報及球場公告。"});
  return {score,parts,weight,alerts,rows:vals,avgWind:mean(winds),maxGust:max(gusts),maxProb:max(probs),rainTotal:sum(rainAmounts),avgFeel:mean(feels),codes};
 }
+
+function renderV2SpecialReports(rows){
+ const host=$("playabilitySpecialReports");if(!host)return;
+ const a=(rows||[]).filter(x=>x&&x.available!==false);
+ const n=(v,d=1)=>v===null||v===undefined||!Number.isFinite(Number(v))?"—":Number(v).toFixed(d);
+ const rain=a.filter(x=>Number.isFinite(Number(x.mm))),prob=a.filter(x=>Number.isFinite(Number(x.rain)));
+ const feel=a.filter(x=>Number.isFinite(Number(x.feel)));
+ const total=rain.reduce((z,x)=>z+Number(x.mm),0);
+ const maxP=prob.length?Math.max(...prob.map(x=>Number(x.rain))):null;
+ const maxR=rain.length?rain.reduce((x,y)=>Number(x.mm)>Number(y.mm)?x:y):null;
+ let run=0,longest=0,start="",best="";
+ a.forEach(x=>{if(Number(x.mm)>=0.1){if(!run)start=x.time;run++;if(run>longest){longest=run;best=start;}}else run=0;});
+ const cold=feel.filter(x=>Number(x.feel)<=15),extreme=feel.filter(x=>Number(x.feel)<=10);
+ const min=feel.length?feel.reduce((x,y)=>Number(x.feel)<Number(y.feel)?x:y):null;
+ const rainRisk=maxP===null&&rain.length===0?"資料不足":maxP>=70||total>=10?"高":maxP>=40||total>=3?"中":"低";
+ const rainAdvice=rainRisk==="高"?"降雨風險偏高，應評估延後或改期，並確認球場排水及開放狀態。":rainRisk==="中"?"有降雨時段，建議避開降雨集中時段並備妥雨具。":rainRisk==="低"?"目前降雨風險較低，仍需留意局部陣雨。":"降雨資料不足，暫不判定風險。";
+ const coldAdvice=extreme.length?"體感溫度達10°C以下，屬極低溫警示；建議評估延後開球並加強保暖。":cold.length?"體感溫度達15°C以下，屬低溫警示；建議分層穿著、保暖手套及充分暖身。":"沒有預報到15°C以下的體感溫度時段。";
+ const detail=a.map(x=>"<tr><td>"+esc(x.time)+"</td><td>"+n(x.rain,0)+"%</td><td>"+n(x.mm)+"</td><td>"+n(x.temp)+"°C</td><td>"+n(x.feel)+"°C</td></tr>").join("");
+ host.innerHTML=
+ '<div class="playability-section-title">降雨專項分析｜'+rainRisk+'風險</div>'+
+ '<div class="playability-special-grid">'+
+ '<div class="playability-item"><b>累積雨量</b><div class="playability-special-value">'+n(total)+' mm</div></div>'+
+ '<div class="playability-item"><b>最高降雨機率</b><div class="playability-special-value">'+n(maxP,0)+'%</div></div>'+
+ '<div class="playability-item"><b>最大單小時雨量</b><div class="playability-special-value">'+(maxR?n(maxR.mm)+' mm｜'+esc(maxR.time):"—")+'</div></div>'+
+ '<div class="playability-item"><b>最長連續降雨</b><div class="playability-special-value">'+(longest?longest+'小時｜'+esc(best)+"起":"無")+'</div></div></div>'+
+ '<div class="playability-alert '+(rainRisk==="高"?"danger":rainRisk==="低"?"good":"")+'">'+rainAdvice+'</div>'+
+ '<div class="playability-section-title">低溫專項分析｜低溫≤15°C；極低溫≤10°C</div>'+
+ '<div class="playability-special-grid">'+
+ '<div class="playability-item"><b>最低體感溫度</b><div class="playability-special-value">'+(min?n(min.feel)+'°C｜'+esc(min.time):"—")+'</div></div>'+
+ '<div class="playability-item"><b>低溫時數</b><div class="playability-special-value">'+cold.length+' 小時</div></div>'+
+ '<div class="playability-item"><b>極低溫時數</b><div class="playability-special-value">'+extreme.length+' 小時</div></div>'+
+ '<div class="playability-item"><b>分析時段</b><div class="playability-special-value">'+(cold.length?esc(cold[0].time)+"–"+esc(cold[cold.length-1].time):"無")+'</div></div></div>'+
+ '<div class="playability-alert '+(extreme.length?"danger":cold.length?"":"good")+'">'+coldAdvice+'</div>'+
+ '<details class="playability-special-details"><summary>逐時降雨與低溫明細（'+a.length+'筆）</summary><div class="provider-table-wrap"><table class="provider-table"><thead><tr><th>時間</th><th>降雨機率</th><th>雨量</th><th>氣溫</th><th>體感</th></tr></thead><tbody>'+detail+'</tbody></table></div></details>';
+}
+
 function renderPlayabilityAnalysis(rows,courseName,date){
  const host=$("playabilityContent"),subtitle=$("playabilitySubtitle");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
  if(subtitle)subtitle.textContent=(courseName||"所選球場")+"｜"+(date||"")+"｜"+scopeText;
  const data=playabilityFactorScore(chosen);
+ renderV2SpecialReports(chosen);
  if(!chosen.length||data.score===null){host.innerHTML='<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';return;}
  const verdict=data.score>=85?"非常適合":data.score>=70?"適合下場":data.score>=55?"尚可，需留意":"不建議下場";
  const tone=data.score>=70?"#1d9363":data.score>=55?"#c18a27":"#c44740";
