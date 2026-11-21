@@ -2496,7 +2496,7 @@ renderValidation();
 initForecastDatePicker();
 initCourseDatabase();
 $("teeTimeSelect")?.addEventListener("change",()=>{
- if(active?.rows?.length)renderSelectedHourlySections(active.rows);
+ if(active?.rows?.length){renderSelectedHourlySections(active.rows);renderPlayabilityAnalysis(active.rows,active.name,active.date);}
  else{
   const date=$("courseDate")?.value;
   if(date)updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
