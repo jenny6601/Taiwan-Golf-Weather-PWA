@@ -280,6 +280,37 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .playability-special-details{margin-top:10px}
 @media(max-width:600px){.playability-special-grid{gap:7px}.playability-special-value{font-size:16px}}
 
+
+/* V2.1：適打性、降雨與低溫分析標題及分數分級 */
+.playability-card{overflow:hidden}
+.playability-head{background:#174f78;color:#fff;padding:13px 15px;border-radius:10px;margin:-2px -2px 12px;align-items:center}
+.playability-head h3{color:#fff!important;font-size:20px;font-weight:900}
+.playability-head #playabilitySubtitle{color:#e4eef8!important;margin:4px 0 0;font-size:12px}
+.playability-tag{background:#e4eef8;color:#174f78}
+.playability-section-title{padding:9px 12px;border-radius:8px;background:#e8f1ed;color:#174b39;margin:13px 0 8px;font-size:15px;font-weight:900}
+.playability-section-title.rain-title{background:#1769aa;color:#fff}
+.playability-section-title.cold-title{background:#526b91;color:#fff}
+.playability-section-title.neutral-title{background:#64748b;color:#fff}
+.playability-score.score-tier-excellent{border-color:#15945c!important;color:#087443!important;background:#e8f7ef}
+.playability-score.score-tier-good{border-color:#1684c5!important;color:#08649b!important;background:#eaf5fc}
+.playability-score.score-tier-caution{border-color:#d99119!important;color:#9a5b00!important;background:#fff5df}
+.playability-score.score-tier-poor{border-color:#d0443d!important;color:#b42318!important;background:#fff0ef}
+.score-value{font-weight:900!important}
+.score-value.score-tier-excellent{color:#087443!important}
+.score-value.score-tier-good{color:#08649b!important}
+.score-value.score-tier-caution{color:#a16207!important}
+.score-value.score-tier-poor{color:#b42318!important}
+.playability-bar i.score-tier-excellent{background:#15945c!important}
+.playability-bar i.score-tier-good{background:#1684c5!important}
+.playability-bar i.score-tier-caution{background:#d99119!important}
+.playability-bar i.score-tier-poor{background:#d0443d!important}
+.playability-window .score-value{font-size:15px}
+.playability-special-value.score-tier-excellent{color:#087443}
+.playability-special-value.score-tier-good{color:#08649b}
+.playability-special-value.score-tier-caution{color:#a16207}
+.playability-special-value.score-tier-poor{color:#b42318}
+@media(max-width:600px){.playability-head{padding:12px}.playability-head h3{font-size:19px}.playability-section-title{font-size:14px;padding:9px 10px}}
+
 /* Course playability analysis V1 preview */
 .playability-card{border:1px solid #c9ded5;background:linear-gradient(180deg,#fbfefc,#fff)}
 .playability-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
@@ -1819,6 +1850,14 @@ function playabilityFactorScore(rows){
  return {score,parts,weight,alerts,rows:vals,avgWind:mean(winds),maxGust:max(gusts),maxProb:max(probs),rainTotal:sum(rainAmounts),avgFeel:mean(feels),codes};
 }
 
+function playabilityGrade(v){
+ if(v===null||v===undefined||!Number.isFinite(Number(v)))return {cls:"",color:"#aab4af",label:"資料不足"};
+ const n=Number(v);
+ if(n>=85)return {cls:"score-tier-excellent",color:"#15945c",label:"優良"};
+ if(n>=70)return {cls:"score-tier-good",color:"#1684c5",label:"良好"};
+ if(n>=55)return {cls:"score-tier-caution",color:"#d99119",label:"尚可"};
+ return {cls:"score-tier-poor",color:"#d0443d",label:"欠佳"};
+}
 function renderV2SpecialReports(rows){
  const host=$("playabilitySpecialReports");if(!host)return;
  const a=(rows||[]).filter(x=>x&&x.available!==false);
@@ -1849,11 +1888,13 @@ function renderV2SpecialReports(rows){
  const coldCoverageOK=feel.length>=requiredCoverage;
  const rainRisk=!rainCoverageOK?"資料不足":maxP>=70||total>=10?"高":maxP>=40||total>=3?"中":"低";
  const rainAdvice=rainRisk==="高"?"降雨風險偏高，應評估延後或改期，並確認球場排水及開放狀態。":rainRisk==="中"?"有降雨時段，建議避開降雨集中時段並備妥雨具。":rainRisk==="低"?"目前降雨風險較低，仍需留意局部陣雨。":"降雨資料覆蓋不足，暫不判定風險。";
+ const coldRiskClass=!coldCoverageOK?"neutral-title":extreme.length?"cold-title":cold.length?"cold-title":"rain-title";
+ const rainTitleClass=rainRisk==="資料不足"?"neutral-title":"rain-title";
  const coldAdvice=!coldCoverageOK?"體感溫度資料覆蓋不足，暫不判定低溫風險。":extreme.length?"體感溫度達10°C以下，屬極低溫警示；建議評估延後開球並加強保暖。":cold.length?"體感溫度達15°C以下，屬低溫警示；建議分層穿著、保暖手套及充分暖身。":"沒有預報到15°C以下的體感溫度時段。";
  const coverageNote="降雨資料："+rain.length+"/"+a.length+"小時；體感資料："+feel.length+"/"+a.length+"小時。";
  const detail=a.map(x=>"<tr><td>"+esc(x.time)+"</td><td>"+n(x.rain,0)+"%</td><td>"+n(x.mm)+"</td><td>"+n(x.temp)+"°C</td><td>"+n(x.feel)+"°C</td></tr>").join("");
  host.innerHTML=
- '<div class="playability-section-title">降雨專項分析｜'+rainRisk+'風險</div>'+
+ '<div class="playability-section-title '+rainTitleClass+'">降雨專項分析｜'+rainRisk+'風險</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>累積雨量</b><div class="playability-special-value">'+n(total)+' mm</div></div>'+
  '<div class="playability-item"><b>最高降雨機率</b><div class="playability-special-value">'+n(maxP,0)+'%</div></div>'+
@@ -1861,7 +1902,7 @@ function renderV2SpecialReports(rows){
  '<div class="playability-item"><b>最長連續降雨</b><div class="playability-special-value">'+(longest?longest+'小時｜'+esc(best)+"起":"無")+'</div></div>'+
  '<div class="playability-item"><b>來源降雨機率最大差距</b><div class="playability-special-value">'+(rainSpread.spread===null?"—":n(rainSpread.spread,0)+"%｜"+esc(rainSpread.time))+'</div></div></div>'+
  '<div class="playability-alert '+(rainRisk==="高"?"danger":rainRisk==="低"?"good":"")+'">'+rainAdvice+'</div>'+
- '<div class="playability-section-title">低溫專項分析｜低溫≤15°C；極低溫≤10°C</div>'+
+ '<div class="playability-section-title '+coldRiskClass+'">低溫專項分析｜'+(!coldCoverageOK?"資料不足":extreme.length?"極低溫警示":cold.length?"低溫警示":"無低溫警訊")+'｜低溫≤15°C；極低溫≤10°C</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>最低體感溫度</b><div class="playability-special-value">'+(min?n(min.feel)+'°C｜'+esc(min.time):"—")+'</div></div>'+
  '<div class="playability-item"><b>低溫時數</b><div class="playability-special-value">'+cold.length+' 小時</div></div>'+
@@ -1882,14 +1923,14 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  const data=playabilityFactorScore(chosen);
  if(!chosen.length||data.score===null){host.innerHTML='<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
  const verdict=data.score>=85?"非常適合":data.score>=70?"適合下場":data.score>=55?"尚可，需留意":"不建議下場";
- const tone=data.score>=70?"#1d9363":data.score>=55?"#c18a27":"#c44740";
+ const overallGrade=playabilityGrade(data.score);const tone=overallGrade.color;
  const pct=data.weight;
- const parts=data.parts.map(x=>'<div class="playability-item"><div class="playability-item-top"><span>'+x.label+'（'+x.weight+'%）</span><b>'+(x.value===null?"N/A":Math.round(x.value)+"分")+'</b></div><div class="playability-bar"><i style="width:'+(x.value===null?0:x.value)+'%;background:'+(x.value===null?"#aab4af":tone)+'"></i></div><small>'+esc(x.detail)+'</small></div>').join("");
+ const parts=data.parts.map(x=>{const g=playabilityGrade(x.value);return '<div class="playability-item"><div class="playability-item-top"><span>'+x.label+'（'+x.weight+'%）</span><b class="score-value '+g.cls+'">'+(x.value===null?"N/A":Math.round(x.value)+"分")+'</b></div><div class="playability-bar"><i class="'+g.cls+'" style="width:'+(x.value===null?0:x.value)+'%"></i></div><small>'+esc(x.detail)+'</small></div>';}).join("");
  const alerts=data.alerts.map(x=>'<div class="playability-alert '+(x.type==="danger"?"danger":x.type==="good"?"good":"")+'">'+esc(x.text)+'</div>').join("");
  const windows=[];for(let i=0;i<=((rows||[]).length-4);i++){const group=rows.slice(i,i+4);if(group.length===4&&group.every(x=>x&&x.available!==false)){const v=playabilityFactorScore(group);if(v.score!==null)windows.push({time:group[0].time,score:v.score,rain:v.rainTotal,gust:v.maxGust});}}
  windows.sort((a,b)=>b.score-a.score);
- const winHtml=windows.length?windows.slice(0,3).map((x,i)=>'<div class="playability-window"><span><b>'+esc(x.time)+' 起</b>｜連續4小時</span><span>'+x.score+'分</span></div>').join(""):'<small>沒有足夠完整的連續4小時資料可比較。</small>';
- host.innerHTML='<div class="playability-overview"><div class="playability-score" style="border-color:'+tone+';color:'+tone+'"><strong>'+data.score+'</strong><small>/ 100</small></div><div><div class="playability-verdict" style="color:'+tone+'">'+verdict+'</div><div class="playability-summary">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
+ const winHtml=windows.length?windows.slice(0,3).map((x,i)=>'<div class="playability-window"><span><b>'+esc(x.time)+' 起</b>｜連續4小時</span><span class="score-value '+playabilityGrade(x.score).cls+'">'+x.score+'分</span></div>').join(""):'<small>沒有足夠完整的連續4小時資料可比較。</small>';
+ host.innerHTML='<div class="playability-overview"><div class="playability-score '+overallGrade.cls+'"><strong>'+data.score+'</strong><small>/ 100</small></div><div><div class="playability-verdict" style="color:'+tone+'">'+verdict+'</div><div class="playability-summary">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
  renderV2SpecialReports(chosen);
 }
 function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCodes=[]){
