@@ -1902,7 +1902,7 @@ function renderV2SpecialReports(rows){
  const coverageNote="降雨資料："+rain.length+"/"+a.length+"小時；體感資料："+feel.length+"/"+a.length+"小時。";
  const detail=a.map(x=>"<tr><td>"+esc(x.time)+"</td><td>"+n(x.rain,0)+"%</td><td>"+n(x.mm)+"</td><td>"+n(x.temp)+"°C</td><td>"+n(x.feel)+"°C</td></tr>").join("");
  host.innerHTML=
- '<div class="playability-section-title '+rainTitleClass+'">降雨專項分析｜'+rainRisk+'風險</div>'+
+ '<div class="playability-section-title '+rainTitleClass+'">降雨專項分析｜'+rainRisk+'風險｜'+esc(playabilityContextLabel())+'</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>累積雨量</b><div class="playability-special-value">'+n(total)+' mm</div></div>'+
  '<div class="playability-item"><b>最高降雨機率</b><div class="playability-special-value">'+n(maxP,0)+'%</div></div>'+
