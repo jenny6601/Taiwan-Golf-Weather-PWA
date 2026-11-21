@@ -2541,6 +2541,14 @@ async function loadForecast(p,date,forceRefresh=false){
  forecastSource="八來源逐時整合（"+active.v2SourceLabel+"）";
 
  active.forecastSource=forecastSource;
+ // V2：先以已取得的逐時來源立即繪製適打性及專項報告，避免後續權重／降雨機率服務延遲或失敗時整個分析區空白；正式融合完成後再更新一次。
+ try{
+  const preliminaryBase=consensusRows(active.modelRows);
+  if(preliminaryBase.length){active.rows=preliminaryBase;renderPlayabilityAnalysis(preliminaryBase,p.name,date);}
+ }catch(previewError){
+  const playabilityHost=$("playabilityContent");
+  if(playabilityHost)playabilityHost.innerHTML='<div class="playability-placeholder">初步適打性分析載入失敗：'+esc(previewError.message||String(previewError))+'。系統仍會嘗試完成正式資料整合。</div>';
+ }
  $("status").textContent="預報完成｜"+active.v2SourceLabel+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
  const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
