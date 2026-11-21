@@ -2446,7 +2446,7 @@ async function loadForecast(p,date,forceRefresh=false){
   ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
   ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
  }
- let modelErrors=[],forecastSource="六組獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="",staleCacheInUse=false;
+ let modelErrors=[],forecastSource="六組 Open-Meteo 獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="",staleCacheInUse=false;
  let bestMatchFallbackPromise=null;
  const diagBoxStart=$("apiDiagnosticsText");
  if(forceRefresh){
@@ -2521,17 +2521,21 @@ async function loadForecast(p,date,forceRefresh=false){
   if(r.status==="fulfilled"){
    const rows=r.value.rows||[];
    if(rows.length)active.modelRows[label]=rows;
-   active.v2ProviderStatus[label]={available:rows.length>0,count:rows.length,generatedAt:r.value.generatedAt,horizon:r.value.horizon};
-  }else active.v2ProviderStatus[label]={available:false,count:0,error:r.reason?.message||String(r.reason)};
+   active.v2ProviderStatus[label]={available:rows.length>0,complete:rows.length>=13,count:rows.length,generatedAt:r.value.generatedAt,horizon:r.value.horizon};
+  }else active.v2ProviderStatus[label]={available:false,complete:false,count:0,error:r.reason?.message||String(r.reason)};
  });
- active.v2SourceCount=Object.keys(active.modelRows).length;
+ const openMeteoCount=Object.keys(active.modelRows).filter(name=>modelDefs.some(m=>m[0]===name)).length;
+ const externalCompleteCount=["Visual Crossing","Foreca"].filter(name=>active.v2ProviderStatus[name]?.complete).length;
+ active.v2SourceCount=openMeteoCount+externalCompleteCount;
  active.v2SourceLabel=active.v2SourceCount+"/8 來源";
+ names=Object.keys(active.modelRows);
  const localDay=new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"});
  const lead=Math.round((new Date(date+"T00:00:00+08:00")-new Date(localDay+"T00:00:00+08:00"))/86400000);
- if(lead>=7&&!active.v2ProviderStatus.Foreca?.available)active.v2SourceLabel=active.v2SourceCount+"/8 來源（第8–15天 Foreca 無逐時資料）";
+ if(lead>=7&&!active.v2ProviderStatus.Foreca?.complete)active.v2SourceLabel=active.v2SourceCount+"/8 來源（Foreca 無完整逐時資料）";
+ else if(!active.v2ProviderStatus.Foreca?.complete)active.v2SourceLabel=active.v2SourceCount+"/8 來源（Foreca 逐時資料不完整）";
 
  active.forecastSource=forecastSource;
- $("status").textContent="預報完成｜"+names.length+"/6 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
+ $("status").textContent="預報完成｜"+active.v2SourceLabel+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
  const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
 let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數（歷史資料累積中）";
