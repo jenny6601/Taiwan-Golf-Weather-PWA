@@ -1833,6 +1833,17 @@ function renderV2SpecialReports(rows){
  a.forEach(x=>{if(Number(x.mm)>=0.1){if(!run)start=x.time;run++;if(run>longest){longest=run;best=start;}}else run=0;});
  const cold=feel.filter(x=>Number(x.feel)<=15),extreme=feel.filter(x=>Number(x.feel)<=10);
  const min=feel.length?feel.reduce((x,y)=>Number(x.feel)<Number(y.feel)?x:y):null;
+ const sourceEntries=Object.entries(active?.modelRows||{});
+ const spreadAtHour=field=>{
+  let best={spread:null,time:"—"};
+  for(const hour of a){
+   const values=sourceEntries.map(([name,rows])=>rows.find(x=>x.time===hour.time)?.[field]).filter(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))).map(Number);
+   if(values.length>=2){const spread=Math.max(...values)-Math.min(...values);if(best.spread===null||spread>best.spread)best={spread,time:hour.time};}
+  }
+  return best;
+ };
+ const rainSpread=spreadAtHour("rain"),feelSpread=spreadAtHour("feel");
+ const providerTimes=["Visual Crossing","Foreca"].map(name=>{const t=active?.v2ProviderStatus?.[name]?.generatedAt;return name+"："+(t?new Date(t).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"未取得");}).join("｜");
  const rainRisk=maxP===null&&rain.length===0?"資料不足":maxP>=70||total>=10?"高":maxP>=40||total>=3?"中":"低";
  const rainAdvice=rainRisk==="高"?"降雨風險偏高，應評估延後或改期，並確認球場排水及開放狀態。":rainRisk==="中"?"有降雨時段，建議避開降雨集中時段並備妥雨具。":rainRisk==="低"?"目前降雨風險較低，仍需留意局部陣雨。":"降雨資料不足，暫不判定風險。";
  const coldAdvice=extreme.length?"體感溫度達10°C以下，屬極低溫警示；建議評估延後開球並加強保暖。":cold.length?"體感溫度達15°C以下，屬低溫警示；建議分層穿著、保暖手套及充分暖身。":"沒有預報到15°C以下的體感溫度時段。";
@@ -1843,15 +1854,18 @@ function renderV2SpecialReports(rows){
  '<div class="playability-item"><b>累積雨量</b><div class="playability-special-value">'+n(total)+' mm</div></div>'+
  '<div class="playability-item"><b>最高降雨機率</b><div class="playability-special-value">'+n(maxP,0)+'%</div></div>'+
  '<div class="playability-item"><b>最大單小時雨量</b><div class="playability-special-value">'+(maxR?n(maxR.mm)+' mm｜'+esc(maxR.time):"—")+'</div></div>'+
- '<div class="playability-item"><b>最長連續降雨</b><div class="playability-special-value">'+(longest?longest+'小時｜'+esc(best)+"起":"無")+'</div></div></div>'+
+ '<div class="playability-item"><b>最長連續降雨</b><div class="playability-special-value">'+(longest?longest+'小時｜'+esc(best)+"起":"無")+'</div></div>'+
+ '<div class="playability-item"><b>來源降雨機率最大差距</b><div class="playability-special-value">'+(rainSpread.spread===null?"—":n(rainSpread.spread,0)+"%｜"+esc(rainSpread.time))+'</div></div></div>'+
  '<div class="playability-alert '+(rainRisk==="高"?"danger":rainRisk==="低"?"good":"")+'">'+rainAdvice+'</div>'+
  '<div class="playability-section-title">低溫專項分析｜低溫≤15°C；極低溫≤10°C</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>最低體感溫度</b><div class="playability-special-value">'+(min?n(min.feel)+'°C｜'+esc(min.time):"—")+'</div></div>'+
  '<div class="playability-item"><b>低溫時數</b><div class="playability-special-value">'+cold.length+' 小時</div></div>'+
  '<div class="playability-item"><b>極低溫時數</b><div class="playability-special-value">'+extreme.length+' 小時</div></div>'+
- '<div class="playability-item"><b>分析時段</b><div class="playability-special-value">'+(cold.length?esc(cold[0].time)+"–"+esc(cold[cold.length-1].time):"無")+'</div></div></div>'+
+ '<div class="playability-item"><b>分析時段</b><div class="playability-special-value">'+(cold.length?esc(cold[0].time)+"–"+esc(cold[cold.length-1].time):"無")+'</div></div>'+
+ '<div class="playability-item"><b>來源體感溫度最大差距</b><div class="playability-special-value">'+(feelSpread.spread===null?"—":n(feelSpread.spread,1)+"°C｜"+esc(feelSpread.time))+'</div></div></div>'+
  '<div class="playability-alert '+(extreme.length?"danger":cold.length?"":"good")+'">'+coldAdvice+'</div>'+
+ '<div class="playability-foot">獨立來源快取更新時間：'+esc(providerTimes)+'</div>'+
  '<details class="playability-special-details"><summary>逐時降雨與低溫明細（'+a.length+'筆）</summary><div class="provider-table-wrap"><table class="provider-table"><thead><tr><th>時間</th><th>降雨機率</th><th>雨量</th><th>氣溫</th><th>體感</th></tr></thead><tbody>'+detail+'</tbody></table></div></details>';
 }
 
