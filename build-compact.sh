@@ -30,26 +30,10 @@ m["start_url"]="/"
 m["scope"]="/"
 from PIL import Image
 source=Image.open(Path("compact/icon-512.png")).convert("RGBA")
-# Move the existing approved white Taiwan silhouette from lower-left to beside the golfer's right foot.
-source=source.resize((256,256),Image.Resampling.LANCZOS)
-island=source.crop((7,176,45,239)).convert("RGBA")
-pixels=island.load()
-for y in range(island.height):
-    for x in range(island.width):
-        r,g,b=pixels[x,y][:3]
-        pixels[x,y]=(r,g,b,255 if min(r,g,b)>175 else 0)
-# Clear the old location by cloning the adjacent clean fairway.
-patch=source.crop((45,176,83,239)).resize((38,63),Image.Resampling.BICUBIC)
-source.paste(patch,(7,176))
-# Place the silhouette beside the golfer's right foot, away from the rounded corner.
-island=island.resize((40,64),Image.Resampling.LANCZOS)
-source.alpha_composite(island,(48,184))
 source.resize((192,192),Image.Resampling.LANCZOS).save("dist/icon-192.png",optimize=True)
 source.resize((512,512),Image.Resampling.LANCZOS).save("dist/icon-512.png",optimize=True)
-m["icons"]=[
- {"src":"/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
- {"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}
-]
+svg=Path("dist/icon.svg")
+svg.write_text(svg.read_text(encoding="utf-8").replace("../icons/icon-512.png?v=2","./icon-512.png"),encoding="utf-8")
 Path("dist/manifest.json").write_text(json.dumps(m,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 
 Path("dist/pwa-install.js").write_text(
@@ -62,7 +46,7 @@ Path("dist/_headers").write_text(
  encoding="utf-8")
 
 Path("dist/sw.js").write_text(
- 'const CACHE_NAME="golf-weather-compact-netlify-v32.4";\n'
+ 'const CACHE_NAME="golf-weather-compact-netlify-v32.5";\n'
  'const APP_SHELL=["/","/index.html","/manifest.json","/pwa-install.js","/icon.svg","/icon-192.png","/icon-512.png","/offline.html","/assets/rain-levels-original.webp"];\n'
  'self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting())));\n'
  'self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("golf-weather-compact-netlify-")&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));\n'
