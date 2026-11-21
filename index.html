@@ -2538,6 +2538,7 @@ async function loadForecast(p,date,forceRefresh=false){
  const lead=Math.round((new Date(date+"T00:00:00+08:00")-new Date(localDay+"T00:00:00+08:00"))/86400000);
  if(lead>=7&&!active.v2ProviderStatus.Foreca?.complete)active.v2SourceLabel=active.v2SourceCount+"/8 來源（Foreca 無完整逐時資料）";
  else if(!active.v2ProviderStatus.Foreca?.complete)active.v2SourceLabel=active.v2SourceCount+"/8 來源（Foreca 逐時資料不完整）";
+ forecastSource="八來源逐時整合（"+active.v2SourceLabel+"）";
 
  active.forecastSource=forecastSource;
  $("status").textContent="預報完成｜"+active.v2SourceLabel+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
