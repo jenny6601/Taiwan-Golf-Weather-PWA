@@ -2093,6 +2093,49 @@ function consensusRows(modelRows,amountWeights=null,probabilityWeights=null,exte
   return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:weightedProbability===null?get('rain'):weightedProbability,mm:weightedAmount===null?get('mm'):weightedAmount,weightingApplied:weightedAmount!==null,probabilityWeightingApplied:weightedProbability!==null,code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
  });
 }
+
+const v2ProviderIndexCache={};
+const v2ProviderCourseCache=new Map();
+async function loadV2ProviderRows(provider,courseName,date){
+ const branch=provider==="Foreca"?"foreca-cache":"visual-crossing-cache";
+ const key=provider+"|"+String(courseName||"").trim().normalize("NFC");
+ if(!v2ProviderCourseCache.has(key)){
+  v2ProviderCourseCache.set(key,(async()=>{
+   if(!v2ProviderIndexCache[provider])v2ProviderIndexCache[provider]=fetchJsonBounded("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/"+branch+"/index.json?ts="+Date.now(),6000,"no-cache");
+   const index=await v2ProviderIndexCache[provider];
+   const rel=index.courses?.[courseName]||Object.entries(index.courses||{}).find(([n])=>String(n).trim().normalize("NFC")===String(courseName).trim().normalize("NFC"))?.[1];
+   if(!rel)return {index,course:null};
+   const cache=await fetchJsonBounded("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/"+branch+"/"+rel+"?v="+encodeURIComponent(index.generated_at||"latest"),6000,"no-cache");
+   const course=(cache.courses||{})[courseName]||Object.entries(cache.courses||{}).find(([n])=>String(n).trim().normalize("NFC")===String(courseName).trim().normalize("NFC"))?.[1]||null;
+   return {index,course};
+  })().catch(e=>{v2ProviderCourseCache.delete(key);throw e;}));
+ }
+ const loaded=await v2ProviderCourseCache.get(key);
+ const hours=loaded.course?.[date]?.providers?.[provider]?.hourly||[];
+ const toCode=x=>{
+  const t=String(x||"").toLowerCase();
+  if(/thunder|雷/.test(t))return 95;
+  if(/heavy rain|downpour|大雨/.test(t))return 65;
+  if(/rain|shower|drizzle|雨/.test(t))return 61;
+  if(/fog|mist|霧/.test(t))return 45;
+  if(/overcast|cloudy|陰/.test(t))return 3;
+  if(/partly|mostly cloudy|多雲/.test(t))return 2;
+  if(/clear|sunny|晴/.test(t))return 0;
+  return null;
+ };
+ const rows=hours.filter(x=>{
+  const stamp=String(x.time||"");
+  return stamp.slice(0,10)===date&&Number(stamp.slice(11,13))>=6&&Number(stamp.slice(11,13))<=18;
+ }).map(x=>({
+  time:String(x.time).slice(11,16),temp:x.temperature_2m??null,feel:x.apparent_temperature??null,
+  mm:x.precipitation??null,rain:x.precipitation_probability??null,
+  wind:x.wind_speed_10m??null,gust:x.wind_gusts_10m??null,dir:x.wind_direction_10m??null,
+  rh:x.relative_humidity_2m??null,cloud:x.cloud_cover??null,uv:x.uv_index??null,
+  code:toCode(x.conditions||x.icon||x.symbol),available:true
+ })).filter(x=>/^\d{2}:\d{2}$/.test(x.time));
+ return {rows,generatedAt:loaded.index.generated_at,horizon:loaded.index.hourly_horizon||loaded.index.forecast_horizon||""};
+}
+
 async function loadVisualCrossingRainRows(courseName,date){
  const base="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/visual-crossing-cache/";
  const index=await fetchJsonBounded(base+"index.json?ts="+Date.now(),6000,"no-store");
@@ -2451,6 +2494,27 @@ async function loadForecast(p,date,forceRefresh=false){
   if(fallback.value){active.modelRows["Open-Meteo Best Match"]=fallback.value.rows;names=Object.keys(active.modelRows);forecastSource="Open-Meteo Best Match 備援";}
   else{const detail="快取、六組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+(fallback.error?.message||"未知錯誤");const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
  }
+
+ // V2：讀取 Visual Crossing 與 Foreca 獨立逐時快取，與六個 Open-Meteo 模式共同整合。
+ const providerResults=await Promise.allSettled([
+  loadV2ProviderRows("Visual Crossing",p.name,date),
+  loadV2ProviderRows("Foreca",p.name,date)
+ ]);
+ active.v2ProviderStatus={};
+ ["Visual Crossing","Foreca"].forEach((label,i)=>{
+  const r=providerResults[i];
+  if(r.status==="fulfilled"){
+   const rows=r.value.rows||[];
+   if(rows.length)active.modelRows[label]=rows;
+   active.v2ProviderStatus[label]={available:rows.length>0,count:rows.length,generatedAt:r.value.generatedAt,horizon:r.value.horizon};
+  }else active.v2ProviderStatus[label]={available:false,count:0,error:r.reason?.message||String(r.reason)};
+ });
+ active.v2SourceCount=Object.keys(active.modelRows).length;
+ active.v2SourceLabel=active.v2SourceCount+"/8 來源";
+ const localDay=new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"});
+ const lead=Math.round((new Date(date+"T00:00:00+08:00")-new Date(localDay+"T00:00:00+08:00"))/86400000);
+ if(lead>=7&&!active.v2ProviderStatus.Foreca?.available)active.v2SourceLabel=active.v2SourceCount+"/8 來源（第8–15天 Foreca 無逐時資料）";
+
  active.forecastSource=forecastSource;
  $("status").textContent="預報完成｜"+names.length+"/6 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
  const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
@@ -2475,7 +2539,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
   }catch(e){}
  }
  let externalRainRows={};
- if(Number(amountWeights?.["Visual Crossing"]||0)>0||Number(probabilityWeights?.["Visual Crossing"]||0)>0){
+ if(!active.modelRows["Visual Crossing"]&&(Number(amountWeights?.["Visual Crossing"]||0)>0||Number(probabilityWeights?.["Visual Crossing"]||0)>0)){
   try{
    const vcRows=await loadVisualCrossingRainRows(p.name,date);
    if(vcRows.length){externalRainRows["Visual Crossing"]=vcRows;weightingLabel+="＋Visual Crossing";}
