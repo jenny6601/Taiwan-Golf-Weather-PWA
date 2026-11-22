@@ -1426,6 +1426,14 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
  .hourly-table-wrap #hourlyForecastTable .rainpill svg{width:34px!important;height:30px!important;max-width:none!important;vertical-align:-7px!important}
  .hourly-table-wrap #hourlyForecastTable td:nth-child(3){font-size:14px!important}
 }
+
+/* Live observation icons now reuse the same icon artwork as daily/hourly forecasts. */
+#liveObservationPanel .live-condition-icon.live-weather-icon,
+#liveObservationPanel .live-condition-icon.live-rain-icon{width:52px;height:52px;min-width:52px;margin-right:7px}
+#liveObservationPanel .live-condition-icon .daily-weather-svg{display:block;width:48px;height:48px;max-width:none}
+#liveObservationPanel .live-condition-icon.live-feel-hourly svg,
+#liveObservationPanel .live-condition-icon.live-feel-hourly img{display:block;width:40px!important;height:40px!important;object-fit:contain}
+#liveObservationPanel .live-temperature-icon svg{display:block;width:20px;height:28px}
 </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
@@ -1795,47 +1803,22 @@ function liveWeatherCode(text,rain10){
  return Number.isFinite(rate)&&rate>0?(rate>=7.5?65:rate>=2.5?63:61):null;
 }
 function liveWeatherIcon(code){
- const n=Number(code);if(!Number.isFinite(n))return '<span>—</span>';
- let label='多雲',bg='#eaf4ff',shape='';
- const sun='<circle cx="17" cy="15" r="8" fill="#ffd12e" stroke="#a86c00" stroke-width="2"/><g stroke="#e5a900" stroke-width="3.6" stroke-linecap="round"><path d="M17 2v5m0 16v5M4 15h5m16 0h5M7 5l4 4m12 12 4 4M27 5l-4 4M11 21l-4 4"/></g>';
- const cloud='<path d="M8 27h32a9 9 0 0 0 0-18 13 13 0 0 0-25-2 9 9 0 0 0-7 20Z" fill="#8294a9" stroke="#172536" stroke-width="3.5"/>';
- const sixDrops='<g fill="#034fc9" stroke="#033b9c" stroke-width="1.2"><path d="M13 29c-1.5 3-3 5-3 7a3 3 0 0 0 6 0c0-2-1.5-4-3-7Z"/><path d="M24 29c-1.5 3-3 5-3 7a3 3 0 0 0 6 0c0-2-1.5-4-3-7Z"/><path d="M35 29c-1.5 3-3 5-3 7a3 3 0 0 0 6 0c0-2-1.5-4-3-7Z"/><path d="M13 41c-1.5 3-3 5-3 7a3 3 0 0 0 6 0c0-2-1.5-4-3-7Z"/><path d="M24 41c-1.5 3-3 5-3 7a3 3 0 0 0 6 0c0-2-1.5-4-3-7Z"/><path d="M35 41c-1.5 3-3 5-3 7a3 3 0 0 0 6 0c0-2-1.5-4-3-7Z"/></g>';
- if(n===0){label='晴朗';shape=sun;}
- else if(n<=2){label='晴時多雲';shape=sun+'<path d="M19 32h21a8 8 0 0 0 0-16 11 11 0 0 0-21-2 8 8 0 0 0 0 18Z" fill="#fff" stroke="#172536" stroke-width="3.6"/>';}
- else if(n===3){label='陰／多雲';shape='<path d="M8 33h32a9 9 0 0 0 0-18 13 13 0 0 0-25-2 9 9 0 0 0-7 20Z" fill="#fff" stroke="#172536" stroke-width="3.8"/>';}
- else if(n===45||n===48){label='有霧';shape='<path d="M6 12h36M4 21h40M7 30h34M12 39h24" stroke="#477a9c" stroke-width="4" stroke-linecap="round"/>';}
- else if([51,53,55,56,57].includes(n)){label='毛毛雨／細雨';bg='#e8eef5';shape='<path d="M9 25h30a9 9 0 0 0 0-18 13 13 0 0 0-25-1 9 9 0 0 0-5 19Z" fill="#bdcad8" stroke="#172536" stroke-width="3.8"/><path d="m15 30-2 7m13-7-2 7m13-7-2 7" stroke="#0756d9" stroke-width="3.6" stroke-linecap="round"/>';}
- else if([61,63,65,66,67,80,81,82].includes(n)){const heavy=[65,67,82].includes(n);label=heavy?'大雨':n>=80?'陣雨':'降雨';bg='#e8eef5';shape=cloud+(heavy?sixDrops:'<path d="m16 30-2 8m16-8-2 8" stroke="#034fc9" stroke-width="4" stroke-linecap="round"/>');}
- else if([95,96,99].includes(n)){label='雷雨';bg='#e8eef5';shape='<path d="M8 27h32a9 9 0 0 0 0-18 13 13 0 0 0-25-2 9 9 0 0 0-7 20Z" fill="#536176" stroke="#101b2a" stroke-width="3.5"/>'+sixDrops+'<path d="m39 25-8 13h6l-2 9 11-16h-7l3-6Z" fill="#ffdb28" stroke="#a86c00" stroke-width="1.3" stroke-linejoin="round"/>';}
- else{shape='<path d="M9 32h30a9 9 0 0 0 0-18 13 13 0 0 0-25-1 9 9 0 0 0-5 19Z" fill="#fff" stroke="#172536" stroke-width="3.8"/>';}
- return '<span class="live-condition-icon live-weather-icon" role="img" aria-label="'+label+'"><svg viewBox="0 0 48 56" width="42" height="49" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="46" height="54" rx="10" fill="'+bg+'"/>'+shape+'</svg></span>';
+ const result=dailyWx(code);
+ return result&&result.icon?'<span class="live-condition-icon live-weather-icon">'+result.icon+'</span>':'<span aria-label="天氣資料不足">—</span>';
 }function liveRainIcon(amount,period){
  if(amount===null||amount===undefined||!Number.isFinite(Number(amount)))return '<span aria-label="雨量資料不足">—</span>';
- const n=Number(amount);
- if(n<=0)return '<span class="live-condition-icon live-rain-icon" role="img" aria-label="無降雨"><svg viewBox="0 0 64 60" width="42" height="39" xmlns="http://www.w3.org/2000/svg"><path d="M12 29h39a11 11 0 0 0 0-22 16 16 0 0 0-30-2 11 11 0 0 0-9 24Z" fill="#d5dee8" stroke="#101b2a" stroke-width="5" stroke-linejoin="round"/></svg></span>';
- const rate=period==="10m"?n*6:n,level=rate<2.5?1:rate<7.5?2:rate<50?3:4;
- const fill=level===1?"#d5dee8":level===2?"#aebdce":level===3?"#71839a":"#536176";
- const drop=(x,y)=>'<path d="M'+x+' '+y+'c-1.7 3.2-3.4 5.4-3.4 7.7a3.4 3.4 0 0 0 6.8 0c0-2.3-1.7-4.5-3.4-7.7Z" fill="#003fc7" stroke="#033b9c" stroke-width="1.3"/>';
- let drops='';
- if(level===1)drops=drop(32,30);
- else if(level===2)drops=drop(23,30)+drop(41,30);
- else drops=drop(16,29)+drop(32,29)+drop(48,29)+drop(16,43)+drop(32,43)+drop(48,43);
- const bolt=level===4?'<path d="m49 27-9 13h7l-3 12 14-18h-8l4-7Z" fill="#ffdb28" stroke="#a86c00" stroke-width="1.5" stroke-linejoin="round"/>':"";
- const label=["","小雨","中雨","大雨","豪雨"][level];
- return '<span class="live-condition-icon live-rain-icon" role="img" aria-label="'+label+'"><svg viewBox="0 0 64 60" width="42" height="39" xmlns="http://www.w3.org/2000/svg"><path d="M12 28h39a11 11 0 0 0 0-22 16 16 0 0 0-30-2 11 11 0 0 0-9 24Z" fill="'+fill+'" stroke="#101b2a" stroke-width="4.2"/>'+drops+bolt+'</svg></span>';
+ const icon=Number(amount)>0?dailyWeatherIcon("rain"):dailyWeatherIcon("cloud");
+ return '<span class="live-condition-icon live-rain-icon" role="img" aria-label="'+(Number(amount)>0?"有降雨":"無降雨")+'">'+icon+'</span>';
 }const COLD_JACKET_ICON_DATA = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%3Cdefs%3E%3ClinearGradient%20id%3D%22b%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2331bdff%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%230879df%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23063c91%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22n%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23193d78%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23071b40%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%0A%3Cpath%20d%3D%22M22%2012Q22%203%2032%203t10%209l-3%208H25Z%22%20fill%3D%22url(%23b)%22%20stroke%3D%22%23063d82%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M26%2014q6-8%2012%200l-3%206h-6Z%22%20fill%3D%22url(%23n)%22%2F%3E%0A%3Cpath%20d%3D%22M22%2017%2015%2021%205%2047q-2%205%203%207l5%202q4%201%205-3l5-12v15q0%205%205%205h8q5%200%205-5V41l5%2012q1%204%205%203l5-2q5-2%203-7L49%2021l-7-4-10%205Z%22%20fill%3D%22url(%23b)%22%20stroke%3D%22%23063b80%22%20stroke-width%3D%222%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m22%2017%2010%206%2010-6%205%204-7%208-8-3-8%203-7-8Z%22%20fill%3D%22url(%23n)%22%2F%3E%0A%3Cpath%20d%3D%22M27%2017q0-4%205-4t5%204v9H27Z%22%20fill%3D%22%230b2d62%22%20stroke%3D%22%230756aa%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cpath%20d%3D%22M32%2023v35%22%20stroke%3D%22%23eaf6ff%22%20stroke-width%3D%222.5%22%20stroke-dasharray%3D%222%202%22%2F%3E%3Crect%20x%3D%2230%22%20y%3D%2229%22%20width%3D%224%22%20height%3D%227%22%20rx%3D%221.5%22%20fill%3D%22%23ff9c12%22%2F%3E%0A%3Cpath%20d%3D%22m15%2032-5%2014%204%202%207-14M49%2032l5%2014-4%202-7-14%22%20fill%3D%22none%22%20stroke%3D%22%23082c62%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m17%2034-3%209m33-9%203%209%22%20stroke%3D%22%23ff9a12%22%20stroke-width%3D%222.3%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m37%2030%204-5%203%204%203-3%204%205Z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22M23%2055q9%203%2018%200v5q-9%203-18%200Z%22%20fill%3D%22%230753a4%22%20stroke%3D%22%23063b80%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cpath%20d%3D%22M7%2051l7%202-2%205-5-2q-2-1%200-5m43%202%207-2q2%204%200%205l-5%202Z%22%20fill%3D%22%23082b60%22%2F%3E%0A%3C%2Fsvg%3E';
 function liveFeelIcon(value){
  if(value===null||value===undefined||!Number.isFinite(Number(value)))return '<span aria-label="體感資料不足">—</span>';
- const n=Number(value);
- if(n<15)return '<span class="live-condition-icon live-feel-coldface" role="img" aria-label="寒冷，15度以下">🥶</span>';
- if(n<=19)return '<span class="live-condition-icon live-feel-jacket" role="img" aria-label="偏涼，穿長袖半身外套"><svg viewBox="0 0 44 40" width="34" height="31" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 3 22 7 30 3 38 10 35 18 31 16 30 34H14L13 16 9 18 6 10Z" fill="#dceafa" stroke="#173f68" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 3 22 7 30 3M22 7V34M16 23H28M9 11l5 5m21-5-5 5M18 34l-1 3m10-3 1 3" fill="none" stroke="#173f68" stroke-width="2" stroke-linecap="round"/><path d="M22 9 18 14l4 4 4-4-4-5" fill="#fff" stroke="#173f68" stroke-width="1.5" stroke-linejoin="round"/></svg></span>';
- if(n<=27)return '<span class="live-condition-icon live-feel-comfort" role="img" aria-label="舒適"><svg viewBox="0 0 32 32" width="27" height="27" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#dcfce7" stroke="#087a3d" stroke-width="2.5"/><circle cx="11.5" cy="12.5" r="1.7" fill="#087a3d"/><circle cx="20.5" cy="12.5" r="1.7" fill="#087a3d"/><path d="M9.5 18c1.5 4 4 6 6.5 6s5-2 6.5-6" fill="none" stroke="#087a3d" stroke-width="2.5" stroke-linecap="round"/></svg></span>';
- return '<span class="live-condition-icon live-feel-hot" role="img" aria-label="炎熱">🥵</span>';
+ const hourly=apparentFeelHTML(value);
+ const match=hourly.match(/>(<svg[\s\S]*?<\/svg>|<img\b[^>]*>)/);
+ return match?'<span class="live-condition-icon live-feel-hourly" role="img" aria-label="逐時預報相同體感圖示">'+match[1]+'</span>':'';
 }function liveTemperatureIcon(value){
  if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
- const n=Number(value),c=n<15?'#2875C7':n<20?'#2696B5':n<=27?'#15945C':n<=32?'#E58A16':'#D83B35';
- const h=Math.max(18,Math.min(82,(n+5)/45*82));
- return '<span class="live-temperature-icon" aria-hidden="true" style="display:inline-flex!important;align-items:center!important;vertical-align:middle!important;margin-right:5px!important;gap:2px!important"><span style="position:relative!important;display:inline-block!important;width:8px!important;height:17px!important;border:2px solid '+c+'!important;border-radius:7px!important;box-sizing:border-box!important;background:linear-gradient(to top,'+c+' '+h+'%,#fff '+h+'%)!important"><span style="position:absolute!important;left:1px!important;bottom:1px!important;width:2px!important;height:5px!important;border-radius:3px!important;background:'+c+'!important"></span></span><span style="display:inline-block!important;width:7px!important;height:7px!important;border-radius:50%!important;background:'+c+'!important;margin-left:-8px!important;margin-top:14px!important"></span></span>';
+ const color=airTempColor(value);
+ return '<span class="live-temperature-icon" aria-hidden="true"><svg viewBox="0 0 20 28" width="20" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M7 16V5a3 3 0 0 1 6 0v11a6 6 0 1 1-6 0Z" fill="#fff" stroke="'+color+'" stroke-width="2"/><path d="M10 9v11" stroke="'+color+'" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="21" r="3.5" fill="'+color+'"/></svg></span>';
 }
 function liveMetric(label,value,valueClass){return '<div class="metric"><small>'+label+'</small><strong'+(valueClass?' class="'+valueClass+'"':'')+'>'+value+'</strong></div>';}
 function liveTemperatureClass(value,kind){
@@ -1879,7 +1862,7 @@ async function loadLiveObservation(course){
   const validWeatherText=rawWeatherText!==null&&rawWeatherText!==undefined&&String(rawWeatherText).trim()!==""&&!/^(-99(?:\\.0+)?)$/.test(String(rawWeatherText).trim());
   const weatherText=validWeatherText?String(rawWeatherText).trim():(Number(rain10)>0?"觀測到降雨":"天氣資料不足");
   const code=liveWeatherCode(validWeatherText?weatherText:(Number(rain10)>0?weatherText:""),rain10);
-  const weatherIcon=code===null?'<span class="live-condition-icon live-weather-icon" role="img" aria-label="天氣資料不足"><svg viewBox="0 0 48 48" width="42" height="42" xmlns="http://www.w3.org/2000/svg"><path d="M8 31h31a8 8 0 0 0 0-16 12 12 0 0 0-23-2 8 8 0 0 0-8 18Z" fill="#d5dee8" stroke="#172536" stroke-width="4.2" stroke-linejoin="round"/></svg></span>':liveWeatherIcon(code);
+  const weatherIcon=code===null?"":dailyWx(code).icon;
   const windKm=Number.isFinite(Number(wind))?Number(wind)*3.6:null,gustKm=Number.isFinite(Number(gust))?Number(gust)*3.6:null;
   const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
   metrics.innerHTML=[
