@@ -304,6 +304,12 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .playability-score.score-tier-good{border-color:#1684c5!important;color:#08649b!important;background:#eaf5fc}
 .playability-score.score-tier-caution{border-color:#d99119!important;color:#9a5b00!important;background:#fff5df}
 .playability-score.score-tier-poor{border-color:#d0443d!important;color:#b42318!important;background:#fff0ef}
+.playability-score.score-tier-d{border-color:#d97735!important;color:#b45309!important;background:#fff4e8}
+.playability-score.score-tier-e{border-color:#c74343!important;color:#b42318!important;background:#fff0ef}
+.score-value.score-tier-d{color:#b45309!important}
+.score-value.score-tier-e{color:#b42318!important}
+.playability-bar i.score-tier-d{background:#d97735!important}
+.playability-bar i.score-tier-e{background:#c74343!important}
 .score-value{font-weight:900!important}
 .score-value.score-tier-excellent{color:#087443!important}
 .score-value.score-tier-good{color:#08649b!important}
@@ -1883,17 +1889,17 @@ function playabilityGrade(v){
  if(n>=90)return {cls:"score-tier-excellent",color:"#18865a",label:"非常適合",grade:"A",description:"天氣穩定，降雨與風勢影響低，非常適合打球。"};
  if(n>=80)return {cls:"score-tier-good",color:"#319a9a",label:"適合",grade:"B",description:"整體天氣良好，適合正常打球。"};
  if(n>=65)return {cls:"score-tier-caution",color:"#d99a27",label:"尚可，需留意",grade:"C",description:"可能偶有小毛毛雨、短暫降雨或風勢變化。"};
- if(n>=50)return {cls:"score-tier-poor",color:"#d97735",label:"不佳，宜審慎",grade:"D",description:"降雨或風勢影響明顯，建議考慮調整開球時間。"};
- return {cls:"score-tier-poor",color:"#c74343",label:"不適合",grade:"E",description:"天候風險高，不建議安排打球。"};
+ if(n>=50)return {cls:"score-tier-d",color:"#d97735",label:"不佳，宜審慎",grade:"D",description:"降雨或風勢影響明顯，建議考慮調整開球時間。"};
+ return {cls:"score-tier-e",color:"#c74343",label:"不適合",grade:"E",description:"天候風險高，不建議安排打球。"};
 }
 function playabilitySafetyDecision(data){
  const thunder=(data.codes||[]).some(v=>[95,96,99].includes(v));
  const heavyRain=data.rainTotal!==null&&data.rainTotal!==undefined&&data.rainTotal>=5;
  const dangerousWind=(data.maxGust!==null&&data.maxGust>=40)||(data.avgWind!==null&&data.avgWind>=25);
- if(thunder)return {grade:"E",label:"雷雨警示｜不建議下場",color:"#c74343",cls:"score-tier-poor",description:"分析時段出現雷雨訊號，安全警示優先於分數；請暫緩下場並遵循球場及官方即時警示。",message:"安全優先：預報時段出現雷雨訊號，適打等級調整為 E 級。"};
+ if(thunder)return {grade:"E",label:"雷雨警示｜不建議下場",color:"#c74343",cls:"score-tier-e",description:"分析時段出現雷雨訊號，安全警示優先於分數；請暫緩下場並遵循球場及官方即時警示。",message:"安全優先：預報時段出現雷雨訊號，適打等級調整為 E 級。"};
  if(heavyRain||dangerousWind){
   const causes=[heavyRain?"預報累積雨量達 5 mm 以上":"",dangerousWind?"平均風速達 25 km/h 或最大陣風達 40 km/h":""] .filter(Boolean).join("；");
-  return {grade:"D",label:"安全警示｜不宜下場",color:"#d97735",cls:"score-tier-poor",description:"出現較高降雨或風勢風險，等級最高限制為 D；建議重新評估開球時間。",message:"安全優先："+causes+"，適打等級至少調降至 D 級。"};
+  return {grade:"D",label:"安全警示｜不宜下場",color:"#d97735",cls:"score-tier-d",description:"出現較高降雨或風勢風險，等級最高限制為 D；建議重新評估開球時間。",message:"安全優先："+causes+"，適打等級至少調降至 D 級。"};
  }
  const base=playabilityGrade(data.score);
  return {...base,description:base.description,message:""};
@@ -2038,7 +2044,7 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  const windows=[];for(let i=0;i<=((rows||[]).length-4);i++){const group=rows.slice(i,i+4);if(group.length===4&&group.every(x=>x&&x.available!==false)){const v=playabilityFactorScore(group);if(v.score!==null)windows.push({time:group[0].time,score:v.score,rain:v.rainTotal,gust:v.maxGust});}}
  windows.sort((a,b)=>b.score-a.score);
  const winHtml=windows.length?windows.slice(0,3).map((x,i)=>'<div class="playability-window"><span><b>'+esc(x.time)+' 起</b>｜連續4小時</span><span class="score-value '+playabilityGrade(x.score).cls+'">'+x.score+'分</span></div>').join(""):'<small>沒有足夠完整的連續4小時資料可比較。</small>';
- host.innerHTML=summaryMarkup+'<div class="playability-overview"><div class="playability-score '+overallGrade.cls+'"><strong>'+data.score+'</strong><small>分｜滿分100分</small></div><div><div class="playability-verdict" style="color:'+tone+'">'+verdict+'</div><div class="playability-summary">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
+ host.innerHTML=summaryMarkup+'<div class="playability-overview"><div class="playability-score '+overallGrade.cls+'"><strong>'+data.score+'</strong><small>分｜滿分100分</small></div><div><div class="playability-verdict" style="color:'+tone+'">'+overallGrade.grade+'級｜'+verdict+'</div><div class="playability-summary">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
  renderV2SpecialReports(chosen);
 }
 function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCodes=[]){
