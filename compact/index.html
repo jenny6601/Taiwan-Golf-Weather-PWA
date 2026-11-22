@@ -284,7 +284,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 /* V2.1：適打性、降雨與低溫分析標題及分數分級 */
 .playability-card{overflow:hidden}
 .playability-head{background:#174f78;color:#fff;padding:13px 15px;border-radius:10px;margin:-2px -2px 12px;align-items:center;position:relative;display:block}
-.playability-head h3{color:#fff!important;font-size:20px;font-weight:900;display:block;width:100%;min-width:0;box-sizing:border-box;padding-right:150px}
+.playability-head h3{color:#fff!important;font-size:20px;font-weight:900;display:block;width:100%;min-width:0;box-sizing:border-box;padding-right:0}.playability-title-text{display:block;width:100%;box-sizing:border-box;padding-right:150px}
 .playability-head #playabilitySubtitle{color:#e4eef8!important;margin:4px 0 0;font-size:12px}
 .playability-tag{background:#e4eef8;color:#174f78;position:absolute;right:15px;top:13px}
 .playability-section-title{padding:9px 12px;border-radius:8px;background:#e8f1ed;color:#174b39;margin:13px 0 8px;font-size:15px;font-weight:900}
@@ -351,8 +351,8 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 
 
 /* V2.2：標題資訊單列、移除重複副標，強化低溫門檻 */
-#playabilityTitle .playability-title-meta{display:grid;grid-template-columns:.85fr 1.15fr 1.25fr;align-items:center;gap:clamp(5px,.75vw,10px);width:100%;max-width:100%;min-width:0;margin-top:9px;overflow:hidden;white-space:nowrap}
-#playabilityTitle .playability-title-chip{display:flex;align-items:center;justify-content:center;gap:clamp(4px,.55vw,7px);font-size:clamp(12px,1.25vw,16px);line-height:1.2;padding:7px clamp(5px,.8vw,11px);box-sizing:border-box;width:100%;min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+#playabilityTitle .playability-title-meta{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) minmax(0,1.25fr);align-items:stretch;gap:clamp(5px,.75vw,10px);width:100%;max-width:100%;min-width:0;margin-top:9px;overflow:visible;white-space:nowrap;box-sizing:border-box}
+#playabilityTitle .playability-title-chip{display:flex;align-items:center;justify-content:center;gap:clamp(4px,.55vw,7px);font-size:clamp(12px,1.25vw,16px);line-height:1.2;padding:7px clamp(5px,.8vw,11px);box-sizing:border-box;width:100%;min-width:0;max-width:100%;white-space:nowrap;overflow:visible;text-overflow:clip;text-align:center}
 .playability-section-title:not(.cold-report-title) .playability-title-meta{display:flex;flex-wrap:nowrap;align-items:center;gap:clamp(4px,.7vw,8px);width:100%;min-width:0;margin-top:8px;font-size:clamp(10px,1.08vw,14px);white-space:nowrap;overflow:hidden}
 .playability-section-title:not(.cold-report-title) .playability-title-chip{font-size:clamp(10px,1.18vw,15px);padding:6px clamp(5px,.9vw,12px);box-sizing:border-box;flex:1 1 0;min-width:0;white-space:nowrap;justify-content:center;text-align:center}
 
@@ -364,7 +364,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .cold-threshold-extreme{background:#c8e4fb;border-color:#78b5e7;color:#103f70}
 .playability-section-title.cold-report-title .playability-title-meta{display:flex;flex:0 0 100%;flex-wrap:nowrap;align-items:center;gap:clamp(4px,.7vw,7px);width:100%;max-width:100%;min-width:0;margin:0;font-size:clamp(10px,1.04vw,13px);white-space:nowrap;overflow:hidden}
 .playability-section-title.cold-report-title .playability-title-chip{background:#f7fbff;border-color:#a9cce9;color:#174b78;padding:6px clamp(5px,.9vw,12px);font-size:clamp(10px,1.15vw,14px);box-sizing:border-box;flex:1 1 0;min-width:0;white-space:nowrap;justify-content:center;text-align:center}
-@media(max-width:700px){.playability-head{display:block}.playability-head h3{padding-right:88px}.playability-tag{right:10px;top:10px;padding:5px 8px;font-size:11px}#playabilityTitle .playability-title-meta{gap:4px;grid-template-columns:.85fr 1.15fr 1.25fr}#playabilityTitle .playability-title-chip{font-size:clamp(10px,2.9vw,13px);padding:6px 3px;gap:3px}.playability-section-title:not(.cold-report-title) .playability-title-meta{gap:4px}.playability-section-title:not(.cold-report-title) .playability-title-chip{padding:5px 4px;font-size:clamp(10px,2.7vw,13px)}.playability-section-title.cold-report-title{gap:7px}.cold-title-main{font-size:15px}.cold-threshold{font-size:12px;padding:4px 8px}.playability-section-title.cold-report-title .playability-title-meta{width:100%;margin:0;flex-wrap:nowrap;white-space:nowrap}.playability-section-title.cold-report-title .playability-title-chip{padding:5px 4px;font-size:clamp(10px,2.6vw,13px)}}
+@media(max-width:700px){.playability-head{display:block}.playability-head h3{padding-right:0}.playability-title-text{padding-right:88px}.playability-tag{right:10px;top:10px;padding:5px 8px;font-size:11px}#playabilityTitle .playability-title-meta{gap:4px;grid-template-columns:.85fr 1.15fr 1.25fr}#playabilityTitle .playability-title-chip{font-size:clamp(10px,2.9vw,13px);padding:6px 3px;gap:3px}.playability-section-title:not(.cold-report-title) .playability-title-meta{gap:4px}.playability-section-title:not(.cold-report-title) .playability-title-chip{padding:5px 4px;font-size:clamp(10px,2.7vw,13px)}.playability-section-title.cold-report-title{gap:7px}.cold-title-main{font-size:15px}.cold-threshold{font-size:12px;padding:4px 8px}.playability-section-title.cold-report-title .playability-title-meta{width:100%;margin:0;flex-wrap:nowrap;white-space:nowrap}.playability-section-title.cold-report-title .playability-title-chip{padding:5px 4px;font-size:clamp(10px,2.6vw,13px)}}
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
@@ -1951,7 +1951,7 @@ function renderV2SpecialReports(rows){
 function renderPlayabilityAnalysis(rows,courseName,date){
  const host=$("playabilityContent"),subtitle=$("playabilitySubtitle");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
- const title=$("playabilityTitle");if(title)title.innerHTML="⛳ 球場適打性綜合分析"+playabilityContextMarkup();
+ const title=$("playabilityTitle");if(title)title.innerHTML="<span class=\"playability-title-text\">⛳ 球場適打性綜合分析</span>"+playabilityContextMarkup();
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
  if(subtitle){subtitle.textContent="";subtitle.hidden=true;}
  const data=playabilityFactorScore(chosen);
