@@ -349,6 +349,19 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 @media(max-width:520px){.playability-overview{grid-template-columns:92px 1fr;gap:10px;padding:10px}.playability-score{width:88px;height:88px;border-width:6px}.playability-score strong{font-size:27px}.playability-verdict{font-size:18px}.playability-grid{gap:7px}.playability-item{padding:8px}.playability-head h3{font-size:19px}}
 
 
+
+/* V2.2：標題資訊單列、移除重複副標，強化低溫門檻 */
+#playabilityTitle .playability-title-meta{display:flex;flex-wrap:nowrap;align-items:center;gap:9px;width:100%;margin-top:9px;overflow-x:auto;white-space:nowrap}
+#playabilityTitle .playability-title-chip{font-size:14px;padding:5px 11px;flex:0 0 auto}
+#playabilitySubtitle[hidden]{display:none!important}
+.playability-section-title.cold-report-title{display:flex;align-items:center;flex-wrap:wrap;gap:9px 12px;padding:12px 14px;line-height:1.35}
+.cold-title-main{font-size:17px;font-weight:900;letter-spacing:.01em}
+.cold-thresholds{display:inline-flex;align-items:center;flex-wrap:wrap;gap:7px}
+.cold-threshold{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#fff;color:#15558a;border:1px solid #9fc9ed;font-size:14px;font-weight:900;white-space:nowrap}
+.cold-threshold-extreme{background:#c8e4fb;border-color:#78b5e7;color:#103f70}
+.playability-section-title.cold-report-title .playability-title-meta{display:flex;flex-wrap:nowrap;align-items:center;gap:7px;margin:0 0 0 auto;font-size:12px;white-space:nowrap}
+.playability-section-title.cold-report-title .playability-title-chip{background:#f7fbff;border-color:#a9cce9;color:#174b78;padding:5px 9px;font-size:12px}
+@media(max-width:700px){#playabilityTitle .playability-title-meta{gap:6px}.playability-section-title.cold-report-title{gap:7px}.cold-title-main{font-size:15px}.cold-threshold{font-size:12px;padding:4px 8px}.playability-section-title.cold-report-title .playability-title-meta{width:100%;margin:0;flex-wrap:wrap;white-space:normal}}
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
@@ -1919,7 +1932,7 @@ function renderV2SpecialReports(rows){
  '<div class="playability-item"><b>最長連續降雨</b><div class="playability-special-value">'+(longest?longest+'小時｜'+esc(best)+"起":"無")+'</div></div>'+
  '<div class="playability-item"><b>來源降雨機率最大差距</b><div class="playability-special-value">'+(rainSpread.spread===null?"—":n(rainSpread.spread,0)+"%｜"+esc(rainSpread.time))+'</div></div></div>'+
  '<div class="playability-alert '+(rainRisk==="高"?"danger":rainRisk==="低"?"good":"")+'">'+rainAdvice+'</div>'+
- '<div class="playability-section-title '+coldRiskClass+'">低溫專項分析｜'+(!coldCoverageOK?"資料不足":extreme.length?"極低溫警示":cold.length?"低溫警示":"無低溫警訊")+'｜低溫≤15°C；極低溫≤10°C'+playabilityContextMarkup()+'</div>'+
+ '<div class="playability-section-title cold-report-title '+coldRiskClass+'"><span class="cold-title-main">低溫專項分析｜'+(!coldCoverageOK?"資料不足":extreme.length?"極低溫警示":cold.length?"低溫警示":"無低溫警訊")+'</span><span class="cold-thresholds"><span class="cold-threshold">低溫 ≤15°C</span><span class="cold-threshold cold-threshold-extreme">極低溫 ≤10°C</span></span>'+playabilityContextMarkup()+'</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>最低體感溫度</b><div class="playability-special-value" style="'+(min&&Number(min.feel)<15?'color:#1684c5;font-weight:900;':'')+'">'+(min?n(min.feel)+'°C｜'+esc(min.time):"—")+'</div></div>'+
  '<div class="playability-item"><b>低溫時數</b><div class="playability-special-value">'+cold.length+' 小時</div></div>'+
@@ -1937,7 +1950,7 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
  const title=$("playabilityTitle");if(title)title.innerHTML="⛳ 球場適打性綜合分析"+playabilityContextMarkup();
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
- if(subtitle)subtitle.textContent=(courseName||"所選球場")+"｜"+(date||"")+"｜"+scopeText;
+ if(subtitle){subtitle.textContent="";subtitle.hidden=true;}
  const data=playabilityFactorScore(chosen);
  if(!chosen.length||data.score===null){host.innerHTML='<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
  const verdict=data.score>=85?"非常適合":data.score>=70?"適合下場":data.score>=55?"尚可，需留意":"不建議下場";
