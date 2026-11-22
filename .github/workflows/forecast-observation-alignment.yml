@@ -1,0 +1,37 @@
+name: Forecast observation data quality and alignment
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 * * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forecast-observation-alignment
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout validation analyzer
+        uses: actions/checkout@v4
+        with:
+          ref: test/foreca-windunit-diagnostic
+      - name: Fetch isolated validation data (read-only)
+        run: |
+          set -euo pipefail
+          git fetch origin weather-validation-data
+          mkdir -p validation-data
+          git archive FETCH_HEAD validation-data | tar -x
+      - name: Run data quality and time alignment checks
+        run: python scripts/validate_forecast_observation_alignment.py --data-dir validation-data --output /tmp/validation-quality-report.json
+      - name: Upload validation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: forecast-observation-alignment-report
+          path: /tmp/validation-quality-report.json
+          retention-days: 30
