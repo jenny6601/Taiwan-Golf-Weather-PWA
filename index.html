@@ -2002,7 +2002,9 @@ function playabilityContextMarkup(){
  const date=golfDateLabel(active?.date||$("courseDate")?.value||"");
  const tee=$("teeTimeSelect")?.value||"";
  const time=tee?tee+" 開球":"06:00–18:00";
- return '<span class="playability-title-meta" style="display:flex!important;flex-flow:row nowrap!important;align-items:center!important;gap:10px!important;width:100%!important;margin-top:16px!important;font-size:clamp(18px,4.5vw,26px)!important;box-sizing:border-box!important"><span class="playability-title-chip" style="display:inline-flex!important;flex:1 1 0!important;width:50%!important;min-width:0!important;justify-content:center!important;white-space:nowrap!important;padding:8px 6px!important;font-size:inherit!important">\'+esc(date)+\'</span><span class="playability-title-chip" style="display:inline-flex!important;flex:1 1 0!important;width:50%!important;min-width:0!important;justify-content:center!important;white-space:nowrap!important;padding:8px 6px!important;font-size:inherit!important">\'+esc(time)+\'</span></span>';
+ const rowStyle='display:flex!important;flex-flow:row nowrap!important;align-items:center!important;gap:10px!important;width:100%!important;margin-top:16px!important;font-size:clamp(18px,4.5vw,26px)!important;box-sizing:border-box!important';
+ const chipStyle='display:inline-flex!important;flex:1 1 0!important;width:50%!important;min-width:0!important;justify-content:center!important;white-space:nowrap!important;padding:8px 6px!important;font-size:inherit!important;box-sizing:border-box!important';
+ return '<span class="playability-title-meta" style="'+rowStyle+'"><span class="playability-title-chip" style="'+chipStyle+'">'+esc(date)+'</span><span class="playability-title-chip" style="'+chipStyle+'">'+esc(time)+'</span></span>';
 }
 function playabilitySummaryMarkup(rows){
  const a=(rows||[]).filter(x=>x&&x.available!==false);
