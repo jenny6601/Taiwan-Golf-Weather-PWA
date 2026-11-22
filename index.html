@@ -2002,7 +2002,7 @@ function playabilityContextMarkup(){
  const date=golfDateLabel(active?.date||$("courseDate")?.value||"");
  const tee=$("teeTimeSelect")?.value||"";
  const time=tee?tee+" 開球":"06:00–18:00";
- return '<span class="playability-title-meta"><span class="playability-title-chip">📅 '+esc(date)+'</span><span class="playability-title-chip">🕒 '+esc(time)+'</span></span>';
+ return '<span class="playability-title-meta"><span class="playability-title-chip">'+esc(date)+'</span><span class="playability-title-chip">'+esc(time)+'</span></span>';
 }
 function playabilitySummaryMarkup(rows){
  const a=(rows||[]).filter(x=>x&&x.available!==false);
@@ -2163,7 +2163,7 @@ function renderTeeTimeWeatherSummary(rows){
 function renderPlayabilityAnalysis(rows,courseName,date){
  const host=$("playabilityContent"),subtitle=$("playabilitySubtitle");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
- const title=$("playabilityTitle");if(title)title.innerHTML="<span class=\"playability-title-line\"><span class=\"playability-title-text\">⛳ 球場適打性綜合分析</span>"+playabilityCourseMarkup()+"</span>"+playabilityContextMarkup();
+ const title=$("playabilityTitle");if(title)title.innerHTML="<span class=\"playability-title-line\"><span class=\"playability-title-text\">球場適打性綜合分析</span>"+playabilityCourseMarkup()+"</span>"+playabilityContextMarkup();
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
  if(subtitle){subtitle.textContent="";subtitle.hidden=true;}
  const data=playabilityFactorScore(chosen);
