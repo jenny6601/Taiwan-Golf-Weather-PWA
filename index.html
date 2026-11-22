@@ -558,7 +558,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <section class="card tee-time-summary-card" id="teeTimeWeatherSummaryPanel" aria-live="polite"><div class="tee-time-summary-head"><div class="tee-time-summary-title-wrap"><h3><span>⛳ 開球時段天氣摘要</span><span id="teeTimeSummaryCourse"></span></h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div></div><div id="teeTimeWeatherSummary" class="playability-special-grid"><div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">等待資料</div></div></div></section><section class="card playability-card" id="playabilityPanel" aria-live="polite">
  <div class="playability-head">
   <div><h3 id="playabilityTitle" style="margin:0">⛳ 球場適打性綜合分析</h3><p class="muted" id="playabilitySubtitle">選擇球場後，依所選日期的逐時預報自動分析</p></div>
-  <span class="playability-tag">五項指標</span>
+  <span class="playability-tag" hidden aria-hidden="true"></span>
  </div>
  <div id="playabilityContent" class="playability-content">
   <div class="playability-placeholder">請先選擇球場，系統將整合降雨、風勢、氣溫、天氣穩定度及能見度。</div>
@@ -2002,7 +2002,7 @@ function playabilityContextMarkup(){
  const date=golfDateLabel(active?.date||$("courseDate")?.value||"");
  const tee=$("teeTimeSelect")?.value||"";
  const time=tee?tee+" 開球":"06:00–18:00";
- return '<span class="playability-title-meta"><span class="playability-title-chip">'+esc(date)+'</span><span class="playability-title-chip">'+esc(time)+'</span></span>';
+ return '<span class="playability-title-meta" style="display:flex!important;flex-flow:row nowrap!important;align-items:center!important;gap:10px!important;width:100%!important;margin-top:16px!important;font-size:clamp(18px,4.5vw,26px)!important;box-sizing:border-box!important"><span class="playability-title-chip" style="display:inline-flex!important;flex:1 1 0!important;width:50%!important;min-width:0!important;justify-content:center!important;white-space:nowrap!important;padding:8px 6px!important;font-size:inherit!important">\'+esc(date)+\'</span><span class="playability-title-chip" style="display:inline-flex!important;flex:1 1 0!important;width:50%!important;min-width:0!important;justify-content:center!important;white-space:nowrap!important;padding:8px 6px!important;font-size:inherit!important">\'+esc(time)+\'</span></span>';
 }
 function playabilitySummaryMarkup(rows){
  const a=(rows||[]).filter(x=>x&&x.available!==false);
@@ -2163,7 +2163,7 @@ function renderTeeTimeWeatherSummary(rows){
 function renderPlayabilityAnalysis(rows,courseName,date){
  const host=$("playabilityContent"),subtitle=$("playabilitySubtitle");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
- const title=$("playabilityTitle");if(title)title.innerHTML="<span class=\"playability-title-line\"><span class=\"playability-title-text\">球場適打性綜合分析</span>"+playabilityCourseMarkup()+"</span>"+playabilityContextMarkup();
+ const title=$("playabilityTitle");if(title){title.innerHTML="<span class=\"playability-title-line\"><span class=\"playability-title-text\">球場適打性綜合分析</span>"+playabilityCourseMarkup()+"</span>"+playabilityContextMarkup();title.style.cssText="display:block!important;width:100%!important;margin:0!important;padding:0!important";}
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
  if(subtitle){subtitle.textContent="";subtitle.hidden=true;}
  const data=playabilityFactorScore(chosen);
