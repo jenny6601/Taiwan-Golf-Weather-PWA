@@ -1,28 +1,7 @@
-name: Foreca wind unit diagnostic (manual, no cache writes)
+name: Foreca wind unit diagnostic (three courses, no cache writes)
 
 on:
   workflow_dispatch:
-    inputs:
-      course:
-        description: "Diagnostic location label"
-        required: true
-        default: "Jiaoxi Golf Course"
-        type: string
-      latitude:
-        description: "Latitude"
-        required: true
-        default: "24.8389"
-        type: string
-      longitude:
-        description: "Longitude"
-        required: true
-        default: "121.7389"
-        type: string
-      periods:
-        description: "Hourly forecast periods (1-169)"
-        required: true
-        default: "48"
-        type: string
   push:
     branches: [test/foreca-windunit-diagnostic]
     paths:
@@ -38,8 +17,22 @@ concurrency:
 
 jobs:
   compare:
+    name: "Wind unit check - ${{ matrix.course }}"
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - course: "林口"
+            latitude: "25.0714"
+            longitude: "121.3719"
+          - course: "桃園"
+            latitude: "24.8789"
+            longitude: "121.2069"
+          - course: "揚昇"
+            latitude: "24.9208"
+            longitude: "121.1878"
     steps:
       - name: Checkout diagnostic branch
         uses: actions/checkout@v4
@@ -52,36 +45,38 @@ jobs:
           FORECA_API_KEY: ${{ secrets.FORECA_API_KEY }}
         run: |
           python scripts/foreca_windunit_diagnostic.py \
-            --course "${{ inputs.course || 'Jiaoxi Golf Course' }}" \
-            --lat "${{ inputs.latitude || '24.8389' }}" \
-            --lon "${{ inputs.longitude || '121.7389' }}" \
-            --periods "${{ inputs.periods || '48' }}" \
-            --out /tmp/foreca-windunit-report.json
+            --course "${{ matrix.course }}" \
+            --lat "${{ matrix.latitude }}" \
+            --lon "${{ matrix.longitude }}" \
+            --periods 48 \
+            --out "/tmp/foreca-windunit-${{ matrix.course }}.json"
       - name: Publish aggregate diagnostic summary
         if: always()
+        env:
+          COURSE: "${{ matrix.course }}"
+          LATITUDE: "${{ matrix.latitude }}"
+          LONGITUDE: "${{ matrix.longitude }}"
         run: |
-          if [ -f /tmp/foreca-windunit-report.json ]; then
-            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-          import json
-          d=json.load(open("/tmp/foreca-windunit-report.json",encoding="utf-8"))
-          print("## Foreca wind-unit diagnostic")
-          print(f"- Location: {d['course']} ({d['latitude']}, {d['longitude']})")
-          print(f"- KMH records: {d['kmh_hour_count']}")
-          print(f"- MS records: {d['ms_hour_count']}")
+          REPORT="/tmp/foreca-windunit-${COURSE}.json"
+          if [ -f "$REPORT" ]; then
+            python - "$REPORT" <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json,sys
+          d=json.load(open(sys.argv[1],encoding="utf-8"))
+          print(f"## Foreca wind-unit diagnostic - {d['course']}")
+          print(f"- Coordinates: {d['latitude']}, {d['longitude']}")
           print(f"- Matched hours: {d['matched_hour_count']}")
           print(f"- Median relative error: {d['median_speed_relative_error_pct']}%")
           print(f"- Hours within 10%: {d['hours_within_10pct']}")
           print(f"- Result: **{d['speed_unit_test']}**")
-          print("- Raw hourly forecast values are not published in the workflow summary.")
           PY
           else
-            echo "Diagnostic report was not generated; inspect the job error." >> "$GITHUB_STEP_SUMMARY"
+            echo "No report generated for ${COURSE}; inspect the job error." >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Upload aggregate diagnostic report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: foreca-windunit-diagnostic
-          path: /tmp/foreca-windunit-report.json
+          name: foreca-windunit-${{ matrix.course }}
+          path: "/tmp/foreca-windunit-${{ matrix.course }}.json"
           if-no-files-found: ignore
           retention-days: 1
