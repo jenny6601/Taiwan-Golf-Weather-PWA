@@ -234,6 +234,34 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .daily-date-cell:focus-visible{outline:2px solid #1769aa;outline-offset:-2px}
 .daily-date-cell:hover{background:#dcebf5}
 #dailyForecastStatus{display:none!important}
+/* V32.5：自訂16天預報日期月曆 */
+.forecast-date-control{position:relative;max-width:360px;margin:0 0 12px}
+#courseDate{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;padding:0!important;border:0!important}
+.forecast-date-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:50px;padding:10px 14px;background:#fff;color:#17212b;border:1px solid #94a3b8;border-radius:10px;font-weight:800;text-align:left}
+.forecast-date-trigger:after{content:"▾";font-size:18px;color:#1769aa}
+.forecast-calendar{position:absolute;z-index:50;top:calc(100% + 7px);left:0;width:min(100%,360px);padding:12px;background:#fff;border:1px solid #cbd5e1;border-radius:14px;box-shadow:0 12px 32px #0f172a26}
+.forecast-calendar[hidden]{display:none}
+.forecast-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.forecast-calendar-title{font-size:17px;font-weight:850;color:#17212b}
+.forecast-calendar-nav{display:flex;gap:6px}
+.forecast-calendar-nav button{width:36px;height:36px;padding:0;background:#edf3f8;color:#334155;font-size:20px;border:1px solid #dbe3eb}
+.forecast-calendar-week,.forecast-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.forecast-calendar-week span{padding:5px 0;color:#64748b;font-size:12px;font-weight:800}
+.forecast-calendar-week span.weekend,.forecast-calendar-day.weekend-sat.available,.forecast-calendar-day.weekend-sun.available{color:#d32f2f!important}
+.forecast-calendar-day{height:39px;padding:0!important;border-radius:9px!important;background:#f1f5f9!important;color:#b8c1cc!important;border:1px solid transparent!important;font-weight:650!important}
+.forecast-calendar-day.available{background:#e8eef5!important;color:#243447!important}
+.forecast-calendar-day.available:active{background:#dbeafe!important}
+.forecast-calendar-day.selected{background:#1769aa!important;color:#fff!important;border-color:#12558c!important;box-shadow:0 0 0 2px #bfdbfe}
+.forecast-calendar-day:disabled{opacity:1!important;cursor:not-allowed!important}
+.forecast-calendar-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:10px;padding-top:8px;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px}
+.forecast-calendar-legend span{display:inline-flex;align-items:center;gap:5px}
+.forecast-calendar-legend i{display:inline-block;width:11px;height:11px;border-radius:3px;background:#e8eef5}
+.forecast-calendar-legend .disabled i{background:#f1f5f9;border:1px solid #e2e8f0}
+.forecast-calendar-legend .chosen i{background:#1769aa}
+@media(max-width:600px){.forecast-calendar{width:min(100%,340px)}.forecast-calendar-day{height:40px}}
+
+
+
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
@@ -241,6 +269,10 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .daily-grid{display:grid;grid-template-columns:repeat(16,minmax(0,var(--daily-col)));width:calc(var(--daily-col)*16);min-width:calc(var(--daily-col)*16);max-width:none;box-sizing:border-box}.daily-date-cell,.daily-weather-cell,.daily-rain-cell{box-sizing:border-box;min-width:0;text-align:center;padding:7px 2px;border-right:1px solid #d8e2e9}
 .daily-date-cell{background:#edf4f8;border-bottom:1px solid #cbd8e1;font-size:11px;font-weight:800;line-height:1.35}.daily-date-cell .date{display:block;font-size:10px;font-weight:600;color:#60798b;margin-top:3px}
 .daily-temp-chart{display:block;width:calc(var(--daily-col)*16)!important;min-width:calc(var(--daily-col)*16)!important;max-width:none!important;height:190px;background:linear-gradient(180deg,#f8fbfd,#eef4f8);overflow:hidden!important;flex:0 0 auto}.daily-weather-cell{min-height:112px;background:#f8fbfd}
+/* Highlight the selected date consistently in the weather and rainfall rows. */
+.daily-weather-cell.is-selected,.daily-rain-cell.is-selected{background:#dceef9!important;box-shadow:inset 2px 0 #1682bd,inset -2px 0 #1682bd;position:relative;z-index:1}
+.daily-weather-cell.is-selected{border-top:2px solid #1682bd}
+.daily-rain-cell.is-selected{border-bottom:2px solid #1682bd}
 .daily-weather-cell .daily-icon{font-size:25px;line-height:1.3;min-height:34px}.daily-weather-cell .daily-desc{font-size:10px;line-height:1.35;color:#425b6d;min-height:29px}
 .daily-rain-cell{background:#edf4f8;padding-top:8px;padding-bottom:9px}.daily-rain-cell .rain-prob{font-size:13px;font-weight:850;color:#b88718}.daily-rain-cell .rain-mm{font-size:13px;font-weight:850;color:#247db7;margin-top:7px}.daily-rain-cell small{display:block;font-size:9px;color:#60798b}
 .daily-forecast-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:11px;color:#526779}.daily-forecast-legend span{display:inline-flex;align-items:center;gap:5px}.daily-dot{width:9px;height:9px;border-radius:50%;display:inline-block}.daily-high{background:#e76b55}.daily-low{background:#399be0}.daily-feel{background:#d5a02c}
@@ -250,7 +282,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .daily-date-cell{font-weight:900;color:#172f40}
 .daily-date-cell .date{font-weight:800;color:#344f62}
 .daily-weather-cell{min-height:0!important;padding:4px 1px 5px!important}
-.daily-weather-cell .daily-icon{font-size:22px!important;line-height:1.1!important;min-height:24px!important}
+.daily-weather-cell .daily-icon{display:flex;justify-content:center;align-items:center;min-height:42px!important}.daily-weather-cell .daily-weather-svg{display:block;width:40px;height:40px;max-width:100%;filter:drop-shadow(0 1px 1px rgba(20,45,70,.16))}@media(max-width:600px){.daily-weather-cell .daily-weather-svg{width:36px;height:36px}}
 .daily-weather-cell .daily-desc{font-size:10px!important;font-weight:850!important;line-height:1.2!important;min-height:0!important;color:#20394b!important;overflow-wrap:anywhere}
 .daily-rain-cell{padding-top:5px!important;padding-bottom:6px!important}
 .daily-rain-cell .rain-prob,.daily-rain-cell .rain-mm{font-weight:900!important}
@@ -331,7 +363,17 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <section class="panel" id="coursePickerPanel">
 <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
 <label for="courseDate" class="date-field-title">選擇日期</label>
-<input id="courseDate" style="max-width:320px" type="date" required/>
+<div class="forecast-date-control">
+<input id="courseDate" type="date" required aria-hidden="true" tabindex="-1"/>
+<button type="button" id="forecastDateTrigger" class="forecast-date-trigger" aria-haspopup="dialog" aria-expanded="false"><span class="forecast-date-label"></span></button>
+<div id="forecastCalendar" class="forecast-calendar" role="dialog" aria-label="選擇預報日期" hidden>
+ <div class="forecast-calendar-head"><strong id="forecastCalendarTitle" class="forecast-calendar-title"></strong><div class="forecast-calendar-nav"><button type="button" id="forecastCalendarPrev" aria-label="上一個月">‹</button><button type="button" id="forecastCalendarNext" aria-label="下一個月">›</button></div></div>
+ <div class="forecast-calendar-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span class="weekend">六</span><span class="weekend">日</span></div>
+ <div id="forecastCalendarDays" class="forecast-calendar-days"></div>
+ <div class="forecast-calendar-legend"><span><i></i>可選日期</span><span class="disabled"><i></i>不可選日期</span><span class="chosen"><i></i>已選日期</span></div>
+</div>
+</div>
+
 <label for="countySelect" class="county-field-title">選擇縣市</label>
 <select id="countySelect" style="width:100%;max-width:320px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff">
 <option value="">請選擇縣市</option>
@@ -1161,7 +1203,42 @@ function initForecastDatePicker(){
  const today=taiwanYmd(0),last=taiwanYmd(15);
  input.type="date";input.min=today;input.max=last;input.value=today;input.defaultValue=today;
  input.setAttribute("aria-label","選擇未來16天內的預報日期");
- const note=$("courseAutoStatus");if(note)note.textContent="預報日期："+today+" 至 "+last+"（共16天）。選擇縣市後點球場即可載入。";
+ const trigger=$("forecastDateTrigger"),calendar=$("forecastCalendar");
+ if(trigger&&calendar){
+  let shownMonth=today.slice(0,7);
+  const parseYmd=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);};
+  const fmt=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const render=()=>{
+   const [yy,mm]=shownMonth.split("-").map(Number),first=new Date(yy,mm-1,1),start=new Date(yy,mm-1,1-((first.getDay()+6)%7));
+   $("forecastCalendarTitle").textContent=yy+"年"+mm+"月";
+   const minMonth=today.slice(0,7),maxMonth=last.slice(0,7);
+   $("forecastCalendarPrev").disabled=shownMonth<=minMonth;
+   $("forecastCalendarNext").disabled=shownMonth>=maxMonth;
+   const html=[];
+   for(let i=0;i<42;i++){
+    const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i),ymd=fmt(d);
+    const inMonth=d.getMonth()===mm-1,available=ymd>=today&&ymd<=last;
+    const cls=["forecast-calendar-day",available?"available":"",d.getDay()===6?"weekend-sat":"",d.getDay()===0?"weekend-sun":"",ymd===input.value?"selected":""].filter(Boolean).join(" ");
+    html.push('<button type="button" class="'+cls+'" data-date="'+ymd+'" '+(!available?"disabled":"")+' aria-label="'+ymd+'">'+d.getDate()+'</button>');
+   }
+   $("forecastCalendarDays").innerHTML=html.join("");
+  };
+  const open=()=>{shownMonth=(input.value||today).slice(0,7);render();calendar.hidden=false;trigger.setAttribute("aria-expanded","true");};
+  const close=()=>{calendar.hidden=true;trigger.setAttribute("aria-expanded","false");};
+  trigger.addEventListener("click",()=>calendar.hidden?open():close());
+  $("forecastCalendarPrev").addEventListener("click",()=>{const [y,m]=shownMonth.split("-").map(Number);shownMonth=fmt(new Date(y,m-2,1)).slice(0,7);render();});
+  $("forecastCalendarNext").addEventListener("click",()=>{const [y,m]=shownMonth.split("-").map(Number);shownMonth=fmt(new Date(y,m,1)).slice(0,7);render();});
+  $("forecastCalendarDays").addEventListener("click",e=>{
+   const b=e.target.closest("button[data-date]");if(!b||b.disabled)return;
+   input.value=b.dataset.date;trigger.querySelector(".forecast-date-label").textContent=b.dataset.date.replaceAll("-","/");
+   close();input.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  document.addEventListener("click",e=>{if(!calendar.hidden&&!e.target.closest(".forecast-date-control"))close();});
+  input.addEventListener("change",()=>{trigger.querySelector(".forecast-date-label").textContent=input.value.replaceAll("-","/");shownMonth=input.value.slice(0,7);render();});
+  trigger.querySelector(".forecast-date-label").textContent=today.replaceAll("-","/");
+  render();
+ }
+ const note=$("courseAutoStatus");if(note)note.textContent="預報日期："+today+" 至 "+last+"（共16天）。深色為可選日期，淺色為不可選日期。選擇縣市後點球場即可載入。";
 }
 function initCourseDatabase(){
  const counties=[...new Set(taiwanCourses.map(c=>c.city).filter(Boolean))];
@@ -1336,6 +1413,18 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
  .playability-section-title{font-size:14px;padding:9px 10px}
  .playability-title-meta{gap:4px;font-size:10px}
  .playability-title-chip{padding:3px 6px}
+}
+
+/* Match full-version hourly icon and rain probability sizing */
+@media(max-width:600px){
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji{width:38px!important;height:38px!important;min-width:38px!important;flex:0 0 38px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji svg.daily-weather-svg{width:38px!important;height:38px!important}
+ .hourly-table-wrap #hourlyForecastTable .wxemoji{width:40px!important;height:38px!important;min-width:40px!important}
+ .hourly-table-wrap #hourlyForecastTable .wxemoji svg,.hourly-table-wrap #hourlyForecastTable svg.wx-icon{width:42px!important;height:40px!important;max-width:none!important}
+ .hourly-table-wrap #hourlyForecastTable .rainpill{font-size:14px!important;gap:3px!important;padding:3px 5px!important;white-space:nowrap!important}
+ .hourly-table-wrap #hourlyForecastTable .rainpill b{font-size:16px!important;font-weight:900!important}
+ .hourly-table-wrap #hourlyForecastTable .rainpill svg{width:34px!important;height:30px!important;max-width:none!important;vertical-align:-7px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(3){font-size:14px!important}
 }
 </style>
  <h3>V28｜57個來源整合狀態</h3>
@@ -1860,14 +1949,19 @@ $("courseDate").addEventListener("change",()=>{
 // 以日期按鈕的直接 onclick 觸發，避免 PWA 內事件委派失效。
 window.selectDailyForecastDate=async function(date){
  const input=$("courseDate"),dailyScroll=$("dailyForecastScroll");
- if(!date||!input||!selectedCourseForReload||databaseAutoBusy)return;
+ if(!date||!input||!selectedCourseForReload)return;
  if(date<input.min||date>input.max)return;
  // 點選前記住16天區塊的水平位置；切換日期不移動頁面垂直位置。
  window.dailyForecastKeepScrollLeft=dailyScroll?.scrollLeft||0;
- input.value=date;
+ syncForecastDatePickerDisplay(date);
+ syncDailyForecastSelection(date);
+ syncDailyForecastToSelectedDate();
+ if(databaseAutoBusy)return;
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
  await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+ // 預報載入流程結束後再次同步，避免任何重繪覆寫頁首日期。
+ syncForecastDatePickerDisplay(date);
  // 等待逐日資料重新繪製及版面完成後，恢復原水平位置。
  const restore=()=>{const el=$("dailyForecastScroll");if(el)el.scrollLeft=window.dailyForecastKeepScrollLeft||0;};
  requestAnimationFrame(restore);
@@ -1941,8 +2035,8 @@ function apparentFeelHTML(v){
   // 15°C以下：依照使用者指定的藍色冰凍表情，白色冰帽、冰晶雪花及顫抖咬牙表情。
   icon='<svg aria-hidden="true" viewBox="0 0 64 64" width="40" height="40" style="display:block!important;width:40px!important;height:40px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="coldWarningFace" cx="48%" cy="42%" r="65%"><stop offset="0" stop-color="#42d9df"/><stop offset=".65" stop-color="#12a9e5"/><stop offset="1" stop-color="#0874d1"/></radialGradient></defs><circle cx="32" cy="34" r="28" fill="url(#coldWarningFace)" stroke="#0872c5" stroke-width="1.8"/><path d="M5 25Q4 17 14 14Q19 5 32 7Q47 3 53 13Q62 15 58 24Q53 27 42 23L17 25Q8 31 5 25Z" fill="#d9f3ff"/><g fill="#43290e"><ellipse cx="22" cy="30" rx="4.2" ry="6"/><ellipse cx="42" cy="30" rx="4.2" ry="6"/></g><g><rect x="13" y="41" width="38" height="11" rx="5.5" fill="#fff" stroke="#0877d2" stroke-width="1.2"/><path d="M20 41v11M27 41v11M34 41v11M41 41v11M48 41v11M13 46.5h38" stroke="#aebbc7" stroke-width="1.2"/></g><g fill="none" stroke="#d9f4ff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 29v12M3 32l10 6M3 38l10-6M8 29l-2 2M8 29l2 2M8 41l-2-2M8 41l2-2"/><path d="M53 13v13M47.5 16.5l11 6M47.5 22.5l11-6M53 13l-2 2M53 13l2 2M53 26l-2-2M53 26l2-2"/><path d="M30 54v9M22 58.5h16M23.5 55l13 7.5M23.5 62l13-7.5M30 54l-2 2M30 54l2 2M30 63l-2-2M30 63l2-2M22 58.5l2-2M22 58.5l2 2M38 58.5l-2-2M38 58.5l-2 2M23.5 55l.5 3M23.5 55l3 .5M36.5 62l-.5-3M36.5 62l-3-.5M23.5 62l.5-3M23.5 62l3-.5M36.5 55l-.5 3M36.5 55l-3 .5"/></g></svg>';
  }else if(state==="cold"){
-  // 15–19°C：厚實大外套圖示。
-  icon='<svg aria-hidden="true" viewBox="0 0 64 48" width="40" height="30" style="display:block!important;width:40px!important;height:30px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><g fill="#fff" stroke="#111" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7 17 9 9 16 4 38l8 3 5-13 1 15h28l1-15 5 13 8-3-5-22-8-7-6-2-8 7h-4Z"/><path d="M23 7q1 10 9 10t9-10" fill="#111"/><path d="M32 17v26M17 23q7 4 15 4t15-4M16 34q8 3 16 3t16-3" fill="none"/><path d="M4 38l8 3 2 4H5ZM60 38l-8 3-2 4h9Z" fill="#111"/></g><path d="M32 18v24" stroke="#111" stroke-width="2"/></svg>';
+  // 15–19°C：使用新版藍色保暖外套圖示。
+  icon='<img src="'+COLD_JACKET_ICON_DATA+'" alt="" width="40" height="40" style="display:block;width:40px;height:40px;object-fit:contain"/>';
  }else if(state==="hot-warning"){
   // 30°C以上：依照使用者提供的高溫表情圖，使用大紅橙色熱臉、吐舌及多處汗滴。
   icon='<svg aria-hidden="true" viewBox="0 0 64 48" width="40" height="30" style="display:block!important;width:40px!important;height:30px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="extremeHeatFace" cx="48%" cy="35%" r="68%"><stop offset="0" stop-color="#ffd84a"/><stop offset=".55" stop-color="#ff7a18"/><stop offset="1" stop-color="#d92d0b"/></radialGradient><linearGradient id="extremeHeatTongue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ff78b7"/><stop offset="1" stop-color="#e52e87"/></linearGradient></defs><circle cx="32" cy="24" r="22" fill="url(#extremeHeatFace)" stroke="#9b260d" stroke-width="1.3"/><g fill="none" stroke="#6f210e" stroke-width="2" stroke-linecap="round"><path d="M13 15q5 2 9-4M42 11q4 6 9 4"/></g><g stroke="#080808" stroke-width="1.5" stroke-linejoin="round"><path d="M10 17Q20 13 29 17L30 23Q29 28 22 28H17Q11 27 10 22Z" fill="#050505"/><path d="M34 17Q44 13 54 17L54 22Q53 27 47 28H42Q35 28 34 23Z" fill="#050505"/><path d="M29 19Q32 17 35 19" fill="none" stroke="#050505" stroke-width="2.2"/><path d="M14 18l8-1M38 18l8-1" stroke="#777" stroke-width=".9" opacity=".75"/></g><ellipse cx="32" cy="32" rx="8.5" ry="5" fill="#68130f" stroke="#50120d" stroke-width="1"/><path d="M26.5 32q0-2 5.5-2t5.5 2v9q0 5-5.5 5t-5.5-5Z" fill="url(#extremeHeatTongue)" stroke="#7b1738" stroke-width="1.1"/><path d="M32 32v10" stroke="#b51d59" stroke-width="1"/><g fill="#ff713b"><path d="M8 18q-3 4 0 7 3-3 0-7ZM18 3q-3 4 0 7 3-3 0-7ZM39 2q-3 4 0 7 3-3 0-7ZM56 20q-3 4 0 7 3-3 0-7Z"/></g><g fill="#36b9f4" stroke="#07558e" stroke-width=".8"><path d="M5 27q-4 6-4 9a4 4 0 0 0 8 0q0-3-4-9ZM59 3q-4 6-4 9a4 4 0 0 0 8 0q0-3-4-9ZM12 37q-3 4-3 6a3 3 0 0 0 6 0q0-2-3-6Z"/></g></svg>';
@@ -2441,6 +2535,30 @@ async function fetchDailyForecast(lat,lon){
  });
  dailyForecastCache.set(key,{at:Date.now(),rows});return rows;
 }
+function syncDailyForecastSelection(date){
+ if(!date)return;
+ const root=$("dailyForecastInner");if(!root)return;
+ root.querySelectorAll(".daily-date-cell").forEach(el=>{
+  const selected=el.dataset.dailyDate===date;
+  el.setAttribute("aria-pressed",selected?"true":"false");
+  el.classList.toggle("is-selected",selected);
+ });
+}
+function syncForecastDatePickerDisplay(date){
+ const input=$("courseDate");if(!input||!date)return;
+ input.value=date;
+ const trigger=$("forecastDateTrigger");
+ const label=trigger?.querySelector(".forecast-date-label");
+ if(label)label.textContent=date.replaceAll("-","/");
+ else if(trigger)trigger.textContent=date.replaceAll("-","/");
+ if(trigger)trigger.setAttribute("aria-label","預報日期："+date.replaceAll("-","/"));
+ const calendar=$("forecastCalendar");
+ if(calendar){
+  calendar.querySelectorAll(".forecast-calendar-day").forEach(button=>button.classList.toggle("selected",button.dataset.date===date));
+  const title=$("forecastCalendarTitle");
+  if(title)title.textContent=Number(date.slice(0,4))+"年"+Number(date.slice(5,7))+"月";
+ }
+}
 function renderDailyForecast(rows,courseName){
  const target=$("dailyForecastInner"),status=$("dailyForecastStatus"),heading=$("dailyForecastHeading"),dailyScroll=$("dailyForecastScroll"),dailyScrollLeft=window.dailyForecastKeepScrollLeft??dailyScroll?.scrollLeft??0;if(!target)return;if(!rows?.length){target.innerHTML='<div class="daily-forecast-placeholder">目前沒有可用逐日資料</div>';return;}
  // 逐日預報固定以16天為同一顯示範圍；日期、曲線、天氣及降雨共用完全相同的資料列，避免最右端橫向滑動時各列寬度不一致。
@@ -2453,11 +2571,11 @@ function renderDailyForecast(rows,courseName){
  const paths=series.map(z=>{const pts=chartRows.map((r,i)=>r[z.key]===null?null:[x(i),y(r[z.key])]).filter(Boolean);return pts.length>1?'<polyline points="'+pts.map(p=>p.join(",")).join(" ")+'" fill="none" stroke="'+z.color+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>':"";}).join("");
  const points=series.map(z=>chartRows.map((r,i)=>{const v=r[z.key];if(v===null)return "";const xx=x(i),yy=y(v);return '<circle cx="'+xx+'" cy="'+yy+'" r="3" fill="'+z.color+'"/><text x="'+xx+'" y="'+(yy+z.offset)+'" text-anchor="middle" font-size="26" font-weight="900" paint-order="stroke" stroke="#f8fbfd" stroke-width="3.5" stroke-linejoin="round" fill="'+z.color+'">'+Math.round(v)+'°</text>';}).join("")).join("");
  const grid=[min,Math.round((min+max)/2),max].map(v=>'<line x1="0" y1="'+y(v)+'" x2="'+(col*16)+'" y2="'+y(v)+'" stroke="#9aafbd" stroke-opacity=".25" stroke-dasharray="3 3"/><text x="3" y="'+(y(v)-3)+'" font-size="8" fill="#708697">'+v+'°</text>').join("");
- const selectedDailyDate=active?.date||$("courseDate")?.value||"";const dates=displayRows.map(r=>{const d=new Date(r.date+"T12:00:00+08:00"),wd=["日","一","二","三","四","五","六"][d.getDay()];return '<button type="button" class="daily-date-cell" data-daily-date="'+r.date+'" onclick="window.selectDailyForecastDate(this.dataset.dailyDate)" aria-label="點選查看'+r.date+'逐時天氣" aria-pressed="'+(selectedDailyDate===r.date?'true':'false')+'">星期'+wd+'<span class="date">'+r.date.slice(5).replace("-","/")+'</span></button>';}).join("");
- const weather=displayRows.map(r=>{const w=dailyWx(r.code);return '<div class="daily-weather-cell"><div class="daily-icon">'+w.icon+'</div><div class="daily-desc">'+w.desc+'</div></div>';}).join("");
- const rain=displayRows.map(r=>'<div class="daily-rain-cell"><small>降雨機率</small><div class="rain-prob">'+(r.prob===null?"—":Math.round(r.prob)+"%")+'</div><small>累積雨量</small><div class="rain-mm">'+(r.rain===null?"—":Number(r.rain).toFixed(1))+'</div><small>mm</small></div>').join("");
+ const selectedDailyDate=$("courseDate")?.value||active?.date||"";const dates=displayRows.map(r=>{const d=new Date(r.date+"T12:00:00+08:00"),wd=["日","一","二","三","四","五","六"][d.getDay()],weekend=d.getDay()===0||d.getDay()===6;return '<button type="button" class="daily-date-cell'+(weekend?' weekend':'')+'" data-daily-date="'+r.date+'" onclick="window.selectDailyForecastDate(this.dataset.dailyDate)" aria-label="點選查看'+r.date+'逐時天氣" aria-pressed="'+(selectedDailyDate===r.date?'true':'false')+'"><span class="weekday">星期'+wd+'</span><span class="date">'+r.date.slice(5).replace("-","/")+'</span></button>';}).join("");
+ const weather=displayRows.map(r=>{const w=dailyWx(r.code),selected=selectedDailyDate===r.date;return '<div class="daily-weather-cell'+(selected?' is-selected':'')+'"><div class="daily-icon">'+w.icon+'</div><div class="daily-desc">'+w.desc+'</div></div>';}).join("");
+ const rain=displayRows.map(r=>{const selected=selectedDailyDate===r.date;return '<div class="daily-rain-cell'+(selected?' is-selected':'')+'"><small>降雨機率</small><div class="rain-prob">'+(r.prob===null?"—":Math.round(r.prob)+"%")+'</div><small>累積雨量</small><div class="rain-mm">'+(r.rain===null?"—":Number(r.rain).toFixed(1))+'</div><small>mm</small></div>';}).join("");
  const dayBands=displayRows.map((r,i)=>'<rect x="'+(i*col)+'" y="0" width="'+col+'" height="'+chartH+'" fill="'+(selectedDailyDate===r.date?"#b8def4":i%2===0?"#f3f6f9":"#d5e2ed")+'" fill-opacity="'+(selectedDailyDate===r.date?"0.95":"0.72")+'"/>'+(selectedDailyDate===r.date?'<rect x="'+(i*col+1)+'" y="1" width="'+(col-2)+'" height="'+(chartH-2)+'" fill="none" stroke="#1682bd" stroke-width="2"/>':"")).join("");target.innerHTML='<div class="daily-grid">'+dates+'</div><svg class="daily-temp-chart" width="'+chartWidth+'" height="'+chartH+'" viewBox="0 0 '+chartWidth+' '+chartH+'" role="img" aria-label="僅顯示前16天最高溫、最低溫與體感溫度曲線"><defs><clipPath id="dailyTempCurveClip"><rect x="0" y="0" width="'+chartWidth+'" height="'+chartH+'"/></clipPath></defs><g clip-path="url(#dailyTempCurveClip)">'+dayBands+grid+paths+points+'</g></svg><div class="daily-grid">'+weather+'</div><div class="daily-grid">'+rain+'</div>';
- const count=Math.max(...rows.map(x=>x.modelCount||0));if(heading)heading.textContent="⓪ 16天白天高爾夫天氣預報｜"+(courseName||"已選球場");if(status)status.textContent="白天逐日預報｜每日06:00–18:00｜各模型先計算白天逐時統計，再以可用模型中位數整合；顯示白天最高／最低溫、平均體感、降雨機率及累積雨量。可用模型數："+count+"；降雨機率可用模型數依日期而異。";if(dailyScroll){dailyScroll.scrollLeft=dailyScrollLeft;requestAnimationFrame(()=>{const el=$("dailyForecastScroll");if(el)el.scrollLeft=dailyScrollLeft;});}
+ const count=Math.max(...rows.map(x=>x.modelCount||0));if(heading)heading.textContent="⓪ 16天白天高爾夫天氣預報｜"+(courseName||"已選球場");if(status)status.textContent="白天逐日預報｜每日06:00–18:00｜各模型先計算白天逐時統計，再以可用模型中位數整合；顯示白天最高／最低溫、平均體感、降雨機率及累積雨量。可用模型數："+count+"；降雨機率可用模型數依日期而異。";if(dailyScroll)syncDailyForecastToSelectedDate();
 }
 async function loadAndRenderDailyForecast(p){const status=$("dailyForecastStatus");if(status)status.textContent="正在取得六模型16天逐日資料…";try{const rows=await fetchDailyForecast(p.lat,p.lon);renderDailyForecast(rows,p.name);}catch(e){const target=$("dailyForecastInner");if(target)target.innerHTML='<div class="daily-forecast-placeholder">逐日預報暫時無法取得：'+esc(e.message)+'</div>';if(status)status.textContent="逐日預報載入失敗；原有逐時預報不受影響。";}}
 async function loadForecast(p,date,forceRefresh=false){
