@@ -1741,7 +1741,7 @@ async function paintQuickCourseButtons(selectedName){
   btn.style.setProperty("border-width",selected?"2px":"1px","important");
  });
 }
-function autoLoadDatabaseCourse(c,button){
+function autoLoadDatabaseCourse(c,button,fromFavorite=false){
  const date=$("courseDate").value;
  if(!date)initForecastDatePicker();
  const selectedDate=$("courseDate").value;
@@ -1753,8 +1753,8 @@ function autoLoadDatabaseCourse(c,button){
  // 選定球場後，同縣市清單只保留目前球場，避免大量按鈕占用版面。
  renderCourseDatabase();
  selectedCourseButton=$("courseList").querySelector('button[data-course="'+taiwanCourses.findIndex(x=>x.name===c.name)+'"]')||button;
- // 常用球場只將目前選取項目標綠，其餘一律白底。
- paintQuickCourseButtons(c.name);
+ // 只有透過「常用球場」點選時才標示綠底；縣市清單選取則全部回到白底未選狀態。
+ paintQuickCourseButtons(fromFavorite?c.name:null);
  databaseAutoBusy=true;
  // 日期欄位保持可操作；載入期間的新選擇會排入下一次載入。
  $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x.dataset.course===String(taiwanCourses.findIndex(y=>y.name===c.name)));});
@@ -1784,7 +1784,7 @@ function autoLoadDatabaseCourse(c,button){
  }
 }
 window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};
-document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;paintQuickCourseButtons(name);autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
+document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;autoLoadDatabaseCourse(taiwanCourses[idx],btn,true);});
 // 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
 $("courseDate").addEventListener("change",async()=>{
  if(!selectedCourseForReload)return;
@@ -2988,7 +2988,7 @@ function autoLoadDefaultCourse(){
  $("countySelect").value=course.city||"";
  renderCourseDatabase();
  const button=$('courseList').querySelector('button[data-course="'+index+'"]');
- paintQuickCourseButtons(defaultCourseName);
+ paintQuickCourseButtons(null);
  if(!button){
   $("courseAutoStatus").textContent="已找到預設球場，但球場清單尚未建立，請手動選擇。";
   return;
