@@ -1903,7 +1903,7 @@ function renderV2SpecialReports(rows){
  const rainMax=prob.length?Math.max(...prob.map(x=>Number(x.rain))):null;
  const feelMin=feel.length?Math.min(...feel.map(x=>Number(x.feel))):null;
  const feelMax=feel.length?Math.max(...feel.map(x=>Number(x.feel))):null;
- const weatherCodes=a.map(x=>Number(x.code)).filter(Number.isFinite);
+ const weatherCodes=a.filter(x=>x.code!==null&&x.code!==undefined&&x.code!=="").map(x=>Number(x.code)).filter(Number.isFinite);
  const rainyCodes=weatherCodes.filter(c=>[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c));
  const thunderCodes=weatherCodes.filter(c=>[95,96,99].includes(c));
  const fogCodes=weatherCodes.filter(c=>[45,48].includes(c));
