@@ -584,23 +584,23 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <p class="muted">模型：ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM、ECMWF AIFS。AIFS 原始資料為 6 小時解析度，顯示逐時序列由 Open-Meteo 內插；不提供原生降雨機率、陣風及 UV。</p>
 </section>
 <section class="card provider-panel" id="commercialProviderPanel">
-<h3>外部氣象服務｜Visual Crossing 15天逐時整合</h3>
-<p class="muted">本區與六個 Open-Meteo 數值模式分開呈現。Visual Crossing 由 GitHub Actions 後端每日收集全台 57 座球場的 15 天逐時預報；外部服務在完成歷史回測前，不納入六模型中位數。</p>
+<h3>外部氣象服務｜Visual Crossing＋Foreca 獨立逐時整合</h3>
+<p class="muted">本區與六個 Open-Meteo 數值模式分開呈現。Visual Crossing 與 Foreca 均由 GitHub Actions 後端建立獨立快取；兩者在完成各自歷史回測與權重門檻前，不納入六模型中位數。</p>
 <div class="provider-grid">
 <div class="provider-card"><strong>Visual Crossing Timeline API</strong><span class="provider-pill">已整合｜57座球場15天逐時</span><div class="provider-status" id="visualCrossingProviderStatus">等待每日 GitHub Actions 更新全台預報快取。</div><div class="provider-links"><a href="https://www.visualcrossing.com/weather-api/" rel="noopener" target="_blank">API 文件</a><a href="https://www.visualcrossing.com/resources/documentation/weather-api/free-weather-api-no-key/" rel="noopener" target="_blank">免費方案說明</a></div></div>
 <div class="provider-card"><strong>Windy Point Forecast</strong><span class="provider-pill">免費測試資料不可上線</span><div class="provider-status" id="windyProviderStatus">尚未設定正式 API；Trial 僅供開發測試，回傳資料隨機擾動。</div><div class="provider-links"><a href="https://api.windy.com/point-forecast/pricing" rel="noopener" target="_blank">方案與價格</a><a href="https://api.windy.com/" rel="noopener" target="_blank">申請 API Key</a></div></div>
 <div class="provider-card"><strong>meteoblue Weather API</strong><span class="provider-pill">優先申請免費試用</span><div class="provider-status" id="meteoblueProviderStatus">尚未設定 API Key；官方 Free Weather API 提供一年、10 million credits，依資料包扣點。</div><div class="provider-links"><a href="https://docs.meteoblue.com/en/weather-apis/free-weather-api/overview" rel="noopener" target="_blank">免費 API 說明</a><a href="https://business.meteoblue.com/products/weather-apis/free-weather-api" rel="noopener" target="_blank">申請入口</a></div></div>
 <div class="provider-card"><strong>AccuWeather Core API</strong><span class="provider-pill">免費試用有期限</span><div class="provider-status" id="accuweatherProviderStatus">尚未設定 API Key；官方 Free Core 為 14 天試用、每日 500 次呼叫，之後依方案付費。</div><div class="provider-links"><a href="https://developer.accuweather.com/documentation/overview" rel="noopener" target="_blank">方案與價格</a><a href="https://developer.accuweather.com/" rel="noopener" target="_blank">申請 API Key</a></div></div>
-<div class="provider-card"><strong>Foreca Weather API</strong><span class="provider-pill">免費但限非商業用途</span><div class="provider-status" id="forecaProviderStatus">尚未設定 API Key；Freemium 每日 2,000 次呼叫，限個人、學校及研究等非商業用途。</div><div class="provider-links"><a href="https://business.foreca.com/weather-api/free-weather-api" rel="noopener" target="_blank">免費方案</a><a href="https://developer.foreca.com/" rel="noopener" target="_blank">API 文件</a></div></div>
+<div class="provider-card"><strong>Foreca Weather API</strong><span class="provider-pill">免費但限非商業用途</span><div class="provider-status" id="forecaProviderStatus">等待讀取 Foreca 獨立快取；API Key 僅由後端 Actions 使用，不在瀏覽器檢查。</div><div class="provider-links"><a href="https://business.foreca.com/weather-api/free-weather-api" rel="noopener" target="_blank">免費方案</a><a href="https://developer.foreca.com/" rel="noopener" target="_blank">API 文件</a></div></div>
 </div>
 <div class="provider-note" style="margin-top:12px"><b>資料安全：</b>API Key 不可放在 HTML、GitHub Pages 前端或公開 Repository。請放在 GitHub Repository → Settings → Secrets and variables → Actions。預定 Secret 名稱：<code>VISUAL_CROSSING_API_KEY</code>、<code>METEOBLUE_API_KEY</code>、<code>ACCUWEATHER_API_KEY</code>、<code>FORECA_API_KEY</code>、<code>WINDY_API_KEY</code>。Windy Trial 不可作正式預報；免費優先時先不啟用 Windy 生產資料。</div>
-<div class="status" id="providerCacheStatus" style="margin-top:10px">外部服務資料：尚未載入快取。Visual Crossing 尚未載入時，六模型仍正常運作。</div>
+<div class="status" id="providerCacheStatus" style="margin-top:10px">外部服務資料：尚未載入快取。Visual Crossing 與 Foreca 獨立讀取；六模型仍正常運作。</div>
 <div class="provider-table-wrap" id="providerComparison"></div>
 </section>
-<section class="card" id="v27ConsensusPanel"><h3>V30 降雨機率與雨量驗證中心</h3><p class="muted">歷史驗證暖機期間採六模型等權中位數；達到樣本門檻後，依 1、3、5、7、10、14 天提前期及球場回測誤差，對六模型與 Visual Crossing 的雨量及可用降雨機率加權融合。其他氣象欄位仍維持原有模型中位數。</p><div class="v26-grid" id="v26Stats"><div class="v26-stat">整合模型<b>—</b></div><div class="v26-stat">降雨機率分歧<b>—</b></div><div class="v26-stat">氣溫分歧<b>—</b></div><div class="v26-stat">陣風分歧<b>—</b></div></div><div class="status" id="v26Interpretation">選擇球場後顯示模型共識與分歧。</div></section>
+<section class="card" id="v27ConsensusPanel"><h3>V30 降雨機率與雨量驗證中心</h3><p class="muted">歷史驗證暖機期間採六模型等權中位數；目前依 1、3、5、7、10、14 天提前期及球場回測誤差，對已納入驗證的來源進行雨量與可用降雨機率加權。Foreca 已獨立提供逐時資料，但尚未納入此歷史驗證權重，故不顯示虛構的 MAE 或權重。</p><div class="v26-grid" id="v26Stats"><div class="v26-stat">整合模型<b>—</b></div><div class="v26-stat">降雨機率分歧<b>—</b></div><div class="v26-stat">氣溫分歧<b>—</b></div><div class="v26-stat">陣風分歧<b>—</b></div></div><div class="status" id="v26Interpretation">選擇球場後顯示模型共識與分歧。</div></section>
 <section class="card" id="forecastVerificationPanel">
  <h3>歷史降雨預報驗證與動態權重</h3>
- <p class="muted">每日留存六個數值模型與 Visual Crossing 的預報版本，使用 CWA 雨量站逐時實況驗證。提前期分為 1、3、5、7、10、14 天；樣本不足時不調整權重，避免過度擬合。</p>
+ <p class="muted">每日留存已啟用驗證的數值模型與 Visual Crossing 預報版本，使用 CWA 雨量站逐時實況驗證。Foreca 目前獨立供應預報，但尚未納入歷史評分及動態權重；累積足夠樣本後才會加入，樣本不足不以 0 代替。</p>
  <div class="status" id="verificationHistoryStatus">歷史資料累積中；尚未啟用動態權重。</div>
  <div id="verificationLeadTable"></div>
  <div id="verificationSourceTable"></div>
@@ -2480,38 +2480,52 @@ async function loadVerificationDashboard(courseName,leadDays){
 // V29: 外部服務只讀取後端／GitHub Actions 產生的標準化快取，不在瀏覽器暴露 API Key。
 // Visual Crossing 在歷史樣本及來源權重達標前維持獨立顯示；達標後才按提前期與球場權重納入降雨融合。
 async function loadV28ProviderCache(courseName,date){
- const status=$("providerCacheStatus"),target=$("providerComparison"),vcStatus=$("visualCrossingProviderStatus");
+ const status=$("providerCacheStatus"),target=$("providerComparison"),vcStatus=$("visualCrossingProviderStatus"),forecaStatus=$("forecaProviderStatus");
  if(!status||!target)return;
- status.textContent="正在讀取 Visual Crossing 15天逐時快取…";target.innerHTML="";
+ status.textContent="正在讀取 Visual Crossing 與 Foreca 獨立逐時快取…";target.innerHTML="";
+ const rows=[];
+ const fmt=(arr,key,mode="avg")=>{
+  const vals=arr.map(x=>x[key]).filter(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))).map(Number);
+  if(!vals.length)return "—";
+  const n=mode==="max"?Math.max(...vals):mode==="min"?Math.min(...vals):vals.reduce((a,b)=>a+b,0)/vals.length;
+  return n.toFixed(1);
+ };
  try{
   const base="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/visual-crossing-cache/";
   const index=await fetchJsonBounded(base+"index.json?ts="+Date.now(),9000,"no-store");
   const rel=index.courses?.[courseName];
-  if(!rel)throw Error("全台快取尚未包含此球場："+courseName);
+  if(!rel)throw Error("Visual Crossing 快取尚未包含此球場："+courseName);
   const d=await fetchJsonBounded(base+rel+"?v="+encodeURIComponent(index.generated_at||"latest"),9000,"no-cache");
   const key=(d.courses||{})[courseName]||Object.entries(d.courses||{}).find(([n])=>String(n).trim().normalize("NFC")===String(courseName).trim().normalize("NFC"))?.[1];
   const item=key?.[date]||key;
-  if(!item||!item.providers)throw Error("Visual Crossing 尚未提供所選日期的逐時資料（最長15天）");
-  const rows=[];
+  if(!item||!item.providers)throw Error("Visual Crossing 尚未提供所選日期逐時資料");
   for(const [provider,p] of Object.entries(item.providers)){
    const hs=p.hourly||[];
-   if(p.status!=="ok"||!hs.length)continue;
    const wanted=hs.filter(x=>{const h=Number(String(x.time||"").slice(11,13));return h>=6&&h<=18;});
    const rainWanted=hs.filter(x=>{const h=Number(String(x.time||"").slice(11,13));return h>=5&&h<=17;});
-   if(!wanted.length)continue;
-   const values=(k,arr=wanted)=>arr.map(x=>x[k]).filter(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))).map(Number);
-   const avg=(k,arr=wanted)=>{const a=values(k,arr);return a.length?(a.reduce((z,v)=>z+v,0)/a.length).toFixed(1):"—";};
-   const max=(k,arr=wanted)=>{const a=values(k,arr);return a.length?Math.max(...a).toFixed(1):"—";};
-   rows.push({provider:p.display_name||provider,temp:avg("temperature_2m"),feel:avg("apparent_temperature"),rain:max("precipitation_probability",rainWanted),mm:avg("precipitation",rainWanted),wind:avg("wind_speed_10m"),gust:max("wind_gusts_10m"),count:wanted.length});
+   if(p.status!=="ok"||!wanted.length)continue;
+   rows.push({provider:p.display_name||provider,temp:fmt(wanted,"temperature_2m"),feel:fmt(wanted,"apparent_temperature"),rain:fmt(rainWanted,"precipitation_probability","max"),mm:fmt(rainWanted,"precipitation"),wind:fmt(wanted,"wind_speed_10m"),gust:fmt(wanted,"wind_gusts_10m","max"),count:wanted.length});
   }
-  if(!rows.length)throw Error("快取已存在，但所選日期沒有有效逐時資料");
-  target.innerHTML='<table class="provider-table"><thead><tr><th>外部來源</th><th>平均氣溫</th><th>平均體感</th><th>最高降雨機率</th><th>平均雨量</th><th>平均風速</th><th>最大陣風</th><th>時數</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.provider)+'</td><td>'+x.temp+'</td><td>'+x.feel+'</td><td>'+x.rain+'%</td><td>'+x.mm+' mm</td><td>'+x.wind+'</td><td>'+x.gust+'</td><td>'+x.count+'/13</td></tr>').join("")+'</tbody></table>';
-  const stamp=index.generated_at||d.generated_at||"未提供";
-  status.textContent="Visual Crossing 獨立快取已載入｜全台 "+(index.course_count||57)+" 座｜更新："+stamp+"。不列入六模型等權中位數；達標時另依歷史權重參與雨量融合。";
-  if(vcStatus)vcStatus.textContent="已啟用｜全台 "+(index.course_count||57)+" 座球場｜15天逐時｜更新 "+stamp;
+  if(vcStatus)vcStatus.textContent="已載入獨立快取｜全台 "+(index.course_count||57)+" 座｜更新 "+(index.generated_at||"未提供");
  }catch(e){
-  status.textContent="Visual Crossing 資料尚未載入："+e.message+"。原有六模型預報不受影響。";
-  if(vcStatus)vcStatus.textContent="尚未取得有效快取："+e.message;
+  if(vcStatus)vcStatus.textContent="尚未取得所選球場有效快取："+e.message;
+ }
+ try{
+  const f=await loadV2ProviderRows("Foreca",courseName,date);
+  const fh=f.rows||[];
+  if(fh.length){
+   rows.push({provider:"Foreca",temp:fmt(fh,"temp"),feel:fmt(fh,"feel"),rain:fmt(fh,"rain","max"),mm:fmt(fh,"mm"),wind:fmt(fh,"wind"),gust:fmt(fh,"gust","max"),count:fh.length});
+   if(forecaStatus)forecaStatus.textContent="已載入獨立快取｜逐時資料 "+fh.length+"/13 筆｜更新 "+(f.generatedAt||"未提供")+"｜非商業 Freemium";
+  }else if(forecaStatus)forecaStatus.textContent="快取索引已讀取，但所選日期沒有有效逐時資料。";
+ }catch(e){
+  if(forecaStatus)forecaStatus.textContent="Foreca 快取讀取失敗："+e.message;
+ }
+ if(rows.length){
+  target.innerHTML='<table class="provider-table"><thead><tr><th>外部來源</th><th>平均氣溫</th><th>平均體感</th><th>最高降雨機率</th><th>平均雨量</th><th>平均風速</th><th>最大陣風</th><th>時數</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.provider)+'</td><td>'+x.temp+'</td><td>'+x.feel+'</td><td>'+(x.rain==="—"?"—":x.rain+"%")+'</td><td>'+x.mm+' mm</td><td>'+x.wind+'</td><td>'+x.gust+'</td><td>'+x.count+'/13</td></tr>').join("")+'</tbody></table>';
+  status.textContent="外部來源獨立快取｜"+courseName+"｜"+date+"｜"+rows.map(x=>x.provider+" "+x.count+"/13小時").join("；")+"。外部來源獨立顯示，是否納入雨量融合仍依歷史驗證權重門檻決定。";
+ }else{
+  target.innerHTML='<div class="muted">所選球場／日期目前沒有可顯示的外部來源逐時資料；六個 Open-Meteo 模型仍獨立運作。</div>';
+  status.textContent="外部來源快取目前無可用逐時資料。";
  }
 }
 
