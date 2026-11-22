@@ -1,4 +1,4 @@
-const CACHE_NAME="golf-weather-compact-v13";
+const CACHE_NAME="golf-weather-compact-v14";
 const APP_SHELL=["./index.html","./manifest.json","./pwa-install.js","./icon.svg","./icon-192.png","./icon-512.png","../offline.html"];
 self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("golf-weather-compact-")&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
