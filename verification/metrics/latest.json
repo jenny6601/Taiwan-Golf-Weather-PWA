@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-21T11:29:44.372581+08:00",
+  "generated_at": "2026-11-22T09:00:36.085016+08:00",
   "verification_source": "CWA rainfall observations",
   "verification_window_days": 60,
   "station_distance_limit_km": 15.0,
