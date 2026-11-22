@@ -1418,7 +1418,7 @@ function initCourseDatabase(){
  const counties=[...new Set(taiwanCourses.map(c=>c.city).filter(Boolean))];
  $("countySelect").innerHTML='<option value="">請選擇縣市</option>'+counties.map(city=>`<option value="${esc(city)}">${esc(city)}</option>`).join("");
  $("courseList").innerHTML='<div class="muted">請先選擇縣市，顯示該縣市的球場。</div>';
- $("countySelect").addEventListener("change",()=>{courseListCollapsed=false;renderCourseDatabase();});
+ $("countySelect").addEventListener("change",renderCourseDatabase);
 }
 function renderCourseDatabase(){
  const city=$("countySelect").value;
@@ -1429,11 +1429,9 @@ function renderCourseDatabase(){
  const allInCounty=taiwanCourses.map((c,i)=>({c,i})).filter(x=>x.c.city===city);
  const selectedIndex=selectedCourseForReload
   ?taiwanCourses.findIndex(x=>x.name===selectedCourseForReload.name&&x.city===city):-1;
- const visibleCourses=courseListCollapsed&&selectedIndex>=0
+ const visibleCourses=selectedIndex>=0
   ?allInCounty.filter(x=>x.i===selectedIndex):allInCounty;
- const expandButton=courseListCollapsed&&selectedIndex>=0
-  ?'<button type="button" class="course-list-expand" onclick="window.showAllCountyCourses()">更換球場／顯示本縣市全部球場</button>':'';
- $("courseList").innerHTML=expandButton+(visibleCourses.length?visibleCourses.map(({c,i})=>`<div class="course-item"><button type="button" class="${selectedIndex===i?'course-selected':''}" data-course="${i}" onclick="window.loadCourseByIndex(${i},this)">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>');
+ $("courseList").innerHTML=visibleCourses.length?visibleCourses.map(({c,i})=>`<div class="course-item"><button type="button" class="${selectedIndex===i?'course-selected':''}" data-course="${i}" onclick="window.loadCourseByIndex(${i},this)">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
 }
 
 function esc(value){
@@ -1533,7 +1531,6 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
 let databaseAutoBusy=false;
 let selectedCourseForReload=null;
 let selectedCourseButton=null;
-let courseListCollapsed=false;
 
 async function geocodeGolfCourse(c,button){
  const taiwan=(lat,lon)=>lat>=21.5&&lat<=25.5&&lon>=119&&lon<=122.5;
@@ -1735,16 +1732,15 @@ async function loadLiveObservation(course){
 }
 async function paintQuickCourseButtons(selectedName){
  document.querySelectorAll("#quickCourseButtons button[data-quick-course]").forEach(btn=>{
-  const selected=!!selectedName&&btn.dataset.quickCourse===selectedName;
-  btn.classList.toggle("quick-selected",selected);
-  btn.style.setProperty("background-color",selected?"#126b4c":"#ffffff","important");
-  btn.style.setProperty("background",selected?"#126b4c":"#ffffff","important");
-  btn.style.setProperty("color",selected?"#ffffff":"#155b43","important");
-  btn.style.setProperty("border-color",selected?"#126b4c":"#9bcbb4","important");
+  const selected=btn.dataset.quickCourse===selectedName;
+  btn.classList.remove("quick-selected");
+  btn.style.setProperty("background-color","#ffffff","important");
+  btn.style.setProperty("background","#ffffff","important");
+  btn.style.setProperty("color","#155b43","important");
+  btn.style.setProperty("border-color",selected?"#155b43":"#9bcbb4","important");
   btn.style.setProperty("border-width",selected?"2px":"1px","important");
  });
 }
-window.showAllCountyCourses=()=>{courseListCollapsed=false;renderCourseDatabase();};
 function autoLoadDatabaseCourse(c,button,fromFavorite=false){
  const date=$("courseDate").value;
  if(!date)initForecastDatePicker();
@@ -1752,7 +1748,6 @@ function autoLoadDatabaseCourse(c,button,fromFavorite=false){
  if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
  if(databaseAutoBusy)return;
  selectedCourseForReload=c;
- courseListCollapsed=true;
  // 若從常用球場切換縣市，同步縣市選單，再只顯示目前選取球場。
  if($("countySelect")&&c.city)$("countySelect").value=c.city;
  // 選定球場後，同縣市清單只保留目前球場，避免大量按鈕占用版面。
