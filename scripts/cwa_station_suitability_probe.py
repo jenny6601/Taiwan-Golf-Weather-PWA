@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only CWA station suitability probe; reports element availability, not values."""
+"""Read-only CWA station suitability probe; outputs availability flags only."""
 import json, math, os, urllib.parse, urllib.request
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -14,40 +14,37 @@ def fetch():
  q=urllib.parse.urlencode({"Authorization":KEY,"format":"JSON"})
  req=urllib.request.Request("https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0001-001?"+q,headers={"User-Agent":"Taiwan-Golf-Weather-CWA-Validation/1.0","Accept":"application/json"})
  with urllib.request.urlopen(req,timeout=60) as r:return json.loads(r.read().decode())
+def valid(v):
+ if v is None:return False
+ if isinstance(v,str):return v.strip() not in ("","-","--","/","NA","N/A","X")
+ if isinstance(v,(int,float)):return True
+ if isinstance(v,dict):return any(valid(x) for x in v.values())
+ return False
 def main():
- if not KEY: raise SystemExit("CWA_API_KEY secret missing")
+ if not KEY:raise SystemExit("CWA_API_KEY secret missing")
  data=fetch()
- if str(data.get("success","")).lower()!="true": raise RuntimeError("CWA API did not return success")
+ if str(data.get("success","")).lower()!="true":raise RuntimeError("CWA API did not return success")
  locations=data.get("records",{}).get("Station",[])
  stations=[]
  for s in locations if isinstance(locations,list) else [locations]:
   if not isinstance(s,dict):continue
-  geo=s.get("GeoInfo") or {}; coords=geo.get("Coordinates") or []
-  lat=lon=None
+  geo=s.get("GeoInfo") or {};coords=geo.get("Coordinates") or []
   if isinstance(coords,dict):coords=[coords]
+  lat=lon=None
   for c in coords if isinstance(coords,list) else []:
    if not isinstance(c,dict):continue
    try:
-    lat=float(c.get("StationLatitude"));lon=float(c.get("StationLongitude"))
-    if -90<=lat<=90 and -180<=lon<=180:break
-   except (TypeError,ValueError):lat=lon=None
+    la=float(c.get("StationLatitude"));lo=float(c.get("StationLongitude"))
+    if -90<=la<=90 and -180<=lo<=180:lat,lon=la,lo;break
+   except (TypeError,ValueError):pass
   if lat is None or lon is None:
    try:lat=float(geo.get("StationLatitude"));lon=float(geo.get("StationLongitude"))
    except (TypeError,ValueError):continue
   we=s.get("WeatherElement") or {}
-  # O-A0001-001 schema uses direct named dictionaries, not ElementName arrays.
-  def present(v):
-   if not isinstance(v,dict):return False
-   val=v.get("WindSpeed") if "WindSpeed" in v else v.get("AirTemperature")
-   return val is not None
-  ws=we.get("WindSpeed");wd=we.get("WindDirection");temp=we.get("AirTemperature")
   gust=(we.get("GustInfo") or {}).get("PeakGustSpeed") if isinstance(we.get("GustInfo"),dict) else None
-  obs=s.get("ObsTime") or {}; ot=obs.get("DateTime") if isinstance(obs,dict) else str(obs)
+  obs=s.get("ObsTime") or {};ot=obs.get("DateTime") if isinstance(obs,dict) else str(obs)
   stations.append({"id":s.get("StationId"),"name":s.get("StationName"),"lat":lat,"lon":lon,"time":ot,
-   "availability":{"wind_speed":isinstance(ws,dict) and ws.get("WindSpeed") is not None,
-   "wind_direction":isinstance(wd,dict) and wd.get("WindDirection") is not None,
-   "air_temperature":isinstance(temp,dict) and temp.get("AirTemperature") is not None,
-   "peak_gust":isinstance(gust,dict) and gust.get("PeakGustSpeed") is not None}})
+   "availability":{"wind_speed":valid(we.get("WindSpeed")),"wind_direction":valid(we.get("WindDirection")),"air_temperature":valid(we.get("AirTemperature")),"peak_gust":valid(gust)}})
  results=[]
  for name,(lat,lon) in COURSES.items():
   near=sorted(stations,key=lambda x:dist(lat,lon,x["lat"],x["lon"]))[:10]
