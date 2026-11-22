@@ -116,7 +116,6 @@ def main():
         "median_speed_relative_error_pct": round(median_error, 2),
         "hours_within_10pct": within_10,
         "speed_unit_test": "PASS" if passed else "INCONCLUSIVE_OR_FAIL",
-        "comparisons": comparisons,
     }
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
