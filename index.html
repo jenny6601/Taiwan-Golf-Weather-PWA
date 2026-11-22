@@ -344,8 +344,8 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
 <section class="card" id="teeTimeWeatherSummaryPanel" aria-live="polite">
- <h3 style="margin:0 0 10px;color:#174b39;font-size:19px;font-weight:900">⛳ 球場適打時段天氣摘要</h3>
- <div id="teeTimeWeatherSummary" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px">
+ <h3 style="margin:0 0 10px;color:#174b39;font-size:19px;font-weight:900">開球時段天氣摘要</h3>
+ <div id="teeTimeWeatherSummary" class="playability-special-grid">
   <div style="padding:12px;border:1px solid #dbe5e1;border-radius:10px">天氣狀況<strong style="display:block;margin-top:5px">等待資料</strong></div>
  </div>
 </section>
@@ -1228,6 +1228,14 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
   font-variant-numeric:tabular-nums!important;
  }
 }
+
+/* Match the full version's tee-time summary card layout. */
+#teeTimeWeatherSummary.playability-special-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
+#teeTimeWeatherSummary .playability-item{padding:10px;border:1px solid #e0e9e4;border-radius:10px;background:#fff;min-width:0}
+#teeTimeWeatherSummary .playability-item b{font-size:13px;font-weight:800}
+#teeTimeWeatherSummary .playability-item small{font-size:11px;color:#64748b;line-height:1.4;display:block;margin-top:4px}
+#teeTimeWeatherSummary .playability-special-value{font-size:19px;font-weight:900;color:#173f35;margin-top:4px;overflow-wrap:anywhere}
+@media(max-width:600px){#teeTimeWeatherSummary.playability-special-grid{gap:7px}#teeTimeWeatherSummary .playability-special-value{font-size:16px}}
 </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
@@ -1303,7 +1311,7 @@ function renderTeeTimeWeatherSummary(rows){
  const host=$("teeTimeWeatherSummary");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]).filter(x=>x&&x.available!==false);
  const valid=k=>chosen.filter(x=>x[k]!==null&&x[k]!==undefined&&x[k]!==""&&Number.isFinite(Number(x[k])));
- const rain=valid("rain"),feel=valid("feel"),codes=chosen.filter(x=>x.code!==null&&x.code!==undefined&&x.code!=="").map(x=>Number(x.code)).filter(Number.isFinite);
+ const rain=valid("rain"),feel=valid("feel");
  const rainMin=rain.length?Math.min(...rain.map(x=>Number(x.rain))):null;
  const rainMax=rain.length?Math.max(...rain.map(x=>Number(x.rain))):null;
  const feelMin=feel.length?Math.min(...feel.map(x=>Number(x.feel))):null;
@@ -1312,14 +1320,12 @@ function renderTeeTimeWeatherSummary(rows){
  const maxRainRow=rain.length?rain.reduce((x,y)=>Number(x.rain)>=Number(y.rain)?x:y):null;
  const minFeelRow=feel.length?feel.reduce((x,y)=>Number(x.feel)<=Number(y.feel)?x:y):null;
  const maxFeelRow=feel.length?feel.reduce((x,y)=>Number(x.feel)>=Number(y.feel)?x:y):null;
+ const codes=chosen.filter(x=>x.code!==null&&x.code!==undefined&&x.code!=="").map(x=>Number(x.code)).filter(Number.isFinite);
  const rainy=codes.filter(c=>[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c));
- const thunder=codes.some(c=>[95,96,99].includes(c));
- const fog=codes.filter(c=>[45,48].includes(c));
- const clear=codes.filter(c=>c>=0&&c<=2);
- const cloudy=codes.filter(c=>c===3);
- const coverage=Math.max(1,Math.ceil(chosen.length*.7));
+ const thunder=codes.some(c=>[95,96,99].includes(c)),fog=codes.filter(c=>[45,48].includes(c));
+ const clear=codes.filter(c=>c>=0&&c<=2),cloudy=codes.filter(c=>c===3);
  let weather="資料不足";
- if(codes.length>=coverage){
+ if(codes.length>=Math.max(1,Math.ceil(chosen.length*.7))){
   if(thunder)weather="有雷雨";
   else if(rainy.length>=Math.ceil(codes.length/2))weather=rainy.some(c=>[65,67,82].includes(c))?"大雨／強陣雨":rainy.some(c=>[61,63,81].includes(c))?"小雨／陣雨":"毛毛雨／小雨";
   else if(rainy.length)weather="多雲偶雨";
@@ -1330,14 +1336,11 @@ function renderTeeTimeWeatherSummary(rows){
   else weather="多雲時晴";
  }
  const fmt=(lo,hi,suffix,d=0,forceRange=false)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+((forceRange||lo!==hi)?"–"+Number(hi).toFixed(d):"")+suffix;
- const select=$("teeTimeSelect")?.value||"";
- const period=select?select+"–"+String(Number(select.slice(0,2))+5).padStart(2,"0")+":00":"06:00–18:00";
- const tile=(label,value,note)=>'<div style="padding:12px;border:1px solid #dbe5e1;border-radius:10px;min-width:0"><span style="font-size:13px;color:#526b63;font-weight:800">'+label+'</span><strong style="display:block;margin-top:5px;color:#173f35;font-size:19px;font-weight:900;overflow-wrap:anywhere">'+value+'</strong><small style="display:block;margin-top:4px;color:#64748b">'+note+'</small></div>';
- host.innerHTML=tile("天氣狀況",weather,"分析時段："+period)+
-  tile("最低降雨機率",minRainRow?Number(minRainRow.rain).toFixed(0)+"%｜"+minRainRow.time:"資料不足","有效資料 "+rain.length+"/"+chosen.length+" 小時")+
-  tile("最高降雨機率",maxRainRow?Number(maxRainRow.rain).toFixed(0)+"%｜"+maxRainRow.time:"資料不足","有效資料 "+rain.length+"/"+chosen.length+" 小時")+
-  tile("最低體感溫度",minFeelRow?Number(minFeelRow.feel).toFixed(1)+"°C｜"+minFeelRow.time:"資料不足","有效資料 "+feel.length+"/"+chosen.length+" 小時")+
-  tile("最高體感溫度",maxFeelRow?Number(maxFeelRow.feel).toFixed(1)+"°C｜"+maxFeelRow.time:"資料不足","有效資料 "+feel.length+"/"+chosen.length+" 小時");
+ const rainTimes=minRainRow&&maxRainRow?"最低 "+minRainRow.time+"｜最高 "+maxRainRow.time:"有效時間資料不足";
+ const feelTimes=minFeelRow&&maxFeelRow?"最低 "+minFeelRow.time+"｜最高 "+maxFeelRow.time:"有效時間資料不足";
+ host.innerHTML='<div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">'+weather+'</div><small>依分析時段逐時天氣整合</small></div>'+
+  '<div class="playability-item"><b>降雨機率（最低–最高）</b><div class="playability-special-value">'+fmt(rainMin,rainMax,"%",0,true)+'</div><small>有效資料 '+rain.length+'/'+chosen.length+' 小時｜'+rainTimes+'</small></div>'+
+  '<div class="playability-item"><b>體感溫度（最低–最高）</b><div class="playability-special-value">'+fmt(feelMin,feelMax,"°C",1)+'</div><small>有效資料 '+feel.length+'/'+chosen.length+' 小時｜'+feelTimes+'</small></div>';
 }
 function renderSelectedHourlySections(rows){
  const shown=selectedTeeTimeRows(rows||[]);
