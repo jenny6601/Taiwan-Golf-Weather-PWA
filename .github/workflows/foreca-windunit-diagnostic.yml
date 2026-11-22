@@ -2,6 +2,11 @@ name: Foreca wind unit diagnostic (manual, no cache writes)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [test/foreca-windunit-diagnostic]
+    paths:
+      - '.github/workflows/foreca-windunit-diagnostic.yml'
+      - 'scripts/foreca_windunit_diagnostic.py'
     inputs:
       course:
         description: "Diagnostic location label"
@@ -73,9 +78,10 @@ jobs:
             echo "Diagnostic report was not generated; inspect the job error." >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Upload aggregate diagnostic report
-        if: always() && hashFiles('/tmp/foreca-windunit-report.json') != ''
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: foreca-windunit-diagnostic
           path: /tmp/foreca-windunit-report.json
+          if-no-files-found: ignore
           retention-days: 1
