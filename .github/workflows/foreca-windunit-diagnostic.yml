@@ -1,0 +1,81 @@
+name: Foreca wind unit diagnostic (manual, no cache writes)
+
+on:
+  workflow_dispatch:
+    inputs:
+      course:
+        description: "Diagnostic location label"
+        required: true
+        default: "Jiaoxi Golf Course"
+        type: string
+      latitude:
+        description: "Latitude"
+        required: true
+        default: "24.8389"
+        type: string
+      longitude:
+        description: "Longitude"
+        required: true
+        default: "121.7389"
+        type: string
+      periods:
+        description: "Hourly forecast periods (1-169)"
+        required: true
+        default: "48"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: foreca-windunit-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout diagnostic branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compare KMH and MS responses from Foreca
+        env:
+          FORECA_API_KEY: ${{ secrets.FORECA_API_KEY }}
+        run: |
+          python scripts/foreca_windunit_diagnostic.py \
+            --course "${{ inputs.course }}" \
+            --lat "${{ inputs.latitude }}" \
+            --lon "${{ inputs.longitude }}" \
+            --periods "${{ inputs.periods }}" \
+            --out /tmp/foreca-windunit-report.json
+      - name: Publish aggregate diagnostic summary
+        if: always()
+        run: |
+          if [ -f /tmp/foreca-windunit-report.json ]; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d=json.load(open("/tmp/foreca-windunit-report.json",encoding="utf-8"))
+          print("## Foreca wind-unit diagnostic")
+          print(f"- Location: {d['course']} ({d['latitude']}, {d['longitude']})")
+          print(f"- KMH records: {d['kmh_hour_count']}")
+          print(f"- MS records: {d['ms_hour_count']}")
+          print(f"- Matched hours: {d['matched_hour_count']}")
+          print(f"- Median relative error: {d['median_speed_relative_error_pct']}%")
+          print(f"- Hours within 10%: {d['hours_within_10pct']}")
+          print(f"- Result: **{d['speed_unit_test']}**")
+          print("- Raw hourly forecast values are not published in the workflow summary.")
+          PY
+          else
+            echo "Diagnostic report was not generated; inspect the job error." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload aggregate diagnostic report
+        if: always() && hashFiles('/tmp/foreca-windunit-report.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: foreca-windunit-diagnostic
+          path: /tmp/foreca-windunit-report.json
+          retention-days: 1
