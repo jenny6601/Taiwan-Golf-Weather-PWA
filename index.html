@@ -433,6 +433,11 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
  .playability-head .playability-title-meta{gap:8px;margin-top:16px;font-size:clamp(19px,4.8vw,25px)}
  .playability-head .playability-title-chip{min-height:52px;padding:7px 13px}
 }
+
+/* V33.2：選定球場後收合同縣市清單，常用球場未選取者維持白底 */
+#quickCourseButtons button{background:#fff!important;color:#155b43!important;border:1px solid #9bcbb4!important}
+#quickCourseButtons button.quick-selected{background:#126b4c!important;color:#fff!important;border-color:#126b4c!important}
+#courseList .course-item button.course-selected{background:#126b4c!important;color:#fff!important;outline:3px solid #b7e4d1!important}
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
@@ -1421,8 +1426,10 @@ function renderCourseDatabase(){
   $("courseList").innerHTML='<div class="muted">請先選擇縣市，顯示該縣市的球場。</div>';
   return;
  }
- const selected=taiwanCourses.map((c,i)=>({c,i})).filter(x=>x.c.city===city);
- $("courseList").innerHTML=selected.length?selected.map(({c,i})=>`<div class="course-item"><button type="button" data-course="${i}" onclick="window.loadCourseByIndex(${i},this)">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
+ const allInCounty=taiwanCourses.map((c,i)=>({c,i})).filter(x=>x.c.city===city);
+ const selectedInCounty=selectedCourseForReload&&selectedCourseForReload.city===city
+  ?allInCounty.filter(x=>x.c.name===selectedCourseForReload.name):allInCounty;
+ $("courseList").innerHTML=selectedInCounty.length?selectedInCounty.map(({c,i})=>`<div class="course-item"><button type="button" class="${selectedCourseForReload&&selectedCourseForReload.name===c.name?'course-selected':''}" data-course="${i}" onclick="window.loadCourseByIndex(${i},this)">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
 }
 
 function esc(value){
@@ -1727,10 +1734,15 @@ async function autoLoadDatabaseCourse(c,button){
  const selectedDate=$("courseDate").value;
  if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
  if(databaseAutoBusy)return;
- selectedCourseForReload=c;selectedCourseButton=button;
+ selectedCourseForReload=c;
+ // 選定球場後，同縣市清單只保留目前球場，避免大量按鈕占用版面。
+ renderCourseDatabase();
+ selectedCourseButton=$("courseList").querySelector('button[data-course="'+taiwanCourses.findIndex(x=>x.name===c.name)+'"]')||button;
+ // 常用球場只將目前選取項目標綠，其餘一律白底。
+ document.querySelectorAll("#quickCourseButtons [data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x.dataset.quickCourse===c.name));
  databaseAutoBusy=true;
  // 日期欄位保持可操作；載入期間的新選擇會排入下一次載入。
- $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x===button);});
+ $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x.dataset.course===String(taiwanCourses.findIndex(y=>y.name===c.name)));});
  try{
    const lat=Number(c.lat),lon=Number(c.lon);
    if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<21.5||lat>25.5||lon<119||lon>122.5)throw Error("此球場座標資料無效。");
