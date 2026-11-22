@@ -1427,9 +1427,11 @@ function renderCourseDatabase(){
   return;
  }
  const allInCounty=taiwanCourses.map((c,i)=>({c,i})).filter(x=>x.c.city===city);
- const selectedInCounty=selectedCourseForReload&&selectedCourseForReload.city===city
-  ?allInCounty.filter(x=>x.c.name===selectedCourseForReload.name):allInCounty;
- $("courseList").innerHTML=selectedInCounty.length?selectedInCounty.map(({c,i})=>`<div class="course-item"><button type="button" class="${selectedCourseForReload&&selectedCourseForReload.name===c.name?'course-selected':''}" data-course="${i}" onclick="window.loadCourseByIndex(${i},this)">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
+ const selectedIndex=selectedCourseForReload
+  ?taiwanCourses.findIndex(x=>x.name===selectedCourseForReload.name&&x.city===city):-1;
+ const visibleCourses=selectedIndex>=0
+  ?allInCounty.filter(x=>x.i===selectedIndex):allInCounty;
+ $("courseList").innerHTML=visibleCourses.length?visibleCourses.map(({c,i})=>`<div class="course-item"><button type="button" class="${selectedIndex===i?'course-selected':''}" data-course="${i}" onclick="window.loadCourseByIndex(${i},this)">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
 }
 
 function esc(value){
@@ -1731,11 +1733,12 @@ async function loadLiveObservation(course){
 async function paintQuickCourseButtons(selectedName){
  document.querySelectorAll("#quickCourseButtons button[data-quick-course]").forEach(btn=>{
   const selected=btn.dataset.quickCourse===selectedName;
-  btn.classList.toggle("quick-selected",selected);
-  btn.style.setProperty("background-color",selected?"#126b4c":"#ffffff","important");
-  btn.style.setProperty("background",selected?"#126b4c":"#ffffff","important");
-  btn.style.setProperty("color",selected?"#ffffff":"#155b43","important");
-  btn.style.setProperty("border-color",selected?"#126b4c":"#9bcbb4","important");
+  btn.classList.remove("quick-selected");
+  btn.style.setProperty("background-color","#ffffff","important");
+  btn.style.setProperty("background","#ffffff","important");
+  btn.style.setProperty("color","#155b43","important");
+  btn.style.setProperty("border-color",selected?"#155b43":"#9bcbb4","important");
+  btn.style.setProperty("border-width",selected?"2px":"1px","important");
  });
 }
 function autoLoadDatabaseCourse(c,button){
