@@ -1735,6 +1735,8 @@ async function autoLoadDatabaseCourse(c,button){
  if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
  if(databaseAutoBusy)return;
  selectedCourseForReload=c;
+ // 若從常用球場切換縣市，同步縣市選單，再只顯示目前選取球場。
+ if($("countySelect")&&c.city)$("countySelect").value=c.city;
  // 選定球場後，同縣市清單只保留目前球場，避免大量按鈕占用版面。
  renderCourseDatabase();
  selectedCourseButton=$("courseList").querySelector('button[data-course="'+taiwanCourses.findIndex(x=>x.name===c.name)+'"]')||button;
