@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Collect forecast snapshots and CWA observations for offline accuracy validation.
-Run with 'forecast' or 'observation'. Writes one JSON snapshot to /tmp only.
+CWA missing-value sentinels are normalized to null; raw hourly values are not logged.
 """
 import concurrent.futures, json, os, sys, urllib.parse, urllib.request
 from datetime import datetime
@@ -26,10 +26,7 @@ def foreca(lat,lon):
  q=urllib.parse.urlencode({"periods":169,"tz":"Asia/Taipei","tempunit":"C","windunit":"KMH","dataset":"full","rounding":0})
  loc=f"{lon:.5f},{lat:.5f}"
  d=get_json("https://weatherapi.foreca.net/api/v1/forecast/hourly/"+loc+"?"+q,{"Authorization":"Bearer "+FORECA_KEY})
- out=[]
- for x in d.get("forecast",[]):
-  out.append({"time":str(x.get("time",""))[:16],"wind_kmh":x.get("windSpeed"),"gust_kmh":x.get("windGust"),"wind_dir_deg":x.get("windDir"),"temp_c":x.get("temperature")})
- return out
+ return [{"time":str(x.get("time",""))[:16],"wind_kmh":x.get("windSpeed"),"gust_kmh":x.get("windGust"),"wind_dir_deg":x.get("windDir"),"temp_c":x.get("temperature")} for x in d.get("forecast",[])]
 def vc(lat,lon):
  if not VC_KEY: raise RuntimeError("VISUAL_CROSSING_API_KEY missing")
  loc=f"{lat:.5f},{lon:.5f}"
@@ -49,6 +46,12 @@ def obs_value(v,keys):
    z=obs_value(x,keys)
    if z is not None:return z
  return v if isinstance(v,(int,float,str)) else None
+def clean_cwa(v):
+ if v is None:return None
+ try:n=float(v)
+ except (TypeError,ValueError):return None
+ if n in (-99,-999,-9999,9999,99999):return None
+ return n
 def observation():
  if not CWA_KEY: raise RuntimeError("CWA_API_KEY missing")
  q=urllib.parse.urlencode({"Authorization":CWA_KEY,"format":"JSON"})
@@ -59,22 +62,20 @@ def observation():
  out={}
  for course,c in COURSES.items():
   s=byid.get(c["station"])
-  if not s: out[course]={"station_id":c["station"],"error":"station_not_returned"};continue
-  w=s.get("WeatherElement") or {}
-  gust=w.get("GustInfo") if isinstance(w,dict) else {}
+  if not s:out[course]={"station_id":c["station"],"error":"station_not_returned"};continue
+  w=s.get("WeatherElement") or {};gust=w.get("GustInfo") if isinstance(w,dict) else {}
   ot=s.get("ObsTime") or {}
   out[course]={"station_id":c["station"],"station_name":c["station_name"],"distance_km":c["distance_km"],
-   "observation_time":(ot.get("DateTime") if isinstance(ot,dict) else str(ot)),
-   "wind_speed_ms":obs_value(w.get("WindSpeed"),["WindSpeed"]),
-   "wind_direction_deg":obs_value(w.get("WindDirection"),["WindDirection"]),
-   "temperature_c":obs_value(w.get("AirTemperature"),["AirTemperature"]),
-   "peak_gust_ms":obs_value(gust.get("PeakGustSpeed") if isinstance(gust,dict) else None,["PeakGustSpeed"])}
+   "observation_time":ot.get("DateTime") if isinstance(ot,dict) else str(ot),
+   "wind_speed_ms":clean_cwa(obs_value(w.get("WindSpeed"),["WindSpeed"])),
+   "wind_direction_deg":clean_cwa(obs_value(w.get("WindDirection"),["WindDirection"])),
+   "temperature_c":clean_cwa(obs_value(w.get("AirTemperature"),["AirTemperature"])),
+   "peak_gust_ms":clean_cwa(obs_value(gust.get("PeakGustSpeed") if isinstance(gust,dict) else None,["PeakGustSpeed"]))}
  return out
 def main():
- mode=sys.argv[1] if len(sys.argv)>1 else ""
- generated=stamp()
+ mode=sys.argv[1] if len(sys.argv)>1 else "";generated=stamp()
  if mode=="observation":
-  payload={"kind":"cwa_observation","generated_at":generated,"dataset":"O-A0001-001","courses":observation()}
+  payload={"kind":"cwa_observation","generated_at":generated,"dataset":"O-A0001-001","units":{"wind_speed":"m/s","peak_gust":"m/s","temperature":"C","direction":"degrees"},"missing_value_policy":"CWA sentinel values -99/-999/-9999/9999/99999 normalized to null","courses":observation()}
   path="/tmp/cwa-observation.json"
  elif mode=="forecast":
   if not FORECA_KEY or not VC_KEY:raise SystemExit("Forecast API secrets missing")
@@ -84,8 +85,7 @@ def main():
    for name,c in COURSES.items():
     futures[pool.submit(foreca,c["lat"],c["lon"])]=(name,"Foreca")
     futures[pool.submit(vc,c["lat"],c["lon"])]=(name,"VisualCrossing")
-   for f,(name,provider) in futures.items():
-    result.setdefault(name,{})[provider]=f.result()
+   for f,(name,provider) in futures.items():result.setdefault(name,{})[provider]=f.result()
   payload={"kind":"forecast_snapshot","generated_at":generated,"timezone":"Asia/Taipei","units":{"wind":"km/h","gust":"km/h","temperature":"C","direction":"degrees"},"courses":result}
   path="/tmp/forecast-snapshot.json"
  else:raise SystemExit("Usage: collect_validation_data.py forecast|observation")
