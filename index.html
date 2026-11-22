@@ -508,7 +508,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div aria-label="57座高爾夫球場" class="course-list" id="courseList"></div>
 <div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
-<section class="card tee-time-summary-card" id="teeTimeWeatherSummaryPanel" aria-live="polite"><div class="tee-time-summary-head"><div><h3>⛳ 開球時段天氣摘要</h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div><span class="tee-time-summary-tag">開球資訊</span></div><div id="teeTimeWeatherSummary" class="playability-special-grid"><div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">等待資料</div></div></div></section><section class="card playability-card" id="playabilityPanel" aria-live="polite">
+<section class="card tee-time-summary-card" id="teeTimeWeatherSummaryPanel" aria-live="polite"><div class="tee-time-summary-head"><div class="tee-time-summary-title-wrap"><h3><span>⛳ 開球時段天氣摘要</span><span id="teeTimeSummaryCourse"></span></h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div></div><div id="teeTimeWeatherSummary" class="playability-special-grid"><div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">等待資料</div></div></div></section><section class="card playability-card" id="playabilityPanel" aria-live="polite">
  <div class="playability-head">
   <div><h3 id="playabilityTitle" style="margin:0">⛳ 球場適打性綜合分析</h3><p class="muted" id="playabilitySubtitle">選擇球場後，依所選日期的逐時預報自動分析</p></div>
   <span class="playability-tag">五項指標</span>
@@ -1442,15 +1442,16 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
 #liveObservationPanel .live-condition-icon.live-feel-hourly img{display:block;width:40px!important;height:40px!important;object-fit:contain}
 #liveObservationPanel .live-temperature-icon svg{display:block;width:20px;height:28px}
 
-/* Retained single tee-time summary card: clear title and selected course/date/time. */
+/* Tee-time summary: prominent reversed title; course name shares the title line. */
 .tee-time-summary-card{border:1px solid #d8e6df!important;padding:16px!important}
-.tee-time-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(110deg,#e7f2ed,#f3f8f5);border-radius:12px;padding:13px 15px;margin:0 0 12px}
-.tee-time-summary-head h3{margin:0;color:#174b39;font-size:19px;font-weight:950;letter-spacing:.2px}
-.tee-time-summary-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
-.tee-time-summary-meta .playability-title-chip{display:inline-flex;align-items:center;background:#fff;border:1px solid #d6e5dc;border-radius:999px;padding:4px 9px;color:#315b4b;font-size:12px;font-weight:800}
-.tee-time-summary-tag{flex:none;background:#174f78;color:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}
+.tee-time-summary-head{display:block;background:#176044;border-radius:16px;padding:16px 18px;margin:0 0 12px;color:#fff}
+.tee-time-summary-title-wrap{min-width:0}
+.tee-time-summary-head h3{display:block;margin:0;color:#fff;font-size:24px;font-weight:950;line-height:1.35;letter-spacing:.2px;overflow-wrap:anywhere}
+#teeTimeSummaryCourse{margin-left:10px}
+.tee-time-summary-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tee-time-summary-meta .playability-title-chip{display:inline-flex;align-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.65);border-radius:999px;padding:6px 12px;color:#fff;font-size:16px;font-weight:850}
 #teeTimeWeatherSummary.playability-special-grid{margin:0!important}
-@media(max-width:600px){.tee-time-summary-head{padding:11px 12px}.tee-time-summary-head h3{font-size:17px}.tee-time-summary-meta .playability-title-chip{font-size:11px;padding:4px 7px}.tee-time-summary-tag{font-size:10px;padding:6px 8px}}
+@media(max-width:600px){.tee-time-summary-head{padding:13px 14px}.tee-time-summary-head h3{font-size:20px}.tee-time-summary-meta{gap:7px;margin-top:10px}.tee-time-summary-meta .playability-title-chip{font-size:14px;padding:6px 10px}}
 
 /* Toggle the reference material below section ④; collapsed by default. */
 .reference-materials-control{margin:18px 0 14px;padding:14px 16px;border:1px solid #cbd9e3;border-radius:16px;background:#eef5fa;text-align:center}
@@ -2068,7 +2069,14 @@ function renderV2SpecialReports(rows){
 }
 
 function renderTeeTimeWeatherSummary(rows){
- const host=$("teeTimeWeatherSummary");if(!host)return;const meta=$("teeTimeWeatherSummaryMeta");if(meta)meta.innerHTML=playabilityContextMarkup();
+ const host=$("teeTimeWeatherSummary");if(!host)return;
+ const course=(selectedCourseForReload?.name||active?.name||$("locname")?.textContent||"未選擇球場").replace(/高爾夫球場/g,"").trim();
+ const titleCourse=$("teeTimeSummaryCourse");if(titleCourse)titleCourse.textContent=course==="未選擇球場"?"":"｜"+course;
+ const date=golfDateLabel(active?.date||$("courseDate")?.value||"");
+ const tee=$("teeTimeSelect")?.value||"";
+ const time=tee?tee+" 開球":"06:00–18:00";
+ const meta=$("teeTimeWeatherSummaryMeta");
+ if(meta)meta.innerHTML='<span class="playability-title-chip">📅 '+esc(date)+'</span><span class="playability-title-chip">🕒 '+esc(time)+'</span>';
  const chosen=selectedTeeTimeRows(rows||[]).filter(x=>x&&x.available!==false);
  const valid=k=>chosen.filter(x=>x[k]!==null&&x[k]!==undefined&&x[k]!==""&&Number.isFinite(Number(x[k])));
  const rain=valid("rain"),feel=valid("feel");
