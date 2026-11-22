@@ -1607,7 +1607,7 @@ function updateWeatherDateHeadings(liveDate,forecastDate,latestUpdatedAt){
  // 即時觀測維持台灣當地今日日期；四個預報區塊共用使用者選取的預報日期。
  const taiwanToday=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
  const liveCourseName=(active?.name||$("locname")?.textContent||"").replace(/高爾夫球場/g,"").trim();
- const updatedLabel=latestUpdatedAt?new Date(latestUpdatedAt).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}):"等待資料";
+ const updatedLabel=latestUpdatedAt?new Date(latestUpdatedAt).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"等待資料";
  if(live)live.innerHTML="即時天氣觀測｜"+(liveCourseName?liveCourseName+"｜":"")+golfDateLabel(taiwanToday)+'<span class="live-heading-updated">最近更新時間：'+updatedLabel+'</span>';
  renderSelectedHourlySections(active?.rows||[]);
 }
@@ -1717,6 +1717,8 @@ async function loadLiveObservation(course){
   const fmtTime=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
   const fmtDateTime=x=>x?new Date(x).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"時間未知";
   const snapshotDateTime=fmtDateTime(snap.generated_at);
+  // 標題「最近更新時間」直接沿用下方說明的「快照更新時間」，確保兩處一致。
+  updateWeatherDateHeadings(snap.generated_at||new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date,snap.generated_at);
   const dateTimeEl=$("liveObservationDateTime");
   if(dateTimeEl){dateTimeEl.textContent=snapshotDateTime;dateTimeEl.dateTime=snap.generated_at||"";}
   summary.textContent="氣象站："+(ws?ws.name:"未配對")+"（"+(ws?ws.distance_km:"—")+" km）｜雨量站："+(rs?rs.name:"未配對")+"（"+(rs?rs.distance_km:"—")+" km）";
