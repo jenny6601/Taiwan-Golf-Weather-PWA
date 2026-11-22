@@ -294,6 +294,11 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .playability-section-title.rain-title-high,.playability-section-title.cold-title-high{background:#b42318;color:#fff}
 .playability-section-title.cold-title{background:#526b91;color:#fff}
 .playability-section-title.neutral-title{background:#64748b;color:#fff}
+ .playability-title-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:7px;font-size:11px;font-weight:700;line-height:1.35;color:#f1f5f9}
+ .playability-title-chip{display:inline-flex;align-items:center;padding:3px 7px;border:1px solid rgba(255,255,255,.34);border-radius:999px;background:rgba(15,23,42,.16);white-space:nowrap}
+ .playability-section-title .playability-title-meta{margin-top:6px;font-size:11px}
+ .playability-section-title{line-height:1.45}
+ @media(max-width:520px){.playability-title-meta{gap:4px;font-size:10px}.playability-title-chip{padding:3px 6px}.playability-section-title .playability-title-meta{font-size:10px}}
 .playability-score.score-tier-excellent{border-color:#15945c!important;color:#087443!important;background:#e8f7ef}
 .playability-score.score-tier-good{border-color:#1684c5!important;color:#08649b!important;background:#eaf5fc}
 .playability-score.score-tier-caution{border-color:#d99119!important;color:#9a5b00!important;background:#fff5df}
@@ -1862,10 +1867,12 @@ function playabilityGrade(v){
  if(n>=55)return {cls:"score-tier-caution",color:"#d99119",label:"尚可"};
  return {cls:"score-tier-poor",color:"#d0443d",label:"欠佳"};
 }
-function playabilityContextLabel(){
+function playabilityContextMarkup(){
+ const course=(selectedCourseForReload?.name||active?.name||$("locname")?.textContent||"未選擇球場").replace(/高爾夫球場/g,"").trim();
  const date=golfDateLabel(active?.date||$("courseDate")?.value||"");
  const tee=$("teeTimeSelect")?.value||"";
- return date+"｜"+(tee?tee+"開球":"06:00–18:00");
+ const time=tee?tee+" 開球":"06:00–18:00";
+ return '<span class="playability-title-meta"><span class="playability-title-chip">⛳ '+esc(course)+'</span><span class="playability-title-chip">📅 '+esc(date)+'</span><span class="playability-title-chip">🕒 '+esc(time)+'</span></span>';
 }
 function renderV2SpecialReports(rows){
  const host=$("playabilitySpecialReports");if(!host)return;
@@ -1903,7 +1910,7 @@ function renderV2SpecialReports(rows){
  const coverageNote="降雨資料："+rain.length+"/"+a.length+"小時；體感資料："+feel.length+"/"+a.length+"小時。";
  const detail=a.map(x=>"<tr><td>"+esc(x.time)+"</td><td>"+n(x.rain,0)+"%</td><td>"+n(x.mm)+"</td><td>"+n(x.temp)+"°C</td><td>"+n(x.feel)+"°C</td></tr>").join("");
  host.innerHTML=
- '<div class="playability-section-title '+rainTitleClass+'">降雨專項分析｜'+rainRisk+'風險｜'+esc(playabilityContextLabel())+'</div>'+
+ '<div class="playability-section-title '+rainTitleClass+'">降雨專項分析｜'+rainRisk+'風險'+playabilityContextMarkup()+'</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>累積雨量</b><div class="playability-special-value">'+n(total)+' mm</div></div>'+
  '<div class="playability-item"><b>最高降雨機率</b><div class="playability-special-value">'+n(maxP,0)+'%</div></div>'+
@@ -1911,7 +1918,7 @@ function renderV2SpecialReports(rows){
  '<div class="playability-item"><b>最長連續降雨</b><div class="playability-special-value">'+(longest?longest+'小時｜'+esc(best)+"起":"無")+'</div></div>'+
  '<div class="playability-item"><b>來源降雨機率最大差距</b><div class="playability-special-value">'+(rainSpread.spread===null?"—":n(rainSpread.spread,0)+"%｜"+esc(rainSpread.time))+'</div></div></div>'+
  '<div class="playability-alert '+(rainRisk==="高"?"danger":rainRisk==="低"?"good":"")+'">'+rainAdvice+'</div>'+
- '<div class="playability-section-title '+coldRiskClass+'">低溫專項分析｜'+(!coldCoverageOK?"資料不足":extreme.length?"極低溫警示":cold.length?"低溫警示":"無低溫警訊")+'｜低溫≤15°C；極低溫≤10°C｜'+esc(playabilityContextLabel())+'</div>'+
+ '<div class="playability-section-title '+coldRiskClass+'">低溫專項分析｜'+(!coldCoverageOK?"資料不足":extreme.length?"極低溫警示":cold.length?"低溫警示":"無低溫警訊")+'｜低溫≤15°C；極低溫≤10°C'+playabilityContextMarkup()+'</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>最低體感溫度</b><div class="playability-special-value" style="'+(min&&Number(min.feel)<15?'color:#1684c5;font-weight:900;':'')+'">'+(min?n(min.feel)+'°C｜'+esc(min.time):"—")+'</div></div>'+
  '<div class="playability-item"><b>低溫時數</b><div class="playability-special-value">'+cold.length+' 小時</div></div>'+
@@ -1927,7 +1934,7 @@ function renderV2SpecialReports(rows){
 function renderPlayabilityAnalysis(rows,courseName,date){
  const host=$("playabilityContent"),subtitle=$("playabilitySubtitle");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
- const title=$("playabilityTitle");if(title)title.textContent="⛳ 球場適打性綜合分析｜"+playabilityContextLabel();
+ const title=$("playabilityTitle");if(title)title.innerHTML="⛳ 球場適打性綜合分析"+playabilityContextMarkup();
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
  if(subtitle)subtitle.textContent=(courseName||"所選球場")+"｜"+(date||"")+"｜"+scopeText;
  const data=playabilityFactorScore(chosen);
