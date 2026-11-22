@@ -1878,12 +1878,25 @@ function playabilityFactorScore(rows){
 }
 
 function playabilityGrade(v){
- if(v===null||v===undefined||!Number.isFinite(Number(v)))return {cls:"",color:"#aab4af",label:"資料不足"};
+ if(v===null||v===undefined||!Number.isFinite(Number(v)))return {cls:"",color:"#aab4af",label:"資料不足",grade:"—",description:"目前資料不足，無法判定適打等級。"};
  const n=Number(v);
- if(n>=85)return {cls:"score-tier-excellent",color:"#15945c",label:"優良"};
- if(n>=70)return {cls:"score-tier-good",color:"#1684c5",label:"良好"};
- if(n>=55)return {cls:"score-tier-caution",color:"#d99119",label:"尚可"};
- return {cls:"score-tier-poor",color:"#d0443d",label:"欠佳"};
+ if(n>=90)return {cls:"score-tier-excellent",color:"#18865a",label:"非常適合",grade:"A",description:"天氣穩定，降雨與風勢影響低，非常適合打球。"};
+ if(n>=80)return {cls:"score-tier-good",color:"#319a9a",label:"適合",grade:"B",description:"整體天氣良好，適合正常打球。"};
+ if(n>=65)return {cls:"score-tier-caution",color:"#d99a27",label:"尚可，需留意",grade:"C",description:"可能偶有小毛毛雨、短暫降雨或風勢變化。"};
+ if(n>=50)return {cls:"score-tier-poor",color:"#d97735",label:"不佳，宜審慎",grade:"D",description:"降雨或風勢影響明顯，建議考慮調整開球時間。"};
+ return {cls:"score-tier-poor",color:"#c74343",label:"不適合",grade:"E",description:"天候風險高，不建議安排打球。"};
+}
+function playabilitySafetyDecision(data){
+ const thunder=(data.codes||[]).some(v=>[95,96,99].includes(v));
+ const heavyRain=data.rainTotal!==null&&data.rainTotal!==undefined&&data.rainTotal>=5;
+ const dangerousWind=(data.maxGust!==null&&data.maxGust>=40)||(data.avgWind!==null&&data.avgWind>=25);
+ if(thunder)return {grade:"E",label:"雷雨警示｜不建議下場",color:"#c74343",cls:"score-tier-poor",description:"分析時段出現雷雨訊號，安全警示優先於分數；請暫緩下場並遵循球場及官方即時警示。",message:"安全優先：預報時段出現雷雨訊號，適打等級調整為 E 級。"};
+ if(heavyRain||dangerousWind){
+  const causes=[heavyRain?"預報累積雨量達 5 mm 以上":"",dangerousWind?"平均風速達 25 km/h 或最大陣風達 40 km/h":""] .filter(Boolean).join("；");
+  return {grade:"D",label:"安全警示｜不宜下場",color:"#d97735",cls:"score-tier-poor",description:"出現較高降雨或風勢風險，等級最高限制為 D；建議重新評估開球時間。",message:"安全優先："+causes+"，適打等級至少調降至 D 級。"};
+ }
+ const base=playabilityGrade(data.score);
+ return {...base,description:base.description,message:""};
 }
 function playabilityContextMarkup(){
  const course=(selectedCourseForReload?.name||active?.name||$("locname")?.textContent||"未選擇球場").replace(/高爾夫球場/g,"").trim();
@@ -2015,11 +2028,13 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  const data=playabilityFactorScore(chosen);
  const summaryMarkup=playabilitySummaryMarkup(chosen);
  if(!chosen.length||data.score===null){host.innerHTML=summaryMarkup+'<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
- const verdict=data.score>=85?"非常適合":data.score>=70?"適合下場":data.score>=55?"尚可，需留意":"不建議下場";
- const overallGrade=playabilityGrade(data.score);const tone=overallGrade.color;
+ const safety=playabilitySafetyDecision(data);
+ const overallGrade=safety;const tone=overallGrade.color;
+ const verdict=overallGrade.label;
  const pct=data.weight;
- const parts=data.parts.map(x=>{const g=playabilityGrade(x.value);return '<div class="playability-item"><div class="playability-item-top"><span>'+x.label+'（'+x.weight+'%）</span><b class="score-value '+g.cls+'">'+(x.value===null?"N/A":Math.round(x.value)+"分")+'</b></div><div class="playability-bar"><i class="'+g.cls+'" style="width:'+(x.value===null?0:x.value)+'%"></i></div><small>'+esc(x.detail)+'</small></div>';}).join("");
- const alerts=data.alerts.map(x=>'<div class="playability-alert '+(x.type==="danger"?"danger":x.type==="good"?"good":"")+'">'+esc(x.text)+'</div>').join("");
+ const parts=data.parts.map(x=>{const g=playabilityGrade(x.value);const contribution=x.value===null?null:x.value*x.weight/100;return '<div class="playability-item"><div class="playability-item-top"><span>'+x.label+'（'+x.weight+'%）</span><b class="score-value '+g.cls+'">'+(contribution===null?"資料不足":contribution.toFixed(1)+" / "+x.weight+" 分")+'</b></div><div class="playability-bar"><i class="'+g.cls+'" style="width:'+(x.value===null?0:x.value)+'%"></i></div><small>'+(x.value===null?"原始評分資料不足": "原始評分 "+Math.round(x.value)+" 分 × "+x.weight+"%")+'｜'+esc(x.detail)+'</small></div>';}).join("");
+ const alertItems=safety.message?[{type:"danger",text:safety.message},...data.alerts]:data.alerts;
+ const alerts=alertItems.map(x=>'<div class="playability-alert '+(x.type==="danger"?"danger":x.type==="good"?"good":"")+'">'+esc(x.text)+'</div>').join("");
  const windows=[];for(let i=0;i<=((rows||[]).length-4);i++){const group=rows.slice(i,i+4);if(group.length===4&&group.every(x=>x&&x.available!==false)){const v=playabilityFactorScore(group);if(v.score!==null)windows.push({time:group[0].time,score:v.score,rain:v.rainTotal,gust:v.maxGust});}}
  windows.sort((a,b)=>b.score-a.score);
  const winHtml=windows.length?windows.slice(0,3).map((x,i)=>'<div class="playability-window"><span><b>'+esc(x.time)+' 起</b>｜連續4小時</span><span class="score-value '+playabilityGrade(x.score).cls+'">'+x.score+'分</span></div>').join(""):'<small>沒有足夠完整的連續4小時資料可比較。</small>';
