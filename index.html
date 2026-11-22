@@ -412,6 +412,11 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .playability-section-title.cold-report-title .playability-heading-line{order:1!important;flex:0 0 100%!important;width:100%!important}
 .playability-section-title.cold-report-title .playability-title-meta{order:2!important;flex:0 0 100%!important;width:100%!important}
 .playability-section-title.cold-report-title .cold-thresholds{order:3!important;flex:0 0 100%!important;width:100%!important}
+
+/* V32.8：降雨專項固定為標題／球場同列、日期／開球時間次列 */
+.playability-section-title:not(.cold-report-title) .playability-heading-line{display:flex!important;flex-wrap:nowrap!important;align-items:baseline;gap:0 5px;white-space:nowrap;font-size:clamp(14px,3.7vw,19px);line-height:1.35;min-width:0}
+.playability-section-title:not(.cold-report-title) .playability-course-inline{display:inline-block;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:inherit}
+.playability-section-title:not(.cold-report-title) .playability-title-meta{order:2!important;flex:0 0 100%!important;width:100%;margin-top:9px}
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
