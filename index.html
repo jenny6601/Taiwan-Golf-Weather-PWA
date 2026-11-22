@@ -275,6 +275,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 @media(max-width:600px){.forecast-calendar{width:min(100%,340px)}.forecast-calendar-day{height:40px}}
 
 
+.playability-period-summary{border:1px solid #c8dce8;border-radius:12px;background:#f1f7fb;padding:11px 12px;margin:0 0 12px}.playability-period-head{font-size:15px;font-weight:900;color:#174b78;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.playability-period-head span{font-size:12px;color:#49677e}.playability-period-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}.playability-period-item{background:#fff;border:1px solid #dbe7ee;border-radius:9px;padding:8px;min-width:0}.playability-period-item b{display:block;color:#526779;font-size:12px}.playability-period-item strong{display:block;color:#173f5f;font-size:17px;font-weight:900;margin-top:4px;overflow-wrap:anywhere}.playability-period-foot{font-size:11px;color:#64748b;text-align:right;margin-top:6px}@media(max-width:520px){.playability-period-grid{gap:5px}.playability-period-item{padding:7px 5px}.playability-period-item strong{font-size:14px}}
 .playability-special-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
 .playability-special-value{font-size:19px;font-weight:900;color:#173f35;margin-top:4px;overflow-wrap:anywhere}
 .playability-special-details{margin-top:10px}
@@ -1949,14 +1950,30 @@ function renderV2SpecialReports(rows){
  '<details class="playability-special-details"><summary>逐時降雨與低溫明細（'+a.length+'筆）</summary><div class="provider-table-wrap"><table class="provider-table"><thead><tr><th>時間</th><th>降雨機率</th><th>雨量</th><th>氣溫</th><th>體感</th></tr></thead><tbody>'+detail+'</tbody></table></div></details>';
 }
 
+function playabilityWeatherSummaryHTML(rows,scope){
+ const source=(rows||[]).filter(x=>x&&x.available!==false),start=scope?Number(String(scope).slice(0,2)):6,end=scope?start+6:18;
+ const a=source.filter(x=>{const h=Number(String(x.time||"").slice(0,2));return Number.isFinite(h)&&h>=start&&h<end;});
+ const nums=k=>a.map(x=>x[k]).filter(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))).map(Number);
+ const range=(v,d,s)=>v.length?Math.min(...v).toFixed(d)+"–"+Math.max(...v).toFixed(d)+s:"資料不足";
+ const codes=a.map(x=>Number(x.code)).filter(Number.isFinite),thunder=codes.some(x=>[95,96,99].includes(x));
+ const rainy=codes.filter(x=>[51,53,55,56,57,61,63,65,66,67,80,81,82].includes(x)),maxRain=Math.max(0,...nums("mm"));
+ let weather="資料不足";
+ if(thunder)weather="雷雨";
+ else if(rainy.length)weather=maxRain>=7.5?"大雨":maxRain>=2.5?"中雨":(codes.some(x=>[80,81,82].includes(x))?"陣雨":"小雨");
+ else if(codes.length){const counts={"晴朗":0,"晴時多雲":0,"多半陰":0,"有霧":0};codes.forEach(x=>{if(x===0)counts["晴朗"]++;else if(x<=2)counts["晴時多雲"]++;else if(x===45||x===48)counts["有霧"]++;else counts["多半陰"]++;});weather=Object.entries(counts).sort((x,y)=>y[1]-x[1])[0][0];}
+ const timeLabel=String(start).padStart(2,"0")+":00–"+String(end).padStart(2,"0")+":00";
+ return '<div class="playability-period-summary"><div class="playability-period-head">⛳ 時段天氣總結 <span>'+timeLabel+'</span></div><div class="playability-period-grid"><div class="playability-period-item"><b>天氣狀況</b><strong>'+weather+'</strong></div><div class="playability-period-item"><b>降雨機率</b><strong>'+range(nums("rain"),0,"%")+'</strong></div><div class="playability-period-item"><b>體感溫度</b><strong>'+range(nums("feel"),1,"°C")+'</strong></div></div><div class="playability-period-foot">'+a.length+' 小時資料</div></div>';
+}
+
 function renderPlayabilityAnalysis(rows,courseName,date){
  const host=$("playabilityContent"),subtitle=$("playabilitySubtitle");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
  const title=$("playabilityTitle");if(title)title.innerHTML="<span class=\"playability-title-text\">⛳ 球場適打性綜合分析</span>"+playabilityContextMarkup();
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
+ const periodSummary=playabilityWeatherSummaryHTML(rows||[],scope);
  if(subtitle){subtitle.textContent="";subtitle.hidden=true;}
  const data=playabilityFactorScore(chosen);
- if(!chosen.length||data.score===null){host.innerHTML='<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
+ if(!chosen.length||data.score===null){host.innerHTML=periodSummary+'<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
  const verdict=data.score>=85?"非常適合":data.score>=70?"適合下場":data.score>=55?"尚可，需留意":"不建議下場";
  const overallGrade=playabilityGrade(data.score);const tone=overallGrade.color;
  const pct=data.weight;
@@ -1965,7 +1982,7 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  const windows=[];for(let i=0;i<=((rows||[]).length-4);i++){const group=rows.slice(i,i+4);if(group.length===4&&group.every(x=>x&&x.available!==false)){const v=playabilityFactorScore(group);if(v.score!==null)windows.push({time:group[0].time,score:v.score,rain:v.rainTotal,gust:v.maxGust});}}
  windows.sort((a,b)=>b.score-a.score);
  const winHtml=windows.length?windows.slice(0,3).map((x,i)=>'<div class="playability-window"><span><b>'+esc(x.time)+' 起</b>｜連續4小時</span><span class="score-value '+playabilityGrade(x.score).cls+'">'+x.score+'分</span></div>').join(""):'<small>沒有足夠完整的連續4小時資料可比較。</small>';
- host.innerHTML='<div class="playability-overview"><div class="playability-score '+overallGrade.cls+'"><strong>'+data.score+'</strong><small>/ 100</small></div><div><div class="playability-verdict" style="color:'+tone+'">'+verdict+'</div><div class="playability-summary">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
+ host.innerHTML=periodSummary+'<div class="playability-overview"><div class="playability-score '+overallGrade.cls+'"><strong>'+data.score+'</strong><small>/ 100</small></div><div><div class="playability-verdict" style="color:'+tone+'">'+verdict+'</div><div class="playability-summary">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
  renderV2SpecialReports(chosen);
 }
 function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCodes=[]){
