@@ -1418,7 +1418,9 @@ function initCourseDatabase(){
  const counties=[...new Set(taiwanCourses.map(c=>c.city).filter(Boolean))];
  $("countySelect").innerHTML='<option value="">請選擇縣市</option>'+counties.map(city=>`<option value="${esc(city)}">${esc(city)}</option>`).join("");
  $("courseList").innerHTML='<div class="muted">請先選擇縣市，顯示該縣市的球場。</div>';
- $("countySelect").addEventListener("change",renderCourseDatabase);
+ $("countySelect").addEventListener("pointerdown",()=>{showAllCountyCourses=true;renderCourseDatabase();});
+ $("countySelect").addEventListener("focus",()=>{showAllCountyCourses=true;renderCourseDatabase();});
+ $("countySelect").addEventListener("change",()=>{showAllCountyCourses=true;renderCourseDatabase();});
 }
 function renderCourseDatabase(){
  const city=$("countySelect").value;
@@ -1427,7 +1429,8 @@ function renderCourseDatabase(){
   return;
  }
  const allInCounty=taiwanCourses.map((c,i)=>({c,i})).filter(x=>x.c.city===city);
- const selectedInCounty=allInCounty;
+ const selectedInCounty=showAllCountyCourses||!selectedCourseForReload||selectedCourseForReload.city!==city
+  ?allInCounty:allInCounty.filter(x=>x.c.name===selectedCourseForReload.name);
  $("courseList").innerHTML=selectedInCounty.length?selectedInCounty.map(({c,i})=>`<div class="course-item"><button type="button" class="${selectedCourseForReload&&selectedCourseForReload.name===c.name?'course-selected':''}" data-course="${i}" onclick="window.loadCourseByIndex(${i},this)">⛳ ${esc(c.name)}</button><small>${esc(c.address||"")}</small><small>固定座標：${Number(c.lat).toFixed(5)}, ${Number(c.lon).toFixed(5)}</small></div>`).join(""):'<div class="muted">此縣市目前沒有球場資料。</div>';
 }
 
@@ -1527,6 +1530,7 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
 // Date picker is initialized after controls are defined.
 let databaseAutoBusy=false;
 let selectedCourseForReload=null;
+let showAllCountyCourses=false;
 let selectedCourseButton=null;
 
 async function geocodeGolfCourse(c,button){
@@ -1734,6 +1738,7 @@ async function autoLoadDatabaseCourse(c,button){
  if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
  if(databaseAutoBusy)return;
  selectedCourseForReload=c;
+ showAllCountyCourses=false;
  // 若從常用球場切換縣市，同步縣市選單，並保留該縣市完整球場清單。
  if($("countySelect")&&c.city)$("countySelect").value=c.city;
  // 選定球場後仍顯示同縣市全部球場，方便直接切換其他球場。
@@ -3068,5 +3073,6 @@ if(referenceMaterialsToggle&&referenceMaterialsPanel){
   white-space:nowrap!important;
  }
 }
+.playability-section-title.cold-report-title{background:#4b5563!important;color:#fff!important}.playability-section-title.cold-report-title .cold-title-main,.playability-section-title.cold-report-title .playability-course-inline{color:#fff!important}
 </style>
 </body></html>
