@@ -1728,7 +1728,17 @@ async function loadLiveObservation(course){
   times.textContent="不以預報值代替實際觀測值，也不將缺漏資料視為零。";
  }
 }
-async function autoLoadDatabaseCourse(c,button){
+async function paintQuickCourseButtons(selectedName){
+ document.querySelectorAll("#quickCourseButtons button[data-quick-course]").forEach(btn=>{
+  const selected=btn.dataset.quickCourse===selectedName;
+  btn.classList.toggle("quick-selected",selected);
+  btn.style.setProperty("background-color",selected?"#126b4c":"#ffffff","important");
+  btn.style.setProperty("background",selected?"#126b4c":"#ffffff","important");
+  btn.style.setProperty("color",selected?"#ffffff":"#155b43","important");
+  btn.style.setProperty("border-color",selected?"#126b4c":"#9bcbb4","important");
+ });
+}
+function autoLoadDatabaseCourse(c,button){
  const date=$("courseDate").value;
  if(!date)initForecastDatePicker();
  const selectedDate=$("courseDate").value;
@@ -1741,7 +1751,7 @@ async function autoLoadDatabaseCourse(c,button){
  renderCourseDatabase();
  selectedCourseButton=$("courseList").querySelector('button[data-course="'+taiwanCourses.findIndex(x=>x.name===c.name)+'"]')||button;
  // 常用球場只將目前選取項目標綠，其餘一律白底。
- document.querySelectorAll("#quickCourseButtons [data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x.dataset.quickCourse===c.name));
+ paintQuickCourseButtons(c.name);
  databaseAutoBusy=true;
  // 日期欄位保持可操作；載入期間的新選擇會排入下一次載入。
  $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x.dataset.course===String(taiwanCourses.findIndex(y=>y.name===c.name)));});
@@ -1771,7 +1781,7 @@ async function autoLoadDatabaseCourse(c,button){
  }
 }
 window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};
-document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
+document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;paintQuickCourseButtons(name);autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
 // 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
 $("courseDate").addEventListener("change",async()=>{
  if(!selectedCourseForReload)return;
@@ -2975,7 +2985,7 @@ function autoLoadDefaultCourse(){
  $("countySelect").value=course.city||"";
  renderCourseDatabase();
  const button=$('courseList').querySelector('button[data-course="'+index+'"]');
- document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x.dataset.quickCourse===defaultCourseName));
+ paintQuickCourseButtons(defaultCourseName);
  if(!button){
   $("courseAutoStatus").textContent="已找到預設球場，但球場清單尚未建立，請手動選擇。";
   return;
