@@ -343,6 +343,12 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div aria-label="57座高爾夫球場" class="course-list" id="courseList"></div>
 <div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
+<section class="card" id="teeTimeWeatherSummaryPanel" aria-live="polite">
+ <h3 style="margin:0 0 10px;color:#174b39;font-size:19px;font-weight:900">⛳ 球場適打時段天氣摘要</h3>
+ <div id="teeTimeWeatherSummary" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px">
+  <div style="padding:12px;border:1px solid #dbe5e1;border-radius:10px">天氣狀況<strong style="display:block;margin-top:5px">等待資料</strong></div>
+ </div>
+</section>
 <section class="card live-observation-card" id="liveObservationPanel">
  <div class="live-observation-heading"><h3 id="liveObservationHeading" style="margin:0">即時天氣觀測｜—</h3></div>
  <details class="live-data-details">
@@ -1268,8 +1274,43 @@ function selectedTeeTimeRows(rows){
  const start=Number(selected.slice(0,2));
  return rows.filter(x=>{const hour=Number(String(x.time||"").slice(0,2));return Number.isFinite(hour)&&hour>=start&&hour<start+6;});
 }
+function renderTeeTimeWeatherSummary(rows){
+ const host=$("teeTimeWeatherSummary");if(!host)return;
+ const chosen=selectedTeeTimeRows(rows||[]).filter(x=>x&&x.available!==false);
+ const valid=k=>chosen.filter(x=>x[k]!==null&&x[k]!==undefined&&x[k]!==""&&Number.isFinite(Number(x[k])));
+ const rain=valid("rain"),feel=valid("feel"),codes=chosen.map(x=>Number(x.code)).filter(Number.isFinite);
+ const rainMin=rain.length?Math.min(...rain.map(x=>Number(x.rain))):null;
+ const rainMax=rain.length?Math.max(...rain.map(x=>Number(x.rain))):null;
+ const feelMin=feel.length?Math.min(...feel.map(x=>Number(x.feel))):null;
+ const feelMax=feel.length?Math.max(...feel.map(x=>Number(x.feel))):null;
+ const rainy=codes.filter(c=>[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c));
+ const thunder=codes.some(c=>[95,96,99].includes(c));
+ const fog=codes.filter(c=>[45,48].includes(c));
+ const clear=codes.filter(c=>c>=0&&c<=2);
+ const cloudy=codes.filter(c=>c===3);
+ const coverage=Math.max(1,Math.ceil(chosen.length*.7));
+ let weather="資料不足";
+ if(codes.length>=coverage){
+  if(thunder)weather="有雷雨";
+  else if(rainy.length>=Math.ceil(codes.length/2))weather=rainy.some(c=>[65,67,82].includes(c))?"大雨／強陣雨":rainy.some(c=>[61,63,81].includes(c))?"小雨／陣雨":"毛毛雨／小雨";
+  else if(rainy.length)weather="多雲偶雨";
+  else if(fog.length>=Math.ceil(codes.length/2))weather="有霧";
+  else if(clear.length===codes.length)weather="晴朗";
+  else if(clear.length>=Math.ceil(codes.length/2))weather="多半晴朗";
+  else if(cloudy.length>=Math.ceil(codes.length/2))weather="多半陰";
+  else weather="多雲時晴";
+ }
+ const fmt=(lo,hi,suffix,d=0)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+(lo===hi?"":"–"+Number(hi).toFixed(d))+suffix;
+ const select=$("teeTimeSelect")?.value||"";
+ const period=select?select+"–"+String(Number(select.slice(0,2))+5).padStart(2,"0")+":00":"06:00–18:00";
+ const tile=(label,value,note)=>'<div style="padding:12px;border:1px solid #dbe5e1;border-radius:10px;min-width:0"><span style="font-size:13px;color:#526b63;font-weight:800">'+label+'</span><strong style="display:block;margin-top:5px;color:#173f35;font-size:19px;font-weight:900;overflow-wrap:anywhere">'+value+'</strong><small style="display:block;margin-top:4px;color:#64748b">'+note+'</small></div>';
+ host.innerHTML=tile("天氣狀況",weather,"分析時段："+period)+
+  tile("降雨機率｜最低–最高",fmt(rainMin,rainMax,"%"),"有效資料 "+rain.length+"/"+chosen.length+" 小時")+
+  tile("體感溫度｜最低–最高",fmt(feelMin,feelMax,"°C",1),"有效資料 "+feel.length+"/"+chosen.length+" 小時");
+}
 function renderSelectedHourlySections(rows){
  const shown=selectedTeeTimeRows(rows||[]);
+ renderTeeTimeWeatherSummary(rows||[]);
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
  $("hourRows").innerHTML=shown.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${rainInterpretation(x.rain,x.mm,x.code)}</td><td>${thermometerHTML(x.temp)}</td><td>${apparentFeelHTML(x.feel)}</td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
  const times=shown.map(x=>x.time);
