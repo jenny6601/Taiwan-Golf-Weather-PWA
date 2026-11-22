@@ -508,7 +508,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div aria-label="57座高爾夫球場" class="course-list" id="courseList"></div>
 <div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
-<section class="card playability-card" id="playabilityPanel" aria-live="polite">
+<section class="card tee-time-summary-card" id="teeTimeWeatherSummaryPanel" aria-live="polite"><div class="tee-time-summary-head"><div><h3>⛳ 開球時段天氣摘要</h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div><span class="tee-time-summary-tag">開球資訊</span></div><div id="teeTimeWeatherSummary" class="playability-special-grid"><div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">等待資料</div></div></div></section><section class="card playability-card" id="playabilityPanel" aria-live="polite">
  <div class="playability-head">
   <div><h3 id="playabilityTitle" style="margin:0">⛳ 球場適打性綜合分析</h3><p class="muted" id="playabilitySubtitle">選擇球場後，依所選日期的逐時預報自動分析</p></div>
   <span class="playability-tag">五項指標</span>
@@ -1437,6 +1437,16 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
 #liveObservationPanel .live-condition-icon.live-feel-hourly svg,
 #liveObservationPanel .live-condition-icon.live-feel-hourly img{display:block;width:40px!important;height:40px!important;object-fit:contain}
 #liveObservationPanel .live-temperature-icon svg{display:block;width:20px;height:28px}
+
+/* Retained single tee-time summary card: clear title and selected course/date/time. */
+.tee-time-summary-card{border:1px solid #d8e6df!important;padding:16px!important}
+.tee-time-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(110deg,#e7f2ed,#f3f8f5);border-radius:12px;padding:13px 15px;margin:0 0 12px}
+.tee-time-summary-head h3{margin:0;color:#174b39;font-size:19px;font-weight:950;letter-spacing:.2px}
+.tee-time-summary-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.tee-time-summary-meta .playability-title-chip{display:inline-flex;align-items:center;background:#fff;border:1px solid #d6e5dc;border-radius:999px;padding:4px 9px;color:#315b4b;font-size:12px;font-weight:800}
+.tee-time-summary-tag{flex:none;background:#174f78;color:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}
+#teeTimeWeatherSummary.playability-special-grid{margin:0!important}
+@media(max-width:600px){.tee-time-summary-head{padding:11px 12px}.tee-time-summary-head h3{font-size:17px}.tee-time-summary-meta .playability-title-chip{font-size:11px;padding:4px 7px}.tee-time-summary-tag{font-size:10px;padding:6px 8px}}
 </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
@@ -1510,6 +1520,7 @@ function selectedTeeTimeRows(rows){
 }
 function renderSelectedHourlySections(rows){
  const shown=selectedTeeTimeRows(rows||[]);
+ renderTeeTimeWeatherSummary(rows||[]);
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
  $("hourRows").innerHTML=shown.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${rainInterpretation(x.rain,x.mm,x.code)}</td><td>${thermometerHTML(x.temp)}</td><td>${apparentFeelHTML(x.feel)}</td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
  const times=shown.map(x=>x.time);
@@ -2045,6 +2056,41 @@ function renderV2SpecialReports(rows){
  '<details class="playability-special-details"><summary>逐時降雨與低溫明細（'+a.length+'筆）</summary><div class="provider-table-wrap"><table class="provider-table"><thead><tr><th>時間</th><th>降雨機率</th><th>雨量</th><th>氣溫</th><th>體感</th></tr></thead><tbody>'+detail+'</tbody></table></div></details>';
 }
 
+function renderTeeTimeWeatherSummary(rows){
+ const host=$("teeTimeWeatherSummary");if(!host)return;const meta=$("teeTimeWeatherSummaryMeta");if(meta)meta.innerHTML=playabilityContextMarkup();
+ const chosen=selectedTeeTimeRows(rows||[]).filter(x=>x&&x.available!==false);
+ const valid=k=>chosen.filter(x=>x[k]!==null&&x[k]!==undefined&&x[k]!==""&&Number.isFinite(Number(x[k])));
+ const rain=valid("rain"),feel=valid("feel");
+ const rainMin=rain.length?Math.min(...rain.map(x=>Number(x.rain))):null;
+ const rainMax=rain.length?Math.max(...rain.map(x=>Number(x.rain))):null;
+ const feelMin=feel.length?Math.min(...feel.map(x=>Number(x.feel))):null;
+ const feelMax=feel.length?Math.max(...feel.map(x=>Number(x.feel))):null;
+ const minRainRow=rain.length?rain.reduce((x,y)=>Number(x.rain)<=Number(y.rain)?x:y):null;
+ const maxRainRow=rain.length?rain.reduce((x,y)=>Number(x.rain)>=Number(y.rain)?x:y):null;
+ const minFeelRow=feel.length?feel.reduce((x,y)=>Number(x.feel)<=Number(y.feel)?x:y):null;
+ const maxFeelRow=feel.length?feel.reduce((x,y)=>Number(x.feel)>=Number(y.feel)?x:y):null;
+ const codes=chosen.filter(x=>x.code!==null&&x.code!==undefined&&x.code!=="").map(x=>Number(x.code)).filter(Number.isFinite);
+ const rainy=codes.filter(c=>[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c));
+ const thunder=codes.some(c=>[95,96,99].includes(c)),fog=codes.filter(c=>[45,48].includes(c));
+ const clear=codes.filter(c=>c>=0&&c<=2),cloudy=codes.filter(c=>c===3);
+ let weather="資料不足";
+ if(codes.length>=Math.max(1,Math.ceil(chosen.length*.7))){
+  if(thunder)weather="有雷雨";
+  else if(rainy.length>=Math.ceil(codes.length/2))weather=rainy.some(c=>[65,67,82].includes(c))?"大雨／強陣雨":rainy.some(c=>[61,63,81].includes(c))?"小雨／陣雨":"毛毛雨／小雨";
+  else if(rainy.length)weather="多雲偶雨";
+  else if(fog.length>=Math.ceil(codes.length/2))weather="有霧";
+  else if(clear.length===codes.length)weather="晴朗";
+  else if(clear.length>=Math.ceil(codes.length/2))weather="多半晴朗";
+  else if(cloudy.length>=Math.ceil(codes.length/2))weather="多半陰";
+  else weather="多雲時晴";
+ }
+ const fmt=(lo,hi,suffix,d=0,forceRange=false)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+((forceRange||lo!==hi)?"–"+Number(hi).toFixed(d):"")+suffix;
+ const rainTimes=minRainRow&&maxRainRow?"最低 "+minRainRow.time+"｜最高 "+maxRainRow.time:"有效時間資料不足";
+ const feelTimes=minFeelRow&&maxFeelRow?"最低 "+minFeelRow.time+"｜最高 "+maxFeelRow.time:"有效時間資料不足";
+ host.innerHTML='<div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">'+weather+'</div><small>依分析時段逐時天氣整合</small></div>'+
+  '<div class="playability-item"><b>降雨機率（最低–最高）</b><div class="playability-special-value">'+fmt(rainMin,rainMax,"%",0,true)+'</div><small>有效資料 '+rain.length+'/'+chosen.length+' 小時｜'+rainTimes+'</small></div>'+
+  '<div class="playability-item"><b>體感溫度（最低–最高）</b><div class="playability-special-value">'+fmt(feelMin,feelMax,"°C",1)+'</div><small>有效資料 '+feel.length+'/'+chosen.length+' 小時｜'+feelTimes+'</small></div>';
+}
 function renderPlayabilityAnalysis(rows,courseName,date){
  const host=$("playabilityContent"),subtitle=$("playabilitySubtitle");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
@@ -2052,8 +2098,7 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
  if(subtitle){subtitle.textContent="";subtitle.hidden=true;}
  const data=playabilityFactorScore(chosen);
- const summaryMarkup=playabilitySummaryMarkup(chosen);
- if(!chosen.length||data.score===null){host.innerHTML=summaryMarkup+'<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
+ if(!chosen.length||data.score===null){host.innerHTML='<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
  const safety=playabilitySafetyDecision(data);
  const overallGrade=safety;const tone=overallGrade.color;
  const verdict=overallGrade.label;
