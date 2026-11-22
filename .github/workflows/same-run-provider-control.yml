@@ -1,0 +1,37 @@
+name: Same-run Foreca vs Visual Crossing control test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: same-run-provider-control
+  cancel-in-progress: false
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout diagnostic branch
+        uses: actions/checkout@v4
+        with:
+          ref: test/foreca-windunit-diagnostic
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch both providers close together and compare
+        env:
+          FORECA_API_KEY: ${{ secrets.FORECA_API_KEY }}
+          VISUAL_CROSSING_API_KEY: ${{ secrets.VISUAL_CROSSING_API_KEY }}
+        run: python scripts/same_run_provider_control.py
+      - name: Upload aggregate-only report
+        uses: actions/upload-artifact@v4
+        with:
+          name: same-run-provider-control-report
+          path: /tmp/same-run-provider-control.json
+          if-no-files-found: error
+          retention-days: 7
