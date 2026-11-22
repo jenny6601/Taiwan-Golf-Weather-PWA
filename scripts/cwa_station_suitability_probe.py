@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Read-only CWA station suitability probe; prints schema metadata, never observation values."""
+"""Read-only CWA station suitability probe; reports element availability, not values."""
 import json, math, os, urllib.parse, urllib.request
 from datetime import datetime
 from zoneinfo import ZoneInfo
-
 KEY=(os.getenv("CWA_API_KEY") or "").strip()
 TZ=ZoneInfo("Asia/Taipei")
 COURSES={"礁溪":(24.8389,121.7389),"林口":(25.0714,121.3719),"桃園":(24.8789,121.2069),"台北":(25.0489,121.2825),"揚昇":(24.9208,121.1878)}
@@ -19,30 +18,39 @@ def main():
  if not KEY: raise SystemExit("CWA_API_KEY secret missing")
  data=fetch()
  if str(data.get("success","")).lower()!="true": raise RuntimeError("CWA API did not return success")
- records=data.get("records",{}); locations=records.get("Station",[]) if isinstance(records,dict) else []
- stations=[]; schema=None
+ locations=data.get("records",{}).get("Station",[])
+ stations=[]
  for s in locations if isinstance(locations,list) else [locations]:
-  if not isinstance(s,dict): continue
-  we=s.get("WeatherElement")
-  if schema is None:
-   schema={"station_top_level_keys":list(s.keys()),"weather_element_type":type(we).__name__,"weather_element_keys":list(we.keys())[:40] if isinstance(we,dict) else None,"weather_element_item_types":[type(x).__name__ for x in we[:5]] if isinstance(we,list) else None,"weather_element_nested_keys":{k:list(v.keys())[:30] for k,v in we.items() if isinstance(v,dict)} if isinstance(we,dict) else None}
+  if not isinstance(s,dict):continue
   geo=s.get("GeoInfo") or {}; coords=geo.get("Coordinates") or []
   lat=lon=None
-  if isinstance(coords,dict): coords=[coords]
-  for item in coords if isinstance(coords,list) else []:
-   if not isinstance(item,dict):continue
+  if isinstance(coords,dict):coords=[coords]
+  for c in coords if isinstance(coords,list) else []:
+   if not isinstance(c,dict):continue
    try:
-    la=float(item.get("StationLatitude"));lo=float(item.get("StationLongitude"))
-    if -90<=la<=90 and -180<=lo<=180:lat,lon=la,lo;break
-   except (TypeError,ValueError):pass
+    lat=float(c.get("StationLatitude"));lon=float(c.get("StationLongitude"))
+    if -90<=lat<=90 and -180<=lon<=180:break
+   except (TypeError,ValueError):lat=lon=None
   if lat is None or lon is None:
    try:lat=float(geo.get("StationLatitude"));lon=float(geo.get("StationLongitude"))
    except (TypeError,ValueError):continue
-  ot=s.get("ObsTime") or {}; obs=(ot.get("DateTime") or ot.get("obsTime")) if isinstance(ot,dict) else str(ot)
-  stations.append({"id":s.get("StationId"),"name":s.get("StationName"),"lat":lat,"lon":lon,"time":obs})
+  we=s.get("WeatherElement") or {}
+  # O-A0001-001 schema uses direct named dictionaries, not ElementName arrays.
+  def present(v):
+   if not isinstance(v,dict):return False
+   val=v.get("WindSpeed") if "WindSpeed" in v else v.get("AirTemperature")
+   return val is not None
+  ws=we.get("WindSpeed");wd=we.get("WindDirection");temp=we.get("AirTemperature")
+  gust=(we.get("GustInfo") or {}).get("PeakGustSpeed") if isinstance(we.get("GustInfo"),dict) else None
+  obs=s.get("ObsTime") or {}; ot=obs.get("DateTime") if isinstance(obs,dict) else str(obs)
+  stations.append({"id":s.get("StationId"),"name":s.get("StationName"),"lat":lat,"lon":lon,"time":ot,
+   "availability":{"wind_speed":isinstance(ws,dict) and ws.get("WindSpeed") is not None,
+   "wind_direction":isinstance(wd,dict) and wd.get("WindDirection") is not None,
+   "air_temperature":isinstance(temp,dict) and temp.get("AirTemperature") is not None,
+   "peak_gust":isinstance(gust,dict) and gust.get("PeakGustSpeed") is not None}})
  results=[]
  for name,(lat,lon) in COURSES.items():
-  near=sorted(stations,key=lambda x:dist(lat,lon,x["lat"],x["lon"]))[:5]
-  results.append({"course":name,"nearest_stations":[{"station_id":s["id"],"station_name":s["name"],"distance_km":round(dist(lat,lon,s["lat"],s["lon"]),1),"observation_time":s["time"]} for s in near]})
- print(json.dumps({"test":"CWA station schema probe","generated_at":datetime.now(TZ).isoformat(timespec="seconds"),"station_count":len(stations),"schema_probe":schema,"courses":results},ensure_ascii=False,indent=2))
+  near=sorted(stations,key=lambda x:dist(lat,lon,x["lat"],x["lon"]))[:10]
+  results.append({"course":name,"nearest_stations":[{"station_id":s["id"],"station_name":s["name"],"distance_km":round(dist(lat,lon,s["lat"],s["lon"]),1),"observation_time":s["time"],"availability":s["availability"]} for s in near]})
+ print(json.dumps({"test":"CWA station element availability","generated_at":datetime.now(TZ).isoformat(timespec="seconds"),"dataset":"O-A0001-001","station_count":len(stations),"courses":results},ensure_ascii=False,indent=2))
 if __name__=="__main__":main()
