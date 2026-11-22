@@ -3023,5 +3023,35 @@ if(referenceMaterialsToggle&&referenceMaterialsPanel){
  #playabilitySpecialReports .playability-section-title:not(.cold-report-title) .playability-title-meta{gap:7px!important;margin-top:9px!important;font-size:clamp(17px,4.5vw,22px)!important}
  #playabilitySpecialReports .playability-section-title:not(.cold-report-title) .playability-title-chip{min-height:48px!important;padding:6px 8px!important}
 }
+
+/* V33.1：適打性標題日期與開球時間改為同一橫列 */
+#playabilityPanel .playability-head .playability-title-meta{
+ display:flex!important;
+ flex-direction:row!important;
+ flex-wrap:nowrap!important;
+ align-items:center!important;
+ gap:12px!important;
+ width:100%!important;
+}
+#playabilityPanel .playability-head .playability-title-chip{
+ flex:1 1 0!important;
+ width:auto!important;
+ min-width:0!important;
+ white-space:nowrap!important;
+}
+@media(max-width:600px){
+ #playabilityPanel .playability-head .playability-title-meta{
+  flex-wrap:nowrap!important;
+  gap:7px!important;
+  font-size:clamp(15px,4.2vw,22px)!important;
+ }
+ #playabilityPanel .playability-head .playability-title-chip{
+  flex:1 1 0!important;
+  min-width:0!important;
+  padding:7px 8px!important;
+  min-height:48px!important;
+  white-space:nowrap!important;
+ }
+}
 </style>
 </body></html>
