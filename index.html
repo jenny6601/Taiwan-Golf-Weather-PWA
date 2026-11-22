@@ -386,7 +386,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
 <section class="card" id="teeTimeWeatherSummaryPanel" aria-live="polite">
- <h3 style="margin:0 0 10px;color:#174b39;font-size:19px;font-weight:900">開球時段天氣摘要</h3>
+ <div class="tee-time-summary-head"><div><h3>⛳ 開球時段天氣摘要</h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div><span class="tee-time-summary-tag">開球資訊</span></div>
  <div id="teeTimeWeatherSummary" class="playability-special-grid">
   <div style="padding:12px;border:1px solid #dbe5e1;border-radius:10px">天氣狀況<strong style="display:block;margin-top:5px">等待資料</strong></div>
  </div>
@@ -1434,6 +1434,16 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
 #liveObservationPanel .live-condition-icon.live-feel-hourly svg,
 #liveObservationPanel .live-condition-icon.live-feel-hourly img{display:block;width:40px!important;height:40px!important;object-fit:contain}
 #liveObservationPanel .live-temperature-icon svg{display:block;width:20px;height:28px}
+
+/* Retained single tee-time summary card: clear title and selected course/date/time. */
+.tee-time-summary-card{border:1px solid #d8e6df!important;padding:16px!important}
+.tee-time-summary-head{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(110deg,#e7f2ed,#f3f8f5);border-radius:12px;padding:13px 15px;margin:0 0 12px}
+.tee-time-summary-head h3{margin:0;color:#174b39;font-size:19px;font-weight:950;letter-spacing:.2px}
+.tee-time-summary-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.tee-time-summary-meta .playability-title-chip{display:inline-flex;align-items:center;background:#fff;border:1px solid #d6e5dc;border-radius:999px;padding:4px 9px;color:#315b4b;font-size:12px;font-weight:800}
+.tee-time-summary-tag{flex:none;background:#174f78;color:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}
+#teeTimeWeatherSummary.playability-special-grid{margin:0!important}
+@media(max-width:600px){.tee-time-summary-head{padding:11px 12px}.tee-time-summary-head h3{font-size:17px}.tee-time-summary-meta .playability-title-chip{font-size:11px;padding:4px 7px}.tee-time-summary-tag{font-size:10px;padding:6px 8px}}
 </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
@@ -1506,7 +1516,7 @@ function selectedTeeTimeRows(rows){
  return rows.filter(x=>{const hour=Number(String(x.time||"").slice(0,2));return Number.isFinite(hour)&&hour>=start&&hour<start+6;});
 }
 function renderTeeTimeWeatherSummary(rows){
- const host=$("teeTimeWeatherSummary");if(!host)return;
+ const host=$("teeTimeWeatherSummary");if(!host)return;const meta=$("teeTimeWeatherSummaryMeta");if(meta)meta.innerHTML=playabilityContextMarkup();
  const chosen=selectedTeeTimeRows(rows||[]).filter(x=>x&&x.available!==false);
  const valid=k=>chosen.filter(x=>x[k]!==null&&x[k]!==undefined&&x[k]!==""&&Number.isFinite(Number(x[k])));
  const rain=valid("rain"),feel=valid("feel");
@@ -1736,8 +1746,7 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  const scopeText=scope?scope+"起算6小時":"06:00–18:00";
  if(subtitle){subtitle.textContent="";subtitle.hidden=true;}
  const data=playabilityFactorScore(chosen);
- const summaryMarkup=playabilitySummaryMarkup(chosen);
- if(!chosen.length||data.score===null){host.innerHTML=summaryMarkup+'<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
+ if(!chosen.length||data.score===null){host.innerHTML='<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估；不會以缺漏欄位補零。</div>';renderV2SpecialReports(chosen);return;}
  const safety=playabilitySafetyDecision(data);
  const overallGrade=safety;const tone=overallGrade.color;
  const verdict=overallGrade.label;
@@ -2565,6 +2574,25 @@ function syncForecastDatePickerDisplay(date){
   const title=$("forecastCalendarTitle");
   if(title)title.textContent=Number(date.slice(0,4))+"年"+Number(date.slice(5,7))+"月";
  }
+}
+function syncDailyForecastToSelectedDate(){
+ const input=$("courseDate"),el=$("dailyForecastScroll");
+ if(!input?.value||!el)return;
+ const date=input.value;
+ const move=()=>{
+  const scroller=$("dailyForecastScroll");
+  if(!scroller)return;
+  const cell=Array.from(scroller.querySelectorAll(".daily-date-cell")).find(x=>x.dataset.dailyDate===date);
+  if(!cell)return;
+  const er=cell.getBoundingClientRect(),sr=scroller.getBoundingClientRect();
+  const max=Math.max(0,scroller.scrollWidth-scroller.clientWidth);
+  const next=Math.max(0,Math.min(max,scroller.scrollLeft+er.left-sr.left-(scroller.clientWidth-er.width)/2));
+  scroller.scrollLeft=next;
+ };
+ move();
+ requestAnimationFrame(()=>{move();requestAnimationFrame(move);});
+ setTimeout(move,160);
+ setTimeout(move,420);
 }
 function renderDailyForecast(rows,courseName){
  const target=$("dailyForecastInner"),status=$("dailyForecastStatus"),heading=$("dailyForecastHeading"),dailyScroll=$("dailyForecastScroll"),dailyScrollLeft=window.dailyForecastKeepScrollLeft??dailyScroll?.scrollLeft??0;if(!target)return;if(!rows?.length){target.innerHTML='<div class="daily-forecast-placeholder">目前沒有可用逐日資料</div>';return;}
