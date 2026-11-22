@@ -1607,7 +1607,7 @@ function updateWeatherDateHeadings(liveDate,forecastDate,latestUpdatedAt){
  // 即時觀測維持台灣當地今日日期；四個預報區塊共用使用者選取的預報日期。
  const taiwanToday=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
  const liveCourseName=(active?.name||$("locname")?.textContent||"").replace(/高爾夫球場/g,"").trim();
- const updatedLabel=latestUpdatedAt?new Date(latestUpdatedAt).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"等待資料";
+ const updatedLabel=latestUpdatedAt?(typeof latestUpdatedAt==="string"&&/^\\d{2}:\\d{2}:\\d{2}$/.test(latestUpdatedAt)?latestUpdatedAt:new Date(latestUpdatedAt).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour12:false} )):"等待資料";
  if(live)live.innerHTML="即時天氣觀測｜"+(liveCourseName?liveCourseName+"｜":"")+golfDateLabel(taiwanToday)+'<span class="live-heading-updated">最近更新時間：'+updatedLabel+'</span>';
  renderSelectedHourlySections(active?.rows||[]);
 }
@@ -1723,6 +1723,8 @@ async function loadLiveObservation(course){
   if(dateTimeEl){dateTimeEl.textContent=snapshotDateTime;dateTimeEl.dateTime=snap.generated_at||"";}
   summary.textContent="氣象站："+(ws?ws.name:"未配對")+"（"+(ws?ws.distance_km:"—")+" km）｜雨量站："+(rs?rs.name:"未配對")+"（"+(rs?rs.distance_km:"—")+" km）";
   times.textContent="氣象觀測時間："+fmtTime(ws)+"｜雨量觀測時間："+fmtTime(rs)+"｜快照更新時間："+fmtTime({observed_at:snap.generated_at})+"。體感為依氣溫、濕度及風速估算，非氣象站直接量測。";
+  const headingTimeMatch=times.textContent.match(/快照更新時間：([^。]+)/);
+  if(headingTimeMatch)updateWeatherDateHeadings(snap.generated_at||new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date,headingTimeMatch[1]);
  }catch(err){
   state.className="pill live-state-missing";state.textContent="尚無即時資料";
   const dateTimeEl=$("liveObservationDateTime");if(dateTimeEl)dateTimeEl.textContent="日期時間暫缺";
