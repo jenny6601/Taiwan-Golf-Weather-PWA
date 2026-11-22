@@ -1910,7 +1910,7 @@ function renderV2SpecialReports(rows){
  const clearCodes=weatherCodes.filter(c=>c>=0&&c<=2);
  const cloudyCodes=weatherCodes.filter(c=>c===3);
  let weatherSummary="資料不足";
- if(weatherCodes.length>=requiredCoverage){
+ if(weatherCodes.length>=Math.max(1,Math.ceil(a.length*0.7))){
   if(thunderCodes.length)weatherSummary="有雷雨";
   else if(rainyCodes.length>=Math.ceil(weatherCodes.length/2))weatherSummary=rainyCodes.some(c=>[65,67,82].includes(c))?"大雨／強陣雨":rainyCodes.some(c=>[61,63,81].includes(c))?"小雨／陣雨":"毛毛雨／小雨";
   else if(rainyCodes.length)weatherSummary="多雲偶雨";
