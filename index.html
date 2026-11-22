@@ -2106,12 +2106,12 @@ function renderV2SpecialReports(rows){
  '<div class="playability-item"><b>最長連續降雨</b><div class="playability-special-value">'+(longest?longest+'小時｜'+esc(best)+"起":"無")+'</div></div>'+
  '<div class="playability-item"><b>來源降雨機率最大差距</b><div class="playability-special-value">'+(rainSpread.spread===null?"—":n(rainSpread.spread,0)+"%｜"+esc(rainSpread.time))+'</div></div></div>'+
  '<div class="playability-alert '+(rainRisk==="高"?"danger":rainRisk==="低"?"good":"")+'">'+rainAdvice+'</div>'+
- '<div class="playability-section-title cold-report-title '+coldRiskClass+'"><span class="playability-heading-line"><span class="cold-title-main">氣溫專項分析｜'+(!coldCoverageOK?"資料不足":extreme.length?"極低溫警示":cold.length?"低溫警示":"無低溫警訊")+'</span>'+playabilityCourseMarkup()+'</span>'+playabilityContextMarkup()+'<span class="cold-thresholds"><span class="cold-threshold">低溫 ≤15°C</span><span class="cold-threshold cold-threshold-extreme">極低溫 ≤10°C</span></span></div>'+
+ '<div class="playability-section-title cold-report-title '+coldRiskClass+'"><span class="playability-heading-line"><span class="cold-title-main">氣溫專項分析｜'+(!coldCoverageOK?"資料不足":extreme.length?"極低溫警示":cold.length?"低溫警示":"無低溫警訊")+'</span>'+playabilityCourseMarkup()+'</span>'+playabilityContextMarkup()+'</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>最低體感溫度</b><div class="playability-special-value" style="'+(minFeelRow&&Number(minFeelRow.feel)<15?'color:#1684c5;font-weight:900;':'')+'">'+(minFeelRow?n(minFeelRow.feel)+'°C｜'+esc(minFeelRow.time):"—")+'</div></div>'+
  '<div class="playability-item"><b>最高體感溫度</b><div class="playability-special-value">'+(maxFeelRow?n(maxFeelRow.feel)+'°C｜'+esc(maxFeelRow.time):"—")+'</div></div>'+
- '<div class="playability-item"><b>低溫時數</b><div class="playability-special-value">'+cold.length+' 小時</div></div>'+
- '<div class="playability-item"><b>極低溫時數</b><div class="playability-special-value">'+extreme.length+' 小時</div></div>'+
+ '<div class="playability-item"><b>低溫時數（≤15°C）</b><div class="playability-special-value">'+cold.length+' 小時</div></div>'+
+ '<div class="playability-item"><b>極低溫時數（≤10°C）</b><div class="playability-special-value">'+extreme.length+' 小時</div></div>'+
  '<div class="playability-item"><b>分析時段</b><div class="playability-special-value">'+(cold.length?esc(cold[0].time)+"–"+esc(cold[cold.length-1].time):"無")+'</div></div>'+
  '<div class="playability-item"><b>來源體感溫度最大差距</b><div class="playability-special-value">'+(feelSpread.spread===null?"—":n(feelSpread.spread,1)+"°C｜"+esc(feelSpread.time))+'</div></div></div>'+
  '<div class="playability-alert '+(extreme.length?"danger":cold.length?"":"good")+'">'+coldAdvice+'</div>'+
