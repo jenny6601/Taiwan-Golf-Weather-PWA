@@ -152,7 +152,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 #coursePickerPanel .course-item small{font-size:11px;line-height:1.35}
 #coursePickerPanel .course-item button.course-selected{background:#126b4c;color:#fff;outline:3px solid #b7e4d1}
 @media(max-width:600px){#coursePickerPanel .course-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#coursePickerPanel .course-item{padding:6px}#coursePickerPanel .course-item button{min-height:50px;padding:8px 5px;font-size:14px}}
-.tee-time-picker{display:block;clear:both;margin:12px 0 14px;padding:12px 14px;border:1px solid #cbd5e1;border-radius:10px;background:#f1f5f9;max-width:360px}.tee-time-picker label{display:block;font-size:15px;font-weight:800;color:#334155;margin-bottom:7px}.tee-time-picker select{width:100%;min-height:46px;font-size:16px;font-weight:700;background:#fff;border:1px solid #94a3b8;border-radius:8px;color:#1e293b;padding:8px 10px}.tee-time-picker .muted{margin-top:5px;color:#64748b}.date-field-title{font-size:17px;font-weight:900;color:#173f35;margin:0 0 8px}.county-field-title{display:block;font-size:17px;font-weight:900;color:#173f35;margin:12px 0 8px}.tee-time-picker{border:2px solid #8ab9a7;background:#eaf4ef;padding:14px 15px;box-shadow:0 2px 7px #145c4312}.tee-time-picker label{font-size:18px;font-weight:900;color:#0f513d;margin-bottom:10px;letter-spacing:.02em}.tee-time-picker select{min-height:50px;font-size:17px;border:1.5px solid #6f9f8c}.tee-time-picker .muted{font-size:13px;color:#49685d}
+.date-field-title{display:block;font-size:17px;font-weight:900;color:#173f35;margin:0 0 8px}.county-field-title{display:block;font-size:17px;font-weight:900;color:#173f35;margin:12px 0 8px}.tee-time-picker{display:block;clear:both;margin:12px 0 14px;padding:14px 15px;border:2px solid #8ab9a7;border-radius:12px;background:#eaf4ef;max-width:360px;box-shadow:0 2px 7px #145c4312}.tee-time-picker label{display:block;font-size:18px;font-weight:900;color:#0f513d;margin-bottom:10px;letter-spacing:.02em}.tee-time-picker select{width:100%;min-height:50px;font-size:17px;font-weight:700;background:#fff;border:1.5px solid #6f9f8c;border-radius:8px;color:#1e293b;padding:8px 10px}.tee-time-picker .muted{margin-top:5px;font-size:13px;color:#49685d}
 
 .provider-panel{margin-top:14px}.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.provider-card{border:1px solid var(--line);border-radius:11px;padding:12px;background:#fff}.provider-card strong{display:block;font-size:16px}.provider-status{font-size:12px;color:#64748b;margin:6px 0}.provider-links{display:flex;gap:10px;flex-wrap:wrap;font-size:13px}.provider-pill{display:inline-block;border-radius:999px;padding:3px 8px;background:#fff7e6;color:#8a5a00;font-size:11px;font-weight:700}.provider-table-wrap{overflow-x:auto}.provider-table{width:100%;border-collapse:collapse;font-size:13px}.provider-table th,.provider-table td{border-bottom:1px solid var(--line);padding:7px;text-align:right;white-space:nowrap}.provider-table th:first-child,.provider-table td:first-child{text-align:left}.provider-note{background:#f4f8fb;border-radius:9px;padding:10px;font-size:13px;color:#475569;line-height:1.6}@media(max-width:600px){.provider-grid{grid-template-columns:1fr}}
 @media(min-width:601px){#mobileDetailWrap{display:none!important}} @media(max-width:600px){#mobileDetailWrap .tablewrap{overflow-x:auto!important}#mobileDetailWrap table{min-width:760px!important;table-layout:auto!important;font-size:12px!important}#mobileDetailWrap th,#mobileDetailWrap td{white-space:nowrap!important;padding:8px 7px!important}}
@@ -215,7 +215,10 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 
 
 /* Phase 2: improve 16-day daytime forecast readability */
-.daily-forecast-card .daily-date-cell{font-size:12px!important;line-height:1.4!important}
+.daily-forecast-card .daily-date-cell.weekend{color:#d32f2f!important}
+.daily-forecast-card .daily-date-cell.weekend .weekday,.daily-forecast-card .daily-date-cell.weekend .date{color:#d32f2f!important}
+.daily-date-cell.weekend .date{color:#d32f2f!important}
+.daily-date-cell{font-size:12px!important;line-height:1.4!important}
 .daily-forecast-card .daily-date-cell .date{font-size:11px!important}
 .daily-forecast-card .daily-weather-cell .daily-desc{font-size:11px!important;line-height:1.3!important}
 .daily-forecast-card .daily-rain-cell small{font-size:10px!important;line-height:1.35!important}
@@ -234,6 +237,17 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .daily-date-cell:focus-visible{outline:2px solid #1769aa;outline-offset:-2px}
 .daily-date-cell:hover{background:#dcebf5}
 #dailyForecastStatus{display:none!important}
+
+/* V32.4 hourly weather-condition row: reuse the seven approved daytime forecast icons. */
+.hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji{width:42px!important;height:42px!important;min-width:42px!important;flex:0 0 42px!important}
+.hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji svg.daily-weather-svg{display:block!important;width:42px!important;height:42px!important;max-width:none!important;object-fit:contain!important}
+.forecast-weather-item .wx-icon.daily-weather-svg{display:block!important;width:36px!important;height:36px!important}
+@media(max-width:600px){
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji{width:38px!important;height:38px!important;min-width:38px!important;flex:0 0 38px!important}
+ .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji svg.daily-weather-svg{width:38px!important;height:38px!important}
+ .forecast-weather-item .wx-icon.daily-weather-svg{width:32px!important;height:32px!important}
+}
+
 /* V32.5：自訂16天預報日期月曆 */
 .forecast-date-control{position:relative;max-width:360px;margin:0 0 12px}
 #courseDate{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;padding:0!important;border:0!important}
@@ -261,7 +275,117 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 @media(max-width:600px){.forecast-calendar{width:min(100%,340px)}.forecast-calendar-day{height:40px}}
 
 
+.playability-special-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
+.playability-special-value{font-size:19px;font-weight:900;color:#173f35;margin-top:4px;overflow-wrap:anywhere}
+.playability-special-details{margin-top:10px}
+@media(max-width:600px){.playability-special-grid{gap:7px}.playability-special-value{font-size:16px}}
 
+
+/* V2.1：適打性、降雨與低溫分析標題及分數分級 */
+.playability-card{overflow:hidden}
+.playability-head{background:#174f78;color:#fff;padding:13px 15px;border-radius:10px;margin:-2px -2px 12px;align-items:center;position:relative;display:block}
+.playability-head h3{color:#fff!important;font-size:20px;font-weight:900;display:block;width:100%;min-width:0;box-sizing:border-box;padding-right:0}.playability-title-text{display:block;width:100%;box-sizing:border-box;padding-right:150px}
+.playability-head #playabilitySubtitle{color:#e4eef8!important;margin:4px 0 0;font-size:12px}
+.playability-tag{background:#e4eef8;color:#174f78;position:absolute;right:15px;top:13px}
+.playability-section-title{padding:9px 12px;border-radius:8px;background:#e8f1ed;color:#174b39;margin:13px 0 8px;font-size:15px;font-weight:900}
+.playability-section-title.rain-title{background:#1769aa;color:#fff}
+.playability-section-title.rain-title-low,.playability-section-title.cold-title-low{background:#16845b;color:#fff}
+.playability-section-title.rain-title-mid,.playability-section-title.cold-title-mid{background:#b7791f;color:#fff}
+.playability-section-title.rain-title-high,.playability-section-title.cold-title-high{background:#b42318;color:#fff}
+.playability-section-title.cold-title{background:#526b91;color:#fff}
+.playability-section-title.neutral-title{background:#64748b;color:#fff}
+ .playability-section-title.cold-title-low,.playability-section-title.cold-title-mid,.playability-section-title.cold-title-high,.playability-section-title.cold-title-insufficient{background:#dceeff;color:#174b78}
+ .playability-title-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:7px;font-size:11px;font-weight:700;line-height:1.35;color:#f1f5f9}
+ .playability-title-chip{display:inline-flex;align-items:center;padding:3px 7px;border:1px solid rgba(255,255,255,.34);border-radius:999px;background:rgba(15,23,42,.16);white-space:nowrap}
+ .playability-section-title .playability-title-meta{margin-top:6px;font-size:11px}
+ .playability-section-title{line-height:1.45}
+ @media(max-width:520px){.playability-title-meta{gap:4px;font-size:10px}.playability-title-chip{padding:3px 6px}.playability-section-title .playability-title-meta{font-size:10px}}
+.playability-score.score-tier-excellent{border-color:#15945c!important;color:#087443!important;background:#e8f7ef}
+.playability-score.score-tier-good{border-color:#1684c5!important;color:#08649b!important;background:#eaf5fc}
+.playability-score.score-tier-caution{border-color:#d99119!important;color:#9a5b00!important;background:#fff5df}
+.playability-score.score-tier-poor{border-color:#d0443d!important;color:#b42318!important;background:#fff0ef}
+.playability-score.score-tier-d{border-color:#d97735!important;color:#b45309!important;background:#fff4e8}
+.playability-score.score-tier-e{border-color:#c74343!important;color:#b42318!important;background:#fff0ef}
+.score-value.score-tier-d{color:#b45309!important}
+.score-value.score-tier-e{color:#b42318!important}
+.playability-bar i.score-tier-d{background:#d97735!important}
+.playability-bar i.score-tier-e{background:#c74343!important}
+.score-value{font-weight:900!important}
+.score-value.score-tier-excellent{color:#087443!important}
+.score-value.score-tier-good{color:#08649b!important}
+.score-value.score-tier-caution{color:#a16207!important}
+.score-value.score-tier-poor{color:#b42318!important}
+.playability-bar i.score-tier-excellent{background:#15945c!important}
+.playability-bar i.score-tier-good{background:#1684c5!important}
+.playability-bar i.score-tier-caution{background:#d99119!important}
+.playability-bar i.score-tier-poor{background:#d0443d!important}
+.playability-window .score-value{font-size:15px}
+.playability-special-value.score-tier-excellent{color:#087443}
+.playability-special-value.score-tier-good{color:#08649b}
+.playability-special-value.score-tier-caution{color:#a16207}
+.playability-special-value.score-tier-poor{color:#b42318}
+@media(max-width:600px){.playability-head{padding:12px}.playability-head h3{font-size:19px}.playability-section-title{font-size:14px;padding:9px 10px}}
+
+/* Course playability analysis V1 preview */
+.playability-card{border:1px solid #c9ded5;background:linear-gradient(180deg,#fbfefc,#fff)}
+.playability-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.playability-head h3{font-size:20px;font-weight:900;color:#174b39}
+.playability-tag{flex:none;background:#e7f3ed;color:#176344;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}
+.playability-placeholder{padding:14px;border-radius:10px;background:#f2f6f4;color:#64748b;font-size:14px}
+.playability-overview{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;padding:12px;background:#f3f8f5;border-radius:12px;margin-bottom:12px}
+.playability-overview-revised{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 14px;align-items:center;padding:15px}
+.playability-total small,.playability-grade-block>small{display:block;color:#526b63;font-size:12px;font-weight:800;margin-bottom:5px}
+.playability-total strong{display:block;font-size:34px;line-height:1.15;font-weight:900;color:#173f35}
+.playability-total strong span{font-size:19px}
+.playability-grade-line{display:flex;align-items:center;gap:9px;min-height:42px}
+.playability-grade-letter{display:flex;width:42px;height:42px;flex:none;align-items:center;justify-content:center;border:3px solid;border-radius:50%;font-size:25px;font-weight:900;background:#fff}
+.playability-grade-letter.score-tier-excellent{color:#087443;border-color:#15945c;background:#e8f7ef}
+.playability-grade-letter.score-tier-good{color:#08649b;border-color:#1684c5;background:#eaf5fc}
+.playability-grade-letter.score-tier-caution{color:#9a5b00;border-color:#d99119;background:#fff5df}
+.playability-grade-letter.score-tier-d{color:#b45309;border-color:#d97735;background:#fff4e8}
+.playability-grade-letter.score-tier-e{color:#b42318;border-color:#c74343;background:#fff0ef}
+.playability-grade-line>strong{font-size:18px;line-height:1.3}
+.playability-description{grid-column:1/-1;padding:10px 11px;border-radius:9px;background:#fff;font-size:14px;line-height:1.55;color:#40534a;font-weight:700}
+.playability-data-note{grid-column:1/-1;font-size:11px;color:#64748b;line-height:1.45}
+@media(max-width:380px){.playability-total strong{font-size:30px}.playability-grade-line>strong{font-size:16px}.playability-overview-revised{gap:8px;padding:12px}}
+
+.playability-score{width:104px;height:104px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border:7px solid #20a36b;color:#176344}
+.playability-score strong{font-size:32px;line-height:1.1;font-weight:900}
+.playability-score small{font-size:11px;font-weight:800}
+.playability-verdict{font-size:20px;font-weight:900;color:#176344;margin-bottom:4px}
+.playability-summary{font-size:13px;color:#40534a;line-height:1.55}
+.playability-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}
+.playability-item{padding:10px;border:1px solid #e0e9e4;border-radius:10px;background:#fff;min-width:0}
+.playability-item-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:800}
+.playability-bar{height:7px;background:#edf1ef;border-radius:99px;overflow:hidden;margin:7px 0 5px}
+.playability-bar i{display:block;height:100%;border-radius:99px;background:#23966a}
+.playability-item small{font-size:11px;color:#64748b;line-height:1.4;display:block}
+.playability-section-title{font-size:15px;font-weight:900;color:#174b39;margin:14px 0 7px}
+.playability-alerts{display:grid;gap:7px}
+.playability-alert{padding:9px 11px;border-radius:9px;background:#fff7e8;border-left:4px solid #d69a2d;font-size:13px;line-height:1.5;color:#704b12}
+.playability-alert.danger{background:#fff0ef;border-left-color:#d0443d;color:#8c2823}
+.playability-alert.good{background:#edf8f1;border-left-color:#269765;color:#176344}
+.playability-window{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e0e9e4;border-radius:9px;margin-top:6px;font-size:13px}
+.playability-window b{color:#176344}
+.playability-foot{font-size:11px;color:#64748b;line-height:1.5;margin-top:10px}
+@media(max-width:520px){.playability-overview{grid-template-columns:92px 1fr;gap:10px;padding:10px}.playability-score{width:88px;height:88px;border-width:6px}.playability-score strong{font-size:27px}.playability-verdict{font-size:18px}.playability-grid{gap:7px}.playability-item{padding:8px}.playability-head h3{font-size:19px}}
+
+
+/* V2.2：標題資訊單列、移除重複副標，強化低溫門檻 */
+#playabilityTitle .playability-title-meta{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) minmax(0,1.25fr);align-items:stretch;gap:clamp(5px,.75vw,10px);width:100%;max-width:100%;min-width:0;margin-top:9px;overflow:visible;white-space:nowrap;box-sizing:border-box}
+#playabilityTitle .playability-title-chip{display:flex;align-items:center;justify-content:center;gap:clamp(4px,.55vw,7px);font-size:clamp(12px,1.25vw,16px);line-height:1.2;padding:7px clamp(5px,.8vw,11px);box-sizing:border-box;width:100%;min-width:0;max-width:100%;white-space:nowrap;overflow:visible;text-overflow:clip;text-align:center}
+.playability-section-title:not(.cold-report-title) .playability-title-meta{display:flex;flex-wrap:nowrap;align-items:center;gap:clamp(4px,.7vw,8px);width:100%;min-width:0;margin-top:8px;font-size:clamp(10px,1.08vw,14px);white-space:nowrap;overflow:hidden}
+.playability-section-title:not(.cold-report-title) .playability-title-chip{font-size:clamp(10px,1.18vw,15px);padding:6px clamp(5px,.9vw,12px);box-sizing:border-box;flex:1 1 0;min-width:0;white-space:nowrap;justify-content:center;text-align:center}
+
+#playabilitySubtitle[hidden]{display:none!important}
+.playability-section-title.cold-report-title{display:flex;align-items:center;flex-wrap:wrap;gap:9px 12px;padding:12px 14px;line-height:1.35}
+.cold-title-main{font-size:17px;font-weight:900;letter-spacing:.01em}
+.cold-thresholds{display:inline-flex;align-items:center;flex-wrap:wrap;gap:7px}
+.cold-threshold{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#fff;color:#15558a;border:1px solid #9fc9ed;font-size:14px;font-weight:900;white-space:nowrap}
+.cold-threshold-extreme{background:#c8e4fb;border-color:#78b5e7;color:#103f70}
+.playability-section-title.cold-report-title .playability-title-meta{display:flex;flex:0 0 100%;flex-wrap:nowrap;align-items:center;gap:clamp(4px,.7vw,7px);width:100%;max-width:100%;min-width:0;margin:0;font-size:clamp(10px,1.04vw,13px);white-space:nowrap;overflow:hidden}
+.playability-section-title.cold-report-title .playability-title-chip{background:#f7fbff;border-color:#a9cce9;color:#174b78;padding:6px clamp(5px,.9vw,12px);font-size:clamp(10px,1.15vw,14px);box-sizing:border-box;flex:1 1 0;min-width:0;white-space:nowrap;justify-content:center;text-align:center}
+@media(max-width:700px){.playability-head{display:block}.playability-head h3{padding-right:0}.playability-title-text{padding-right:88px}.playability-tag{right:10px;top:10px;padding:5px 8px;font-size:11px}#playabilityTitle .playability-title-meta{gap:4px;grid-template-columns:.85fr 1.15fr 1.25fr}#playabilityTitle .playability-title-chip{font-size:clamp(10px,2.9vw,13px);padding:6px 3px;gap:3px}.playability-section-title:not(.cold-report-title) .playability-title-meta{gap:4px}.playability-section-title:not(.cold-report-title) .playability-title-chip{padding:5px 4px;font-size:clamp(10px,2.7vw,13px)}.playability-section-title.cold-report-title{gap:7px}.cold-title-main{font-size:15px}.cold-threshold{font-size:12px;padding:4px 8px}.playability-section-title.cold-report-title .playability-title-meta{width:100%;margin:0;flex-wrap:nowrap;white-space:nowrap}.playability-section-title.cold-report-title .playability-title-chip{padding:5px 4px;font-size:clamp(10px,2.6vw,13px)}}
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
@@ -373,7 +497,6 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
  <div class="forecast-calendar-legend"><span><i></i>可選日期</span><span class="disabled"><i></i>不可選日期</span><span class="chosen"><i></i>已選日期</span></div>
 </div>
 </div>
-
 <label for="countySelect" class="county-field-title">選擇縣市</label>
 <select id="countySelect" style="width:100%;max-width:320px;padding:10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff">
 <option value="">請選擇縣市</option>
@@ -385,13 +508,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div aria-label="57座高爾夫球場" class="course-list" id="courseList"></div>
 <div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
-<section class="card" id="teeTimeWeatherSummaryPanel" aria-live="polite">
- <div class="tee-time-summary-head"><div><h3>⛳ 開球時段天氣摘要</h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div><span class="tee-time-summary-tag">開球資訊</span></div>
- <div id="teeTimeWeatherSummary" class="playability-special-grid">
-  <div style="padding:12px;border:1px solid #dbe5e1;border-radius:10px">天氣狀況<strong style="display:block;margin-top:5px">等待資料</strong></div>
- </div>
-</section>
-<section class="card playability-card" id="playabilityPanel" aria-live="polite">
+<section class="card tee-time-summary-card" id="teeTimeWeatherSummaryPanel" aria-live="polite"><div class="tee-time-summary-head"><div><h3>⛳ 開球時段天氣摘要</h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div><span class="tee-time-summary-tag">開球資訊</span></div><div id="teeTimeWeatherSummary" class="playability-special-grid"><div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">等待資料</div></div></div></section><section class="card playability-card" id="playabilityPanel" aria-live="polite">
  <div class="playability-head">
   <div><h3 id="playabilityTitle" style="margin:0">⛳ 球場適打性綜合分析</h3><p class="muted" id="playabilitySubtitle">選擇球場後，依所選日期的逐時預報自動分析</p></div>
   <span class="playability-tag">五項指標</span>
@@ -1198,6 +1315,7 @@ function taiwanYmd(offsetDays=0){
  const p=Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(d).map(x=>[x.type,x.value]));
  return p.year+"-"+p.month+"-"+p.day;
 }
+
 function initForecastDatePicker(){
  const input=$("courseDate");if(!input)return;
  const today=taiwanYmd(0),last=taiwanYmd(15);
@@ -1312,121 +1430,6 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
  }
 }
 
-/* Match the full version's tee-time summary card layout. */
-#teeTimeWeatherSummary.playability-special-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
-#teeTimeWeatherSummary .playability-item{padding:10px;border:1px solid #e0e9e4;border-radius:10px;background:#fff;min-width:0}
-#teeTimeWeatherSummary .playability-item b{font-size:13px;font-weight:800}
-#teeTimeWeatherSummary .playability-item small{font-size:11px;color:#64748b;line-height:1.4;display:block;margin-top:4px}
-#teeTimeWeatherSummary .playability-special-value{font-size:19px;font-weight:900;color:#173f35;margin-top:4px;overflow-wrap:anywhere}
-@media(max-width:600px){#teeTimeWeatherSummary.playability-special-grid{gap:7px}#teeTimeWeatherSummary .playability-special-value{font-size:16px}}
-
-/* Full-version playability analysis styles ported to compact build */
-.playability-special-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
-.playability-special-value{font-size:19px;font-weight:900;color:#173f35;margin-top:4px;overflow-wrap:anywhere}
-.playability-special-details{margin-top:10px}
-/* V2.1：適打性、降雨與低溫分析標題及分數分級 */
-.playability-card{overflow:hidden}
-.playability-head{background:#174f78;color:#fff;padding:13px 15px;border-radius:10px;margin:-2px -2px 12px;align-items:center;position:relative;display:block}
-.playability-head h3{color:#fff!important;font-size:20px;font-weight:900;display:block;width:100%;min-width:0;box-sizing:border-box;padding-right:0}
-.playability-title-text{display:block;width:100%;box-sizing:border-box;padding-right:150px}
-.playability-head #playabilitySubtitle{color:#e4eef8!important;margin:4px 0 0;font-size:12px}
-.playability-tag{background:#e4eef8;color:#174f78;position:absolute;right:15px;top:13px}
-.playability-section-title{padding:9px 12px;border-radius:8px;background:#e8f1ed;color:#174b39;margin:13px 0 8px;font-size:15px;font-weight:900}
-.playability-section-title.rain-title{background:#1769aa;color:#fff}
-.playability-section-title.rain-title-low,.playability-section-title.cold-title-low{background:#16845b;color:#fff}
-.playability-section-title.rain-title-mid,.playability-section-title.cold-title-mid{background:#b7791f;color:#fff}
-.playability-section-title.rain-title-high,.playability-section-title.cold-title-high{background:#b42318;color:#fff}
-.playability-section-title.cold-title{background:#526b91;color:#fff}
-.playability-section-title.neutral-title{background:#64748b;color:#fff}
-.playability-section-title.cold-title-low,.playability-section-title.cold-title-mid,.playability-section-title.cold-title-high,.playability-section-title.cold-title-insufficient{background:#dceeff;color:#174b78}
-.playability-title-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:7px;font-size:11px;font-weight:700;line-height:1.35;color:#f1f5f9}
-.playability-title-chip{display:inline-flex;align-items:center;padding:3px 7px;border:1px solid rgba(255,255,255,.34);border-radius:999px;background:rgba(15,23,42,.16);white-space:nowrap}
-.playability-section-title .playability-title-meta{margin-top:6px;font-size:11px}
-.playability-score.score-tier-excellent{border-color:#15945c!important;color:#087443!important;background:#e8f7ef}
-.playability-score.score-tier-good{border-color:#1684c5!important;color:#08649b!important;background:#eaf5fc}
-.playability-score.score-tier-caution{border-color:#d99119!important;color:#9a5b00!important;background:#fff5df}
-.playability-score.score-tier-poor{border-color:#d0443d!important;color:#b42318!important;background:#fff0ef}
-.playability-score.score-tier-d{border-color:#d97735!important;color:#b45309!important;background:#fff4e8}
-.playability-score.score-tier-e{border-color:#c74343!important;color:#b42318!important;background:#fff0ef}
-.playability-bar i.score-tier-d{background:#d97735!important}
-.playability-bar i.score-tier-e{background:#c74343!important}
-.playability-bar i.score-tier-excellent{background:#15945c!important}
-.playability-bar i.score-tier-good{background:#1684c5!important}
-.playability-bar i.score-tier-caution{background:#d99119!important}
-.playability-bar i.score-tier-poor{background:#d0443d!important}
-.playability-window .score-value{font-size:15px}
-.playability-special-value.score-tier-excellent{color:#087443}
-.playability-special-value.score-tier-good{color:#08649b}
-.playability-special-value.score-tier-caution{color:#a16207}
-.playability-special-value.score-tier-poor{color:#b42318}
-/* Course playability analysis V1 preview */
-.playability-card{border:1px solid #c9ded5;background:linear-gradient(180deg,#fbfefc,#fff)}
-.playability-placeholder{padding:14px;border-radius:10px;background:#f2f6f4;color:#64748b;font-size:14px}
-.playability-overview{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;padding:12px;background:#f3f8f5;border-radius:12px;margin-bottom:12px}
-.playability-overview-revised{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 14px;align-items:center;padding:15px}
-.playability-total small,.playability-grade-block>small{display:block;color:#526b63;font-size:12px;font-weight:800;margin-bottom:5px}
-.playability-total strong{display:block;font-size:34px;line-height:1.15;font-weight:900;color:#173f35}
-.playability-total strong span{font-size:19px}
-.playability-grade-line{display:flex;align-items:center;gap:9px;min-height:42px}
-.playability-grade-letter{display:flex;width:42px;height:42px;flex:none;align-items:center;justify-content:center;border:3px solid;border-radius:50%;font-size:25px;font-weight:900;background:#fff}
-.playability-grade-letter.score-tier-excellent{color:#087443;border-color:#15945c;background:#e8f7ef}
-.playability-grade-letter.score-tier-good{color:#08649b;border-color:#1684c5;background:#eaf5fc}
-.playability-grade-letter.score-tier-caution{color:#9a5b00;border-color:#d99119;background:#fff5df}
-.playability-grade-letter.score-tier-d{color:#b45309;border-color:#d97735;background:#fff4e8}
-.playability-grade-letter.score-tier-e{color:#b42318;border-color:#c74343;background:#fff0ef}
-.playability-grade-line>strong{font-size:18px;line-height:1.3}
-.playability-description{grid-column:1/-1;padding:10px 11px;border-radius:9px;background:#fff;font-size:14px;line-height:1.55;color:#40534a;font-weight:700}
-.playability-data-note{grid-column:1/-1;font-size:11px;color:#64748b;line-height:1.45}
-.playability-score{width:104px;height:104px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border:7px solid #20a36b;color:#176344}
-.playability-score strong{font-size:32px;line-height:1.1;font-weight:900}
-.playability-score small{font-size:11px;font-weight:800}
-.playability-verdict{font-size:20px;font-weight:900;color:#176344;margin-bottom:4px}
-.playability-summary{font-size:13px;color:#40534a;line-height:1.55}
-.playability-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}
-.playability-item{padding:10px;border:1px solid #e0e9e4;border-radius:10px;background:#fff;min-width:0}
-.playability-item-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:800}
-.playability-bar{height:7px;background:#edf1ef;border-radius:99px;overflow:hidden;margin:7px 0 5px}
-.playability-bar i{display:block;height:100%;border-radius:99px;background:#23966a}
-.playability-item small{font-size:11px;color:#64748b;line-height:1.4;display:block}
-.playability-alerts{display:grid;gap:7px}
-.playability-alert{padding:9px 11px;border-radius:9px;background:#fff7e8;border-left:4px solid #d69a2d;font-size:13px;line-height:1.5;color:#704b12}
-.playability-alert.danger{background:#fff0ef;border-left-color:#d0443d;color:#8c2823}
-.playability-alert.good{background:#edf8f1;border-left-color:#269765;color:#176344}
-.playability-window{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e0e9e4;border-radius:9px;margin-top:6px;font-size:13px}
-.playability-window b{color:#176344}
-.playability-foot{font-size:11px;color:#64748b;line-height:1.5;margin-top:10px}
-/* V2.2：標題資訊單列、移除重複副標，強化低溫門檻 */
-#playabilityTitle .playability-title-meta{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) minmax(0,1.25fr);align-items:stretch;gap:clamp(5px,.75vw,10px);width:100%;max-width:100%;min-width:0;margin-top:9px;overflow:visible;white-space:nowrap;box-sizing:border-box}
-#playabilityTitle .playability-title-chip{display:flex;align-items:center;justify-content:center;gap:clamp(4px,.55vw,7px);font-size:clamp(12px,1.25vw,16px);line-height:1.2;padding:7px clamp(5px,.8vw,11px);box-sizing:border-box;width:100%;min-width:0;max-width:100%;white-space:nowrap;overflow:visible;text-overflow:clip;text-align:center}
-.playability-section-title:not(.cold-report-title) .playability-title-meta{display:flex;flex-wrap:nowrap;align-items:center;gap:clamp(4px,.7vw,8px);width:100%;min-width:0;margin-top:8px;font-size:clamp(10px,1.08vw,14px);white-space:nowrap;overflow:hidden}
-.playability-section-title:not(.cold-report-title) .playability-title-chip{font-size:clamp(10px,1.18vw,15px);padding:6px clamp(5px,.9vw,12px);box-sizing:border-box;flex:1 1 0;min-width:0;white-space:nowrap;justify-content:center;text-align:center}
-.playability-section-title.cold-report-title{display:flex;align-items:center;flex-wrap:wrap;gap:9px 12px;padding:12px 14px;line-height:1.35}
-.playability-section-title.cold-report-title .playability-title-meta{display:flex;flex:0 0 100%;flex-wrap:nowrap;align-items:center;gap:clamp(4px,.7vw,7px);width:100%;max-width:100%;min-width:0;margin:0;font-size:clamp(10px,1.04vw,13px);white-space:nowrap;overflow:hidden}
-.playability-section-title.cold-report-title .playability-title-chip{background:#f7fbff;border-color:#a9cce9;color:#174b78;padding:6px clamp(5px,.9vw,12px);font-size:clamp(10px,1.15vw,14px);box-sizing:border-box;flex:1 1 0;min-width:0;white-space:nowrap;justify-content:center;text-align:center}
-#playabilityTitle .playability-title-meta{gap:4px;grid-template-columns:.85fr 1.15fr 1.25fr}
-@media(max-width:600px){
- .playability-overview-revised{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:12px}
- .playability-total strong{font-size:30px}
- .playability-grade-line>strong{font-size:16px}
- .playability-grid,.playability-special-grid{gap:7px}
- .playability-item{padding:8px}
- .playability-section-title{font-size:14px;padding:9px 10px}
- .playability-title-meta{gap:4px;font-size:10px}
- .playability-title-chip{padding:3px 6px}
-}
-
-/* Match full-version hourly icon and rain probability sizing */
-@media(max-width:600px){
- .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji{width:38px!important;height:38px!important;min-width:38px!important;flex:0 0 38px!important}
- .hourly-table-wrap #hourlyForecastTable td:nth-child(2) .wxemoji svg.daily-weather-svg{width:38px!important;height:38px!important}
- .hourly-table-wrap #hourlyForecastTable .wxemoji{width:40px!important;height:38px!important;min-width:40px!important}
- .hourly-table-wrap #hourlyForecastTable .wxemoji svg,.hourly-table-wrap #hourlyForecastTable svg.wx-icon{width:42px!important;height:40px!important;max-width:none!important}
- .hourly-table-wrap #hourlyForecastTable .rainpill{font-size:14px!important;gap:3px!important;padding:3px 5px!important;white-space:nowrap!important}
- .hourly-table-wrap #hourlyForecastTable .rainpill b{font-size:16px!important;font-weight:900!important}
- .hourly-table-wrap #hourlyForecastTable .rainpill svg{width:34px!important;height:30px!important;max-width:none!important;vertical-align:-7px!important}
- .hourly-table-wrap #hourlyForecastTable td:nth-child(3){font-size:14px!important}
-}
-
 /* Live observation icons now reuse the same icon artwork as daily/hourly forecasts. */
 #liveObservationPanel .live-condition-icon.live-weather-icon,
 #liveObservationPanel .live-condition-icon.live-rain-icon{width:52px;height:52px;min-width:52px;margin-right:7px}
@@ -1444,6 +1447,9 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
 .tee-time-summary-tag{flex:none;background:#174f78;color:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}
 #teeTimeWeatherSummary.playability-special-grid{margin:0!important}
 @media(max-width:600px){.tee-time-summary-head{padding:11px 12px}.tee-time-summary-head h3{font-size:17px}.tee-time-summary-meta .playability-title-chip{font-size:11px;padding:4px 7px}.tee-time-summary-tag{font-size:10px;padding:6px 8px}}
+
+/* COMPACT BUILD: use the exact full-build application and logic; display only through section ④. */
+section:has(> #temperatureHeading) ~ *{display:none!important}
 </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
@@ -1515,41 +1521,355 @@ function selectedTeeTimeRows(rows){
  const start=Number(selected.slice(0,2));
  return rows.filter(x=>{const hour=Number(String(x.time||"").slice(0,2));return Number.isFinite(hour)&&hour>=start&&hour<start+6;});
 }
-function renderTeeTimeWeatherSummary(rows){
- const host=$("teeTimeWeatherSummary");if(!host)return;const meta=$("teeTimeWeatherSummaryMeta");if(meta)meta.innerHTML=playabilityContextMarkup();
- const chosen=selectedTeeTimeRows(rows||[]).filter(x=>x&&x.available!==false);
- const valid=k=>chosen.filter(x=>x[k]!==null&&x[k]!==undefined&&x[k]!==""&&Number.isFinite(Number(x[k])));
- const rain=valid("rain"),feel=valid("feel");
- const rainMin=rain.length?Math.min(...rain.map(x=>Number(x.rain))):null;
- const rainMax=rain.length?Math.max(...rain.map(x=>Number(x.rain))):null;
- const feelMin=feel.length?Math.min(...feel.map(x=>Number(x.feel))):null;
- const feelMax=feel.length?Math.max(...feel.map(x=>Number(x.feel))):null;
- const minRainRow=rain.length?rain.reduce((x,y)=>Number(x.rain)<=Number(y.rain)?x:y):null;
- const maxRainRow=rain.length?rain.reduce((x,y)=>Number(x.rain)>=Number(y.rain)?x:y):null;
- const minFeelRow=feel.length?feel.reduce((x,y)=>Number(x.feel)<=Number(y.feel)?x:y):null;
- const maxFeelRow=feel.length?feel.reduce((x,y)=>Number(x.feel)>=Number(y.feel)?x:y):null;
- const codes=chosen.filter(x=>x.code!==null&&x.code!==undefined&&x.code!=="").map(x=>Number(x.code)).filter(Number.isFinite);
- const rainy=codes.filter(c=>[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c));
- const thunder=codes.some(c=>[95,96,99].includes(c)),fog=codes.filter(c=>[45,48].includes(c));
- const clear=codes.filter(c=>c>=0&&c<=2),cloudy=codes.filter(c=>c===3);
- let weather="資料不足";
- if(codes.length>=Math.max(1,Math.ceil(chosen.length*.7))){
-  if(thunder)weather="有雷雨";
-  else if(rainy.length>=Math.ceil(codes.length/2))weather=rainy.some(c=>[65,67,82].includes(c))?"大雨／強陣雨":rainy.some(c=>[61,63,81].includes(c))?"小雨／陣雨":"毛毛雨／小雨";
-  else if(rainy.length)weather="多雲偶雨";
-  else if(fog.length>=Math.ceil(codes.length/2))weather="有霧";
-  else if(clear.length===codes.length)weather="晴朗";
-  else if(clear.length>=Math.ceil(codes.length/2))weather="多半晴朗";
-  else if(cloudy.length>=Math.ceil(codes.length/2))weather="多半陰";
-  else weather="多雲時晴";
- }
- const fmt=(lo,hi,suffix,d=0,forceRange=false)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+((forceRange||lo!==hi)?"–"+Number(hi).toFixed(d):"")+suffix;
- const rainTimes=minRainRow&&maxRainRow?"最低 "+minRainRow.time+"｜最高 "+maxRainRow.time:"有效時間資料不足";
- const feelTimes=minFeelRow&&maxFeelRow?"最低 "+minFeelRow.time+"｜最高 "+maxFeelRow.time:"有效時間資料不足";
- host.innerHTML='<div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">'+weather+'</div><small>依分析時段逐時天氣整合</small></div>'+
-  '<div class="playability-item"><b>降雨機率（最低–最高）</b><div class="playability-special-value">'+fmt(rainMin,rainMax,"%",0,true)+'</div><small>有效資料 '+rain.length+'/'+chosen.length+' 小時｜'+rainTimes+'</small></div>'+
-  '<div class="playability-item"><b>體感溫度（最低–最高）</b><div class="playability-special-value">'+fmt(feelMin,feelMax,"°C",1)+'</div><small>有效資料 '+feel.length+'/'+chosen.length+' 小時｜'+feelTimes+'</small></div>';
+function renderSelectedHourlySections(rows){
+ const shown=selectedTeeTimeRows(rows||[]);
+ renderTeeTimeWeatherSummary(rows||[]);
+ const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
+ $("hourRows").innerHTML=shown.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${rainInterpretation(x.rain,x.mm,x.code)}</td><td>${thermometerHTML(x.temp)}</td><td>${apparentFeelHTML(x.feel)}</td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
+ const times=shown.map(x=>x.time);
+ const maxOf=k=>{const a=shown.map(x=>x[k]).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v)));return a.length?Math.max(...a.map(Number)):null;};
+ chart("rainChart",[shown.map(x=>x.rain)],100,["#15966a"],times,"%","rainProbability");
+ chart("rainAmountChart",[shown.map(x=>x.mm)],Math.max(1,Math.ceil((maxOf("mm")||0)*1.2)),["#2563eb"],times," mm","rainAmount");
+ chart("tempChart",[shown.map(x=>x.temp),shown.map(x=>x.feel)],Math.max(40,maxOf("temp")||40,maxOf("feel")||40),["#1769aa","#dc2626"],times,"°C","temperature",shown.map(x=>({code:x.code,mm:x.mm})));
+ const select=$("teeTimeSelect"),dateLabel=golfDateLabel(active?.date);
+ const courseName=(selectedCourseForReload?.name||active?.name||$("locname")?.textContent||"未選擇球場").replace(/高爾夫球場/g,"").trim();
+ const range=select?.value?select.value+"–"+String(Number(select.value.slice(0,2))+5).padStart(2,"0")+":00":"06:00–18:00";
+ [["hourlyForecastHeading","① 逐時天氣預報｜"+courseName+"｜"+dateLabel+"（"+range+"）"],["rainProbabilityHeading","② 每小時降雨機率圖（%）｜"+courseName+"｜"+dateLabel+"（"+range+"）"],["rainAmountHeading","③ 每小時預報雨量圖（mm）｜"+courseName+"｜"+dateLabel+"（"+range+"）"],["temperatureHeading","④ 逐小時氣溫與體感溫度（°C）｜"+courseName+"｜"+dateLabel+"（"+range+"）"]].forEach(([id,label])=>{const el=$(id);if(el)el.textContent=label;});
 }
+function updateWeatherDateHeadings(liveDate,forecastDate){
+ const live=$("liveObservationHeading");
+ // 即時觀測維持台灣當地今日日期；四個預報區塊共用使用者選取的預報日期。
+ const taiwanToday=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ const dateLabel=golfDateLabel(forecastDate);
+ const liveCourseName=(active?.name||$("locname")?.textContent||"").replace(/高爾夫球場/g,"").trim();
+ if(live)live.textContent="即時天氣觀測｜"+(liveCourseName?liveCourseName+"｜":"")+golfDateLabel(taiwanToday);
+ renderSelectedHourlySections(active?.rows||[]);
+
+}
+function liveFmt(value,digits,suffix){
+ if(digits===undefined)digits=1;if(suffix===undefined)suffix="";
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return "—";
+ return Number(value).toFixed(digits)+suffix;
+}
+function liveFeelEstimate(temp,rh,windMs){
+ if(!Number.isFinite(Number(temp))||!Number.isFinite(Number(rh))||!Number.isFinite(Number(windMs)))return null;
+ const t=Number(temp),h=Math.max(0,Math.min(100,Number(rh))),v=Math.max(0,Number(windMs));
+ const vapor=h/100*6.105*Math.exp(17.27*t/(237.7+t));
+ return t+0.33*vapor-0.70*v-4.0;
+}
+function liveWeatherCode(text,rain10){
+ const t=String(text||"");
+ if(/雷|閃電/.test(t))return 95;
+ if(/豪雨|大雨|強降雨/.test(t))return 65;
+ if(/中雨/.test(t))return 63;
+ if(/小雨|毛毛雨|細雨/.test(t))return 61;
+ if(/雨|陣雨|降水/.test(t)){
+  const rate=Number(rain10)*6;
+  return rate>=7.5?65:rate>=2.5?63:61;
+ }
+ if(/霧/.test(t))return 45;if(/晴/.test(t))return 0;if(/雲|陰/.test(t))return 3;
+ const rate=Number(rain10)*6;
+ return Number.isFinite(rate)&&rate>0?(rate>=7.5?65:rate>=2.5?63:61):null;
+}
+function liveWeatherIcon(code){
+ const result=dailyWx(code);
+ return result&&result.icon?'<span class="live-condition-icon live-weather-icon">'+result.icon+'</span>':'<span aria-label="天氣資料不足">—</span>';
+}function liveRainIcon(amount,period){
+ if(amount===null||amount===undefined||!Number.isFinite(Number(amount)))return '<span aria-label="雨量資料不足">—</span>';
+ const icon=Number(amount)>0?dailyWeatherIcon("rain"):dailyWeatherIcon("cloud");
+ return '<span class="live-condition-icon live-rain-icon" role="img" aria-label="'+(Number(amount)>0?"有降雨":"無降雨")+'">'+icon+'</span>';
+}
+const COLD_JACKET_ICON_DATA = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%3Cdefs%3E%3ClinearGradient%20id%3D%22b%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2331bdff%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%230879df%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23063c91%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22n%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23193d78%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23071b40%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%0A%3Cpath%20d%3D%22M22%2012Q22%203%2032%203t10%209l-3%208H25Z%22%20fill%3D%22url(%23b)%22%20stroke%3D%22%23063d82%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M26%2014q6-8%2012%200l-3%206h-6Z%22%20fill%3D%22url(%23n)%22%2F%3E%0A%3Cpath%20d%3D%22M22%2017%2015%2021%205%2047q-2%205%203%207l5%202q4%201%205-3l5-12v15q0%205%205%205h8q5%200%205-5V41l5%2012q1%204%205%203l5-2q5-2%203-7L49%2021l-7-4-10%205Z%22%20fill%3D%22url(%23b)%22%20stroke%3D%22%23063b80%22%20stroke-width%3D%222%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m22%2017%2010%206%2010-6%205%204-7%208-8-3-8%203-7-8Z%22%20fill%3D%22url(%23n)%22%2F%3E%0A%3Cpath%20d%3D%22M27%2017q0-4%205-4t5%204v9H27Z%22%20fill%3D%22%230b2d62%22%20stroke%3D%22%230756aa%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cpath%20d%3D%22M32%2023v35%22%20stroke%3D%22%23eaf6ff%22%20stroke-width%3D%222.5%22%20stroke-dasharray%3D%222%202%22%2F%3E%3Crect%20x%3D%2230%22%20y%3D%2229%22%20width%3D%224%22%20height%3D%227%22%20rx%3D%221.5%22%20fill%3D%22%23ff9c12%22%2F%3E%0A%3Cpath%20d%3D%22m15%2032-5%2014%204%202%207-14M49%2032l5%2014-4%202-7-14%22%20fill%3D%22none%22%20stroke%3D%22%23082c62%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m17%2034-3%209m33-9%203%209%22%20stroke%3D%22%23ff9a12%22%20stroke-width%3D%222.3%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m37%2030%204-5%203%204%203-3%204%205Z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22M23%2055q9%203%2018%200v5q-9%203-18%200Z%22%20fill%3D%22%230753a4%22%20stroke%3D%22%23063b80%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cpath%20d%3D%22M7%2051l7%202-2%205-5-2q-2-1%200-5m43%202%207-2q2%204%200%205l-5%202Z%22%20fill%3D%22%23082b60%22%2F%3E%0A%3C%2Fsvg%3E';
+function liveFeelIcon(value){
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return '<span aria-label="體感資料不足">—</span>';
+ const hourly=apparentFeelHTML(value);
+ const match=hourly.match(/>(<svg[\s\S]*?<\/svg>|<img\b[^>]*>)/);
+ return match?'<span class="live-condition-icon live-feel-hourly" role="img" aria-label="逐時預報相同體感圖示">'+match[1]+'</span>':'';
+}function liveTemperatureIcon(value){
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
+ const color=airTempColor(value);
+ return '<span class="live-temperature-icon" aria-hidden="true"><svg viewBox="0 0 20 28" width="20" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M7 16V5a3 3 0 0 1 6 0v11a6 6 0 1 1-6 0Z" fill="#fff" stroke="'+color+'" stroke-width="2"/><path d="M10 9v11" stroke="'+color+'" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="21" r="3.5" fill="'+color+'"/></svg></span>';
+}
+function liveMetric(label,value,valueClass){return '<div class="metric"><small>'+label+'</small><strong'+(valueClass?' class="'+valueClass+'"':'')+'>'+value+'</strong></div>';}
+function liveTemperatureClass(value,kind){
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
+ const n=Number(value);
+ if(kind==='feel')return n<15?'live-temp-cold':n<=19?'live-temp-cool':n<=27?'live-temp-comfort':'live-temp-warm';
+ return n<15?'live-temp-cold':n<20?'live-temp-cool':n<=27?'live-temp-comfort':n<=32?'live-temp-warm':'live-temp-hot';
+}
+function liveRainClass(value){
+ if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
+ const n=Number(value);
+ if(n<=0)return 'live-rain-none';
+ if(n<=0.5)return 'live-rain-trace';
+ if(n<=2)return 'live-rain-light';
+ if(n<=5)return 'live-rain-moderate';
+ return 'live-rain-heavy';
+}
+async function loadLiveObservation(course){
+ const state=$("liveObservationState"),summary=$("liveObservationSummary"),metrics=$("liveObservationMetrics"),times=$("liveObservationTimes");
+ if(!state||!metrics)return;state.className="pill";state.textContent="讀取中";
+ try{
+  const courseName=String(course.name||"").trim().normalize("NFC");
+  const idx=taiwanCourses.findIndex(x=>String(x.name||"").trim().normalize("NFC")===courseName);
+  if(idx<0)throw Error("找不到球場代碼："+courseName);
+  const isJiaoxi=courseName.includes("礁溪")||course.city==="宜蘭縣"||(Number.isFinite(Number(course.lat))&&Math.abs(Number(course.lat)-24.8389)<0.03&&Math.abs(Number(course.lon)-121.7389)<0.03);
+  const id=isJiaoxi?"JIAOXI":"TWG"+String(idx+1).padStart(3,"0");
+  const res=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/live_observations.json?ts="+Date.now(),{cache:"no-store"});
+  if(!res.ok)throw Error("即時觀測快照尚未發布（HTTP "+res.status+"）");
+  const snap=await res.json();
+  updateWeatherDateHeadings(snap.generated_at||new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
+  let item=snap.courses&&snap.courses[id];
+  if(!item&&snap.courses){
+   item=Object.values(snap.courses).find(x=>String(x.course_name||"").trim().normalize("NFC")===courseName);
+   if(!item&&isJiaoxi)item=Object.values(snap.courses).find(x=>x.course_id==="JIAOXI"||Math.abs(Number(x.latitude)-24.8389)<0.03&&Math.abs(Number(x.longitude)-121.7389)<0.03);
+  }
+  if(!item)throw Error("找不到球場觀測資料（預期ID："+id+"；快照："+(snap.generated_at||"未知")+"）");
+  const w=item.weather,r=item.rainfall,ws=w&&w.station,rs=r&&r.station;
+  const temp=w&&w.temperature_c,rh=w&&w.relative_humidity_pct,wind=w&&w.wind_speed_ms,gust=w&&w.wind_gust_ms;
+  const rain10=r&&r.precipitation_10m_mm,rain1h=r&&r.precipitation_1h_mm;
+  const feel=liveFeelEstimate(temp,rh,wind),rawWeatherText=w&&w.weather_text;
+  const validWeatherText=rawWeatherText!==null&&rawWeatherText!==undefined&&String(rawWeatherText).trim()!==""&&!/^(-99(?:\\.0+)?)$/.test(String(rawWeatherText).trim());
+  const weatherText=validWeatherText?String(rawWeatherText).trim():(Number(rain10)>0?"觀測到降雨":"");
+  const code=liveWeatherCode(validWeatherText?weatherText:(Number(rain10)>0?weatherText:""),rain10);
+  const weatherIcon=code===null?"":dailyWx(code).icon;
+  const windKm=Number.isFinite(Number(wind))?Number(wind)*3.6:null,gustKm=Number.isFinite(Number(gust))?Number(gust)*3.6:null;
+  const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
+  metrics.innerHTML=[
+   liveMetric("目前天氣",'<span class="wxcell">'+weatherIcon+weatherText+'</span>'),
+   liveMetric("濕度",liveFmt(rh,0," %")),
+   liveMetric(liveTemperatureIcon(temp)+"氣溫",liveFmt(temp,1," °C"),liveTemperatureClass(temp,"air")),
+   liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C"),liveTemperatureClass(feel,"feel")),
+   liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml,liveRainClass(rain10)),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm"),liveRainClass(rain1h)),
+   liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
+  ].join("");;;
+  const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
+  const snapshotAge=Math.max(0,(Date.now()-new Date(snap.generated_at).getTime())/60000);
+  const maxAge=ages.length?Math.max.apply(null,ages)+snapshotAge:null,stale=maxAge===null||maxAge>60,warning=maxAge!==null&&maxAge>30&&maxAge<=60;
+  state.className="pill "+(stale||warning?"live-state-stale":"live-state-fresh");
+  const ageLabel=maxAge===null?"觀測時間無法確認":"最舊觀測約"+Math.round(maxAge)+"分鐘前";
+  state.textContent=stale?"資料已過期／不足（"+ageLabel+"）":warning?"觀測資料稍舊（"+ageLabel+"）":"觀測資料正常（"+ageLabel+"）";
+  const fmtTime=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
+  const fmtDateTime=x=>x?new Date(x).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"時間未知";
+  const snapshotDateTime=fmtDateTime(snap.generated_at);
+  const dateTimeEl=$("liveObservationDateTime");
+  if(dateTimeEl){dateTimeEl.textContent=snapshotDateTime;dateTimeEl.dateTime=snap.generated_at||"";}
+  summary.textContent="氣象站："+(ws?ws.name:"未配對")+"（"+(ws?ws.distance_km:"—")+" km）｜雨量站："+(rs?rs.name:"未配對")+"（"+(rs?rs.distance_km:"—")+" km）";
+  times.textContent="氣象觀測時間："+fmtTime(ws)+"｜雨量觀測時間："+fmtTime(rs)+"｜快照更新時間："+fmtTime({observed_at:snap.generated_at})+"。體感為依氣溫、濕度及風速估算，非氣象站直接量測。";
+ }catch(err){
+  state.className="pill live-state-missing";state.textContent="尚無即時資料";
+  const dateTimeEl=$("liveObservationDateTime");if(dateTimeEl)dateTimeEl.textContent="日期時間暫缺";
+  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
+  summary.textContent=course.name+"｜"+err.message+"。逐時預報仍可獨立使用。";
+  metrics.innerHTML=["目前天氣","濕度","氣溫","估算體感","近10分鐘雨量","近1小時雨量","風速","陣風"].map(x=>liveMetric(x,"—")).join("");
+  times.textContent="不以預報值代替實際觀測值，也不將缺漏資料視為零。";
+ }
+}
+async function autoLoadDatabaseCourse(c,button){
+ const date=$("courseDate").value;
+ if(!date)initForecastDatePicker();
+ const selectedDate=$("courseDate").value;
+ if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
+ if(databaseAutoBusy)return;
+ selectedCourseForReload=c;selectedCourseButton=button;
+ databaseAutoBusy=true;
+ // 日期欄位保持可操作；載入期間的新選擇會排入下一次載入。
+ $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x===button);});
+ try{
+   const lat=Number(c.lat),lon=Number(c.lon);
+   if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<21.5||lat>25.5||lon<119||lon>122.5)throw Error("此球場座標資料無效。");
+   $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${selectedDate} 氣象…`;
+   $("status").textContent=`${c.name}｜${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在取得六組氣象模型…`;
+   loadLiveObservation(c);
+   await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},selectedDate);
+   $("courseAutoStatus").textContent="";$("courseAutoStatus").classList.remove("error");
+ }catch(e){
+   $("courseAutoStatus").textContent=`${c.name}：${e.message}`;$("courseAutoStatus").classList.add("error");
+   $("status").textContent="載入失敗："+e.message;
+   const diag=$("apiDiagnosticsText");if(diag)diag.textContent=e.message;
+ }finally{
+   databaseAutoBusy=false;
+   // 不鎖定日期欄位，確保使用者可在載入期間更改日期。
+   $("courseList").querySelectorAll("button[data-course]").forEach(x=>x.disabled=false);
+   // 若載入期間使用者又選了另一日期，立即以最後選取日期補載，避免舊請求覆蓋新選擇。
+   const latestDate=$("courseDate")?.value;
+   if(latestDate&&latestDate!==selectedDate){
+    syncForecastDatePickerDisplay(latestDate);
+    syncDailyForecastSelection(latestDate);
+    setTimeout(()=>autoLoadDatabaseCourse(c,button),0);
+   }
+ }
+}
+window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};
+document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
+// 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
+$("courseDate").addEventListener("change",async()=>{
+ if(!selectedCourseForReload)return;
+ const chosenDate=$("courseDate").value;
+ syncForecastDatePickerDisplay(chosenDate);
+ syncDailyForecastSelection(chosenDate);
+ syncDailyForecastToSelectedDate();
+ if(databaseAutoBusy)return;
+ await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+ if($("courseDate").value===chosenDate){syncDailyForecastSelection(chosenDate);syncDailyForecastToSelectedDate();}
+});
+// 以日期按鈕的直接 onclick 觸發，避免 PWA 內事件委派失效。
+// 16天日期點選後，同步更新頁首日期選擇器與月曆選取狀態。
+function syncDailyForecastSelection(date){
+ if(!date)return;
+ const root=$("dailyForecastInner");if(!root)return;
+ root.querySelectorAll(".daily-date-cell").forEach(el=>{
+  const selected=el.dataset.dailyDate===date;
+  el.setAttribute("aria-pressed",selected?"true":"false");
+  el.classList.toggle("is-selected",selected);
+ });
+}
+function syncForecastDatePickerDisplay(date){
+ const input=$("courseDate");if(!input||!date)return;
+ input.value=date;
+ const trigger=$("forecastDateTrigger");
+ const label=trigger?.querySelector(".forecast-date-label");
+ if(label)label.textContent=date.replaceAll("-","/");
+ else if(trigger)trigger.textContent=date.replaceAll("-","/");
+ if(trigger)trigger.setAttribute("aria-label","預報日期："+date.replaceAll("-","/"));
+ const calendar=$("forecastCalendar");
+ if(calendar){
+  calendar.querySelectorAll(".forecast-calendar-day").forEach(button=>button.classList.toggle("selected",button.dataset.date===date));
+  const title=$("forecastCalendarTitle");
+  if(title)title.textContent=Number(date.slice(0,4))+"年"+Number(date.slice(5,7))+"月";
+ }
+}
+window.selectDailyForecastDate=async function(date){
+ const input=$("courseDate"),dailyScroll=$("dailyForecastScroll");
+ if(!date||!input||!selectedCourseForReload)return;
+ if(date<input.min||date>input.max)return;
+ // 點選前記住16天區塊的水平位置；切換日期不移動頁面垂直位置。
+ window.dailyForecastKeepScrollLeft=dailyScroll?.scrollLeft||0;
+ syncForecastDatePickerDisplay(date);
+ syncDailyForecastSelection(date);
+ syncDailyForecastToSelectedDate();
+ if(databaseAutoBusy)return;
+ const status=$("dailyForecastStatus");
+ if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
+ await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
+ // 預報載入流程結束後再次同步，避免任何重繪覆寫頁首日期。
+ syncForecastDatePickerDisplay(date);
+ // 等待逐日資料重新繪製及版面完成後，恢復原水平位置。
+ const restore=()=>{const el=$("dailyForecastScroll");if(el)el.scrollLeft=window.dailyForecastKeepScrollLeft||0;};
+ requestAnimationFrame(restore);
+ setTimeout(restore,180);
+};
+setInterval(()=>{if(selectedCourseForReload&&!document.hidden)loadLiveObservation(selectedCourseForReload);},10*60*1000);
+const modelDefs=[
+ ["ECMWF IFS","ecmwf_ifs025"],
+ ["NOAA GFS","ncep_gfs_seamless"],
+ ["DWD ICON","icon_seamless"],
+ ["JMA GSM","jma_seamless"],
+ ["Canada GEM","cmc_gem_seamless"],
+ ["ECMWF AIFS","ecmwf_aifs025_single"]
+];
+// 確定性模式逐時欄位：雨量與溫度／風場分開取值；降雨機率由系集API獨立計算。
+const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
+function wxIcon(code){
+ const n=Number(code);
+ if(!Number.isFinite(n))return '<span aria-label="無資料">—</span>';
+ // Hourly weather row reuses the same seven custom icons as the 16-day daytime forecast.
+ // Snow is intentionally not shown; unsupported codes fall back to cloudy.
+ let kind="cloud";
+ if(n===0)kind="sun";
+ else if(n<=2)kind="partly";
+ else if(n===3)kind="cloud";
+ else if(n===45||n===48)kind="fog";
+ else if([51,53,55,56,57].includes(n))kind="drizzle";
+ else if([61,63,65,66,67,80,81,82].includes(n))kind="rain";
+ else if([95,96,99].includes(n))kind="storm";
+ else if([71,73,75,77,85,86].includes(n))kind="cloud";
+ return dailyWeatherIcon(kind);
+}
+function wx(code){const n=Number(code);if(!Number.isFinite(n))return "無資料";if([95,96,99].includes(n))return "雷雨";if([80,81,82].includes(n))return "陣雨";if([61,63,65,66,67].includes(n))return "降雨";if([51,53,55,56,57].includes(n))return "毛毛雨／小雨";if([45,48].includes(n))return "有霧";if(n===0)return "晴朗";if(n<=2)return "晴時多雲";return "陰／多雲";}
+function score(rain,wind,gust,feel){let v=100-(rain||0)*0.55-Math.max(0,(wind||0)-12)*1.2-Math.max(0,(gust||0)-22)*0.8-Math.max(0,Math.abs((feel??24)-24)-7)*2;return Math.max(0,Math.min(100,Math.round(v)));}
+function cls(v){return v>=75?"good":v>=50?"mid":"bad";}
+function dir(v){if(v===null||v===undefined)return "—";return ["北","東北","東","東南","南","西南","西","西北"][Math.round(v/45)%8];}
+function apparentFeelIcon(v){
+ if(v===null||v===undefined||v==="")return "normal";
+ const raw=String(v).trim().replace(/,/g,".");
+ const match=raw.match(/[-+]?\d+(?:\.\d+)?/);
+ if(!match)return "normal";
+ const n=Number(match[0]);
+ if(n<15)return "cold-warning";
+ if(n<=19)return "cold";
+ if(n<=27)return "normal";
+ if(n<=30)return "hot";
+ return "hot-warning";
+}
+
+function airTempColor(v){
+ if(v===null||v===undefined||!Number.isFinite(Number(v)))return "#64748b";
+ const n=Number(v);if(n<=15)return "#2563eb";if(n<=22)return "#0891b2";if(n<=28)return "#ea8a18";return "#dc2626";
+}
+
+function displayTemp(v){return v===null||v===undefined||!Number.isFinite(Number(v))?"—":Number(v).toFixed(1);}
+
+function thermometerHTML(v){
+ const color=airTempColor(v);
+ return '<span class="temp-value" style="color:'+color+';font-size:18px;font-weight:800;white-space:nowrap"><svg aria-hidden="true" viewBox="0 0 20 28" width="13" height="18" style="vertical-align:-4px;margin-right:2px"><defs><linearGradient id="thermoFill" x1="0" y1="1" x2="0" y2="0"><stop stop-color="'+color+'"/><stop offset="1" stop-color="#fff"/></linearGradient></defs><path d="M7 16V5a3 3 0 0 1 6 0v11a6 6 0 1 1-6 0Z" fill="#fff" stroke="'+color+'" stroke-width="2"/><path d="M10 9v11" stroke="'+color+'" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="21" r="3.5" fill="'+color+'"/></svg>'+displayTemp(v)+'</span>';
+}
+
+function apparentFeelHTML(v){
+ const state=apparentFeelIcon(v);
+ const color=state==="cold"||state==="cold-warning"?"#2563eb":state==="hot"||state==="hot-warning"?"#dc2626":"#16a34a";
+ let icon="";
+ if(state==="cold-warning"){
+  // 15°C以下：依照使用者指定的藍色冰凍表情，白色冰帽、冰晶雪花及顫抖咬牙表情。
+  icon='<svg aria-hidden="true" viewBox="0 0 64 64" width="40" height="40" style="display:block!important;width:40px!important;height:40px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="coldWarningFace" cx="48%" cy="42%" r="65%"><stop offset="0" stop-color="#42d9df"/><stop offset=".65" stop-color="#12a9e5"/><stop offset="1" stop-color="#0874d1"/></radialGradient></defs><circle cx="32" cy="34" r="28" fill="url(#coldWarningFace)" stroke="#0872c5" stroke-width="1.8"/><path d="M5 25Q4 17 14 14Q19 5 32 7Q47 3 53 13Q62 15 58 24Q53 27 42 23L17 25Q8 31 5 25Z" fill="#d9f3ff"/><g fill="#43290e"><ellipse cx="22" cy="30" rx="4.2" ry="6"/><ellipse cx="42" cy="30" rx="4.2" ry="6"/></g><g><rect x="13" y="41" width="38" height="11" rx="5.5" fill="#fff" stroke="#0877d2" stroke-width="1.2"/><path d="M20 41v11M27 41v11M34 41v11M41 41v11M48 41v11M13 46.5h38" stroke="#aebbc7" stroke-width="1.2"/></g><g fill="none" stroke="#d9f4ff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 29v12M3 32l10 6M3 38l10-6M8 29l-2 2M8 29l2 2M8 41l-2-2M8 41l2-2"/><path d="M53 13v13M47.5 16.5l11 6M47.5 22.5l11-6M53 13l-2 2M53 13l2 2M53 26l-2-2M53 26l2-2"/><path d="M30 54v9M22 58.5h16M23.5 55l13 7.5M23.5 62l13-7.5M30 54l-2 2M30 54l2 2M30 63l-2-2M30 63l2-2M22 58.5l2-2M22 58.5l2 2M38 58.5l-2-2M38 58.5l-2 2M23.5 55l.5 3M23.5 55l3 .5M36.5 62l-.5-3M36.5 62l-3-.5M23.5 62l.5-3M23.5 62l3-.5M36.5 55l-.5 3M36.5 55l-3 .5"/></g></svg>';
+ }else if(state==="cold"){
+  // 15–19°C：使用新版藍色保暖外套圖示。
+  icon='<img src="'+COLD_JACKET_ICON_DATA+'" alt="" width="40" height="40" style="display:block;width:40px;height:40px;object-fit:contain"/>';
+ }else if(state==="hot-warning"){
+  // 30°C以上：依照使用者提供的高溫表情圖，使用大紅橙色熱臉、吐舌及多處汗滴。
+  icon='<svg aria-hidden="true" viewBox="0 0 64 48" width="40" height="30" style="display:block!important;width:40px!important;height:30px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="extremeHeatFace" cx="48%" cy="35%" r="68%"><stop offset="0" stop-color="#ffd84a"/><stop offset=".55" stop-color="#ff7a18"/><stop offset="1" stop-color="#d92d0b"/></radialGradient><linearGradient id="extremeHeatTongue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ff78b7"/><stop offset="1" stop-color="#e52e87"/></linearGradient></defs><circle cx="32" cy="24" r="22" fill="url(#extremeHeatFace)" stroke="#9b260d" stroke-width="1.3"/><g fill="none" stroke="#6f210e" stroke-width="2" stroke-linecap="round"><path d="M13 15q5 2 9-4M42 11q4 6 9 4"/></g><g stroke="#080808" stroke-width="1.5" stroke-linejoin="round"><path d="M10 17Q20 13 29 17L30 23Q29 28 22 28H17Q11 27 10 22Z" fill="#050505"/><path d="M34 17Q44 13 54 17L54 22Q53 27 47 28H42Q35 28 34 23Z" fill="#050505"/><path d="M29 19Q32 17 35 19" fill="none" stroke="#050505" stroke-width="2.2"/><path d="M14 18l8-1M38 18l8-1" stroke="#777" stroke-width=".9" opacity=".75"/></g><ellipse cx="32" cy="32" rx="8.5" ry="5" fill="#68130f" stroke="#50120d" stroke-width="1"/><path d="M26.5 32q0-2 5.5-2t5.5 2v9q0 5-5.5 5t-5.5-5Z" fill="url(#extremeHeatTongue)" stroke="#7b1738" stroke-width="1.1"/><path d="M32 32v10" stroke="#b51d59" stroke-width="1"/><g fill="#ff713b"><path d="M8 18q-3 4 0 7 3-3 0-7ZM18 3q-3 4 0 7 3-3 0-7ZM39 2q-3 4 0 7 3-3 0-7ZM56 20q-3 4 0 7 3-3 0-7Z"/></g><g fill="#36b9f4" stroke="#07558e" stroke-width=".8"><path d="M5 27q-4 6-4 9a4 4 0 0 0 8 0q0-3-4-9ZM59 3q-4 6-4 9a4 4 0 0 0 8 0q0-3-4-9ZM12 37q-3 4-3 6a3 3 0 0 0 6 0q0-2-3-6Z"/></g></svg>';
+ }else if(state==="hot"){
+  // 28–30°C：依照使用者提供的吐舌流汗表情圖，單側大汗滴、張眼、張嘴吐舌。
+  icon='<svg aria-hidden="true" viewBox="0 0 64 48" width="40" height="30" style="display:block!important;width:40px!important;height:30px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="hotFaceGrad" cx="48%" cy="34%" r="68%"><stop offset="0" stop-color="#ffe45b"/><stop offset=".56" stop-color="#ff8a19"/><stop offset="1" stop-color="#e83d0b"/></radialGradient><linearGradient id="hotTongueGrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ff83bf"/><stop offset="1" stop-color="#e8328d"/></linearGradient><linearGradient id="hotDropGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b8f4ff"/><stop offset=".45" stop-color="#35bdec"/><stop offset="1" stop-color="#0874bd"/></linearGradient></defs><circle cx="34" cy="24" r="21.5" fill="url(#hotFaceGrad)" stroke="#b52d0b" stroke-width="1.1"/><path d="M16 14q6 1 11-6M43 8q5 7 11 6" fill="none" stroke="#75260f" stroke-width="2.3" stroke-linecap="round"/><ellipse cx="25" cy="22" rx="2.6" ry="3.6" fill="#5a1b10"/><ellipse cx="43" cy="22" rx="2.6" ry="3.6" fill="#5a1b10"/><ellipse cx="34" cy="33" rx="8.6" ry="5.5" fill="#64110f" stroke="#51100e" stroke-width="1"/><path d="M28.5 33q0-2 5.5-2t5.5 2v8q0 5-5.5 5t-5.5-5Z" fill="url(#hotTongueGrad)" stroke="#8b174c" stroke-width="1"/><path d="M34 33v10" stroke="#bd286c" stroke-width=".8"/><path d="M10 17c-3.8 6-6.8 9.3-6.8 13a6.8 6.8 0 0 0 13.6 0c0-3.7-3-7-6.8-13Z" fill="url(#hotDropGrad)" stroke="#0874bd" stroke-width="1.1"/><path d="M8 26q-.8 3 0 5" fill="none" stroke="#e4fbff" stroke-width="1.8" stroke-linecap="round"/></svg>';
+ }else{
+  // 20–27°C：保留原本綠色笑臉。
+  icon='<svg aria-hidden="true" viewBox="0 0 48 48" width="30" height="30" style="display:block!important;width:30px!important;height:30px!important;min-width:30px;flex:0 0 30px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="21" fill="#16a34a"/><circle cx="17" cy="19" r="2.4" fill="#fff"/><circle cx="31" cy="19" r="2.4" fill="#fff"/><path d="M14 26Q24 39 34 26" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>';
+ }
+ const label=state==="cold-warning"?"低溫特別警示":state==="hot-warning"?"高溫特別警示":state==="cold"?"寒冷":state==="hot"?"炎熱":"舒適";
+ return '<span class="hourly-feel-icon" data-feel-state="'+state+'" title="'+label+'" aria-label="'+label+' '+displayTemp(v)+'度" style="color:'+color+';font-weight:800;white-space:nowrap;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px;vertical-align:middle">'+icon+'<span>'+displayTemp(v)+'</span></span>';
+}
+
+function rainProbHTML(v){
+ if(v===null||v===undefined)return "—";
+ const n=Math.max(0,Math.min(100,Math.round(Number(v)))),level=n>=60?"high":n>=30?"mid":"low";
+ const common='viewBox="0 0 48 42" aria-hidden="true" style="width:24px;height:21px;vertical-align:-5px;margin-right:2px;flex:none"';
+ const cap='<svg viewBox="0 0 550 354" aria-hidden="true" style="width:25px;height:16px;vertical-align:-4px;margin-right:2px;flex:none"><g fill="none" stroke="#111318" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><path d="M120 198C122 88 208 5 331 5c123 0 211 98 214 231 1 47-55 56-120 34"/><path d="M120 198C210 191 323 217 425 270"/><path d="M350 237C344 177 341 91 331 5"/><path d="M238 204C238 120 269 43 331 5"/><path d="M120 198C91 216 47 240 18 259C-2 273 21 298 54 304c35 7 63-10 87-1 31 11 42 42 91 46 53 4 91-36 118-75l75-4"/></g></svg>';
+ const jacket='<svg '+common+'><path d="M17 10Q17 3 24 3Q31 3 31 10L37 14 45 26 39 31 34 25 34 39H14V25L9 31 3 26 11 14Z" fill="#FDE047" stroke="#854D0E" stroke-width="2.2" stroke-linejoin="round"/><path d="M17 10Q24 18 31 10M17 10 13 16M31 10l4 6" fill="none" stroke="#A16207" stroke-width="1.8" stroke-linejoin="round"/><path d="M24 17v21M21 23h2m2 0h2" stroke="#854D0E" stroke-width="1.8" stroke-linecap="round"/><path d="M15 34h18M7 27l4 2m30-2-4 2" stroke="#A16207" stroke-width="1.6" stroke-linecap="round"/></svg>';
+ const umbrella='<svg '+common+'><path d="M4 20Q6 5 24 4Q42 5 44 20Q39 16 34 20Q29 16 24 20Q19 16 14 20Q9 16 4 20Z" fill="#EF4444" stroke="#7F1D1D" stroke-width="2" stroke-linejoin="round"/><path d="M24 20v13q0 6 7 4" fill="none" stroke="#1F2937" stroke-width="2.8" stroke-linecap="round"/><path d="m11 25-3 6m16-6-3 6m16-6-3 6" stroke="#0284C7" stroke-width="2.2" stroke-linecap="round"/></svg>';
+ const icon=n>=60?umbrella:n>=30?jacket:cap,label=n>=60?"高降雨機率":n>=30?"中降雨機率":"低降雨機率";
+ return '<span class="rainpill '+level+'" title="'+label+'：'+n+'%"><span aria-hidden="true">'+icon+'</span><b>'+n+'%</b></span>';
+}
+function rainInterpretation(prob,mm,weatherCode){
+ if(prob===null||prob===undefined||mm===null||mm===undefined||!Number.isFinite(Number(prob))||!Number.isFinite(Number(mm)))return '<span class="rain-interpretation neutral">—</span>';
+ const p=Number(prob),r=Number(mm),code=Number(weatherCode);
+ let level,label,detail;
+ if([95,96,99].includes(code)||r>5){level=5;label="大雨／雷雨";detail="雷雨或雨量過大，不建議打球";}
+ else if(r>2){level=4;label="持續降雨";detail="降雨量較大，建議雨衣、防水鞋及雨傘";}
+ else if(p>=30||r>0.1){level=3;label="零星小雨";detail="可能短暫降雨，建議雨傘及輕便雨衣";}
+ else if(p>0||r>0){level=2;label="低降雨風險";detail="降雨風險低，可正常打球，建議備輕便雨傘";}
+ else{level=1;label="晴朗乾燥";detail="降雨風險極低，正常服裝，不需雨傘";}
+ return '<span class="rain-interpretation level-'+level+'" title="'+detail+'"><b>'+label+'</b></span>';
+}
+function rainAmountHTML(v){
+ if(v===null||v===undefined)return "—";
+ const n=Number(v),level=n>=5?"heavy":n>0?"light":"none",drops=n<=0?0:n<1?1:n<5?2:3;
+ const cloud='<svg viewBox="0 0 40 30" aria-hidden="true" style="width:27px;height:21px;vertical-align:-5px;margin-right:3px"><path d="M7 23h26a7 7 0 0 0 0-14 10 10 0 0 0-19-2 8 8 0 0 0-7 16Z" fill="#CBD5E1" stroke="#64748B" stroke-width="1.7"/></svg>';
+ const drop='<svg viewBox="0 0 18 24" aria-hidden="true" style="width:13px;height:19px;vertical-align:-4px;margin-right:1px"><path d="M9 1C7 6 2 11 2 15a7 7 0 0 0 14 0C16 11 11 6 9 1Z" fill="url(#dropGradient)" stroke="#0369A1" stroke-width="1.2"/><path d="M5 15q0 3 3 4" fill="none" stroke="#E0F2FE" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="dropGradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7DD3FC"/><stop offset="1" stop-color="#0284C7"/></linearGradient></defs></svg>';
+ const icons=drops?drop.repeat(drops):cloud;
+ return '<span class="rainamount '+level+'" title="預報雨量 '+n.toFixed(1)+' mm"><span aria-hidden="true">'+icons+'</span><b>'+n.toFixed(1)+' mm</b></span>';
+}
+function golfabilityScore(rows){if(rows.length!==4||rows.some(x=>!x.available))return null;if(rows.some(x=>x.code>=95))return 0;return Math.round(rows.reduce((z,x)=>z+score(x.rain,x.wind,x.gust,x.feel),0)/4);}
+function golfScoreLabel(v){return v>=85?"非常適合":v>=70?"適合":v>=55?"尚可，留意天氣":"不建議";}
 function playabilityNumber(v){return v===null||v===undefined||v===""||!Number.isFinite(Number(v))?null:Number(v);}
 function playabilityFactorScore(rows){
  const vals=rows.filter(x=>x&&x.available!==false);
@@ -1739,6 +2059,41 @@ function renderV2SpecialReports(rows){
  '<details class="playability-special-details"><summary>逐時降雨與低溫明細（'+a.length+'筆）</summary><div class="provider-table-wrap"><table class="provider-table"><thead><tr><th>時間</th><th>降雨機率</th><th>雨量</th><th>氣溫</th><th>體感</th></tr></thead><tbody>'+detail+'</tbody></table></div></details>';
 }
 
+function renderTeeTimeWeatherSummary(rows){
+ const host=$("teeTimeWeatherSummary");if(!host)return;const meta=$("teeTimeWeatherSummaryMeta");if(meta)meta.innerHTML=playabilityContextMarkup();
+ const chosen=selectedTeeTimeRows(rows||[]).filter(x=>x&&x.available!==false);
+ const valid=k=>chosen.filter(x=>x[k]!==null&&x[k]!==undefined&&x[k]!==""&&Number.isFinite(Number(x[k])));
+ const rain=valid("rain"),feel=valid("feel");
+ const rainMin=rain.length?Math.min(...rain.map(x=>Number(x.rain))):null;
+ const rainMax=rain.length?Math.max(...rain.map(x=>Number(x.rain))):null;
+ const feelMin=feel.length?Math.min(...feel.map(x=>Number(x.feel))):null;
+ const feelMax=feel.length?Math.max(...feel.map(x=>Number(x.feel))):null;
+ const minRainRow=rain.length?rain.reduce((x,y)=>Number(x.rain)<=Number(y.rain)?x:y):null;
+ const maxRainRow=rain.length?rain.reduce((x,y)=>Number(x.rain)>=Number(y.rain)?x:y):null;
+ const minFeelRow=feel.length?feel.reduce((x,y)=>Number(x.feel)<=Number(y.feel)?x:y):null;
+ const maxFeelRow=feel.length?feel.reduce((x,y)=>Number(x.feel)>=Number(y.feel)?x:y):null;
+ const codes=chosen.filter(x=>x.code!==null&&x.code!==undefined&&x.code!=="").map(x=>Number(x.code)).filter(Number.isFinite);
+ const rainy=codes.filter(c=>[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c));
+ const thunder=codes.some(c=>[95,96,99].includes(c)),fog=codes.filter(c=>[45,48].includes(c));
+ const clear=codes.filter(c=>c>=0&&c<=2),cloudy=codes.filter(c=>c===3);
+ let weather="資料不足";
+ if(codes.length>=Math.max(1,Math.ceil(chosen.length*.7))){
+  if(thunder)weather="有雷雨";
+  else if(rainy.length>=Math.ceil(codes.length/2))weather=rainy.some(c=>[65,67,82].includes(c))?"大雨／強陣雨":rainy.some(c=>[61,63,81].includes(c))?"小雨／陣雨":"毛毛雨／小雨";
+  else if(rainy.length)weather="多雲偶雨";
+  else if(fog.length>=Math.ceil(codes.length/2))weather="有霧";
+  else if(clear.length===codes.length)weather="晴朗";
+  else if(clear.length>=Math.ceil(codes.length/2))weather="多半晴朗";
+  else if(cloudy.length>=Math.ceil(codes.length/2))weather="多半陰";
+  else weather="多雲時晴";
+ }
+ const fmt=(lo,hi,suffix,d=0,forceRange=false)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+((forceRange||lo!==hi)?"–"+Number(hi).toFixed(d):"")+suffix;
+ const rainTimes=minRainRow&&maxRainRow?"最低 "+minRainRow.time+"｜最高 "+maxRainRow.time:"有效時間資料不足";
+ const feelTimes=minFeelRow&&maxFeelRow?"最低 "+minFeelRow.time+"｜最高 "+maxFeelRow.time:"有效時間資料不足";
+ host.innerHTML='<div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">'+weather+'</div><small>依分析時段逐時天氣整合</small></div>'+
+  '<div class="playability-item"><b>降雨機率（最低–最高）</b><div class="playability-special-value">'+fmt(rainMin,rainMax,"%",0,true)+'</div><small>有效資料 '+rain.length+'/'+chosen.length+' 小時｜'+rainTimes+'</small></div>'+
+  '<div class="playability-item"><b>體感溫度（最低–最高）</b><div class="playability-special-value">'+fmt(feelMin,feelMax,"°C",1)+'</div><small>有效資料 '+feel.length+'/'+chosen.length+' 小時｜'+feelTimes+'</small></div>';
+}
 function renderPlayabilityAnalysis(rows,courseName,date){
  const host=$("playabilityContent"),subtitle=$("playabilitySubtitle");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]),scope=$("teeTimeSelect")?.value;
@@ -1760,351 +2115,6 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  host.innerHTML=summaryMarkup+'<div class="playability-overview playability-overview-revised"><div class="playability-total"><small>天氣適打性總得分</small><strong>'+data.score+' <span>分</span></strong></div><div class="playability-grade-block"><small>適打等級</small><div class="playability-grade-line"><b class="playability-grade-letter '+overallGrade.cls+'">'+overallGrade.grade+'</b><strong style="color:'+tone+'">'+verdict+'</strong></div></div><div class="playability-description">'+overallGrade.description+'</div><div class="playability-data-note">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
  renderV2SpecialReports(chosen);
 }
-
-function renderSelectedHourlySections(rows){
- const shown=selectedTeeTimeRows(rows||[]);
- renderTeeTimeWeatherSummary(rows||[]);
- renderPlayabilityAnalysis(rows||[],active?.name,active?.date);
- const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
- $("hourRows").innerHTML=shown.map(x=>`<tr><td><b>${x.time}</b></td><td><span class="wxcell"><span class="wxemoji">${wxIcon(x.code)}</span>${wx(x.code)}</span></td><td>${rainProbHTML(x.rain)}</td><td>${amountRangeHTML(x)}</td><td>${rainInterpretation(x.rain,x.mm,x.code)}</td><td>${thermometerHTML(x.temp)}</td><td>${apparentFeelHTML(x.feel)}</td><td>${fmt(x.wind)}</td><td>${fmt(x.gust)}</td><td>${x.dir===null||x.dir===undefined?"—":`${dir(x.dir)} ${Math.round(x.dir)}°`}</td><td>${x.rh??"—"}%</td><td>${x.cloud??"—"}%</td><td>${fmt(x.uv)}</td><td class="${cls(score(x.rain,x.wind,x.gust,x.feel))}">${score(x.rain,x.wind,x.gust,x.feel)}/100</td></tr>`).join("");
- const times=shown.map(x=>x.time);
- const maxOf=k=>{const a=shown.map(x=>x[k]).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v)));return a.length?Math.max(...a.map(Number)):null;};
- chart("rainChart",[shown.map(x=>x.rain)],100,["#15966a"],times,"%","rainProbability");
- chart("rainAmountChart",[shown.map(x=>x.mm)],Math.max(1,Math.ceil((maxOf("mm")||0)*1.2)),["#2563eb"],times," mm","rainAmount");
- chart("tempChart",[shown.map(x=>x.temp),shown.map(x=>x.feel)],Math.max(40,maxOf("temp")||40,maxOf("feel")||40),["#1769aa","#dc2626"],times,"°C","temperature",shown.map(x=>({code:x.code,mm:x.mm})));
- const select=$("teeTimeSelect"),dateLabel=golfDateLabel(active?.date);
- const courseName=(selectedCourseForReload?.name||active?.name||$("locname")?.textContent||"未選擇球場").replace(/高爾夫球場/g,"").trim();
- const range=select?.value?select.value+"–"+String(Number(select.value.slice(0,2))+5).padStart(2,"0")+":00":"06:00–18:00";
- [["hourlyForecastHeading","① 逐時天氣預報｜"+courseName+"｜"+dateLabel+"（"+range+"）"],["rainProbabilityHeading","② 每小時降雨機率圖（%）｜"+courseName+"｜"+dateLabel+"（"+range+"）"],["rainAmountHeading","③ 每小時預報雨量圖（mm）｜"+courseName+"｜"+dateLabel+"（"+range+"）"],["temperatureHeading","④ 逐小時氣溫與體感溫度（°C）｜"+courseName+"｜"+dateLabel+"（"+range+"）"]].forEach(([id,label])=>{const el=$(id);if(el)el.textContent=label;});
-}
-function updateWeatherDateHeadings(liveDate,forecastDate){
- const live=$("liveObservationHeading");
- // 即時觀測維持台灣當地今日日期；四個預報區塊共用使用者選取的預報日期。
- const taiwanToday=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
- const dateLabel=golfDateLabel(forecastDate);
- if(live)live.textContent="即時天氣觀測｜"+golfDateLabel(taiwanToday);
- renderSelectedHourlySections(active?.rows||[]);
-
-}
-function liveFmt(value,digits,suffix){
- if(digits===undefined)digits=1;if(suffix===undefined)suffix="";
- if(value===null||value===undefined||!Number.isFinite(Number(value)))return "—";
- return Number(value).toFixed(digits)+suffix;
-}
-function liveFeelEstimate(temp,rh,windMs){
- if(!Number.isFinite(Number(temp))||!Number.isFinite(Number(rh))||!Number.isFinite(Number(windMs)))return null;
- const t=Number(temp),h=Math.max(0,Math.min(100,Number(rh))),v=Math.max(0,Number(windMs));
- const vapor=h/100*6.105*Math.exp(17.27*t/(237.7+t));
- return t+0.33*vapor-0.70*v-4.0;
-}
-function liveWeatherCode(text,rain10){
- const t=String(text||"");
- if(/雷|閃電/.test(t))return 95;
- if(/豪雨|大雨|強降雨/.test(t))return 65;
- if(/中雨/.test(t))return 63;
- if(/小雨|毛毛雨|細雨/.test(t))return 61;
- if(/雨|陣雨|降水/.test(t)){
-  const rate=Number(rain10)*6;
-  return rate>=7.5?65:rate>=2.5?63:61;
- }
- if(/霧/.test(t))return 45;if(/晴/.test(t))return 0;if(/雲|陰/.test(t))return 3;
- const rate=Number(rain10)*6;
- return Number.isFinite(rate)&&rate>0?(rate>=7.5?65:rate>=2.5?63:61):null;
-}
-function liveWeatherIcon(code){
- const result=dailyWx(code);
- return result&&result.icon?'<span class="live-condition-icon live-weather-icon">'+result.icon+'</span>':'<span aria-label="天氣資料不足">—</span>';
-}function liveRainIcon(amount,period){
- if(amount===null||amount===undefined||!Number.isFinite(Number(amount)))return '<span aria-label="雨量資料不足">—</span>';
- const icon=Number(amount)>0?dailyWeatherIcon("rain"):dailyWeatherIcon("cloud");
- return '<span class="live-condition-icon live-rain-icon" role="img" aria-label="'+(Number(amount)>0?"有降雨":"無降雨")+'">'+icon+'</span>';
-}const COLD_JACKET_ICON_DATA = 'data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%3Cdefs%3E%3ClinearGradient%20id%3D%22b%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%2331bdff%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%230879df%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23063c91%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22n%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23193d78%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23071b40%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%0A%3Cpath%20d%3D%22M22%2012Q22%203%2032%203t10%209l-3%208H25Z%22%20fill%3D%22url(%23b)%22%20stroke%3D%22%23063d82%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M26%2014q6-8%2012%200l-3%206h-6Z%22%20fill%3D%22url(%23n)%22%2F%3E%0A%3Cpath%20d%3D%22M22%2017%2015%2021%205%2047q-2%205%203%207l5%202q4%201%205-3l5-12v15q0%205%205%205h8q5%200%205-5V41l5%2012q1%204%205%203l5-2q5-2%203-7L49%2021l-7-4-10%205Z%22%20fill%3D%22url(%23b)%22%20stroke%3D%22%23063b80%22%20stroke-width%3D%222%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m22%2017%2010%206%2010-6%205%204-7%208-8-3-8%203-7-8Z%22%20fill%3D%22url(%23n)%22%2F%3E%0A%3Cpath%20d%3D%22M27%2017q0-4%205-4t5%204v9H27Z%22%20fill%3D%22%230b2d62%22%20stroke%3D%22%230756aa%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cpath%20d%3D%22M32%2023v35%22%20stroke%3D%22%23eaf6ff%22%20stroke-width%3D%222.5%22%20stroke-dasharray%3D%222%202%22%2F%3E%3Crect%20x%3D%2230%22%20y%3D%2229%22%20width%3D%224%22%20height%3D%227%22%20rx%3D%221.5%22%20fill%3D%22%23ff9c12%22%2F%3E%0A%3Cpath%20d%3D%22m15%2032-5%2014%204%202%207-14M49%2032l5%2014-4%202-7-14%22%20fill%3D%22none%22%20stroke%3D%22%23082c62%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m17%2034-3%209m33-9%203%209%22%20stroke%3D%22%23ff9a12%22%20stroke-width%3D%222.3%22%20stroke-linecap%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22m37%2030%204-5%203%204%203-3%204%205Z%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%3Cpath%20d%3D%22M23%2055q9%203%2018%200v5q-9%203-18%200Z%22%20fill%3D%22%230753a4%22%20stroke%3D%22%23063b80%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cpath%20d%3D%22M7%2051l7%202-2%205-5-2q-2-1%200-5m43%202%207-2q2%204%200%205l-5%202Z%22%20fill%3D%22%23082b60%22%2F%3E%0A%3C%2Fsvg%3E';
-function liveFeelIcon(value){
- if(value===null||value===undefined||!Number.isFinite(Number(value)))return '<span aria-label="體感資料不足">—</span>';
- const hourly=apparentFeelHTML(value);
- const match=hourly.match(/>(<svg[\s\S]*?<\/svg>|<img\b[^>]*>)/);
- return match?'<span class="live-condition-icon live-feel-hourly" role="img" aria-label="逐時預報相同體感圖示">'+match[1]+'</span>':'';
-}function liveTemperatureIcon(value){
- if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
- const color=airTempColor(value);
- return '<span class="live-temperature-icon" aria-hidden="true"><svg viewBox="0 0 20 28" width="20" height="28" xmlns="http://www.w3.org/2000/svg"><path d="M7 16V5a3 3 0 0 1 6 0v11a6 6 0 1 1-6 0Z" fill="#fff" stroke="'+color+'" stroke-width="2"/><path d="M10 9v11" stroke="'+color+'" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="21" r="3.5" fill="'+color+'"/></svg></span>';
-}
-function liveMetric(label,value,valueClass){return '<div class="metric"><small>'+label+'</small><strong'+(valueClass?' class="'+valueClass+'"':'')+'>'+value+'</strong></div>';}
-function liveTemperatureClass(value,kind){
- if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
- const n=Number(value);
- if(kind==='feel')return n<15?'live-temp-cold':n<=19?'live-temp-cool':n<=27?'live-temp-comfort':'live-temp-warm';
- return n<15?'live-temp-cold':n<20?'live-temp-cool':n<=27?'live-temp-comfort':n<=32?'live-temp-warm':'live-temp-hot';
-}
-function liveRainClass(value){
- if(value===null||value===undefined||!Number.isFinite(Number(value)))return '';
- const n=Number(value);
- if(n<=0)return 'live-rain-none';
- if(n<=0.5)return 'live-rain-trace';
- if(n<=2)return 'live-rain-light';
- if(n<=5)return 'live-rain-moderate';
- return 'live-rain-heavy';
-}
-async function loadLiveObservation(course){
- const state=$("liveObservationState"),summary=$("liveObservationSummary"),metrics=$("liveObservationMetrics"),times=$("liveObservationTimes");
- if(!state||!metrics)return;state.className="pill";state.textContent="讀取中";
- try{
-  const courseName=String(course.name||"").trim().normalize("NFC");
-  const idx=taiwanCourses.findIndex(x=>String(x.name||"").trim().normalize("NFC")===courseName);
-  if(idx<0)throw Error("找不到球場代碼："+courseName);
-  const isJiaoxi=courseName.includes("礁溪")||course.city==="宜蘭縣"||(Number.isFinite(Number(course.lat))&&Math.abs(Number(course.lat)-24.8389)<0.03&&Math.abs(Number(course.lon)-121.7389)<0.03);
-  const id=isJiaoxi?"JIAOXI":"TWG"+String(idx+1).padStart(3,"0");
-  const res=await fetch("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/live_observations.json?ts="+Date.now(),{cache:"no-store"});
-  if(!res.ok)throw Error("即時觀測快照尚未發布（HTTP "+res.status+"）");
-  const snap=await res.json();
-  updateWeatherDateHeadings(snap.generated_at||new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
-  let item=snap.courses&&snap.courses[id];
-  if(!item&&snap.courses){
-   item=Object.values(snap.courses).find(x=>String(x.course_name||"").trim().normalize("NFC")===courseName);
-   if(!item&&isJiaoxi)item=Object.values(snap.courses).find(x=>x.course_id==="JIAOXI"||Math.abs(Number(x.latitude)-24.8389)<0.03&&Math.abs(Number(x.longitude)-121.7389)<0.03);
-  }
-  if(!item)throw Error("找不到球場觀測資料（預期ID："+id+"；快照："+(snap.generated_at||"未知")+"）");
-  const w=item.weather,r=item.rainfall,ws=w&&w.station,rs=r&&r.station;
-  const temp=w&&w.temperature_c,rh=w&&w.relative_humidity_pct,wind=w&&w.wind_speed_ms,gust=w&&w.wind_gust_ms;
-  const rain10=r&&r.precipitation_10m_mm,rain1h=r&&r.precipitation_1h_mm;
-  const feel=liveFeelEstimate(temp,rh,wind),rawWeatherText=w&&w.weather_text;
-  const validWeatherText=rawWeatherText!==null&&rawWeatherText!==undefined&&String(rawWeatherText).trim()!==""&&!/^(-99(?:\\.0+)?)$/.test(String(rawWeatherText).trim());
-  const weatherText=validWeatherText?String(rawWeatherText).trim():(Number(rain10)>0?"觀測到降雨":"天氣資料不足");
-  const code=liveWeatherCode(validWeatherText?weatherText:(Number(rain10)>0?weatherText:""),rain10);
-  const weatherIcon=code===null?"":dailyWx(code).icon;
-  const windKm=Number.isFinite(Number(wind))?Number(wind)*3.6:null,gustKm=Number.isFinite(Number(gust))?Number(gust)*3.6:null;
-  const rainHtml=rain10===null||rain10===undefined?"資料不足":'<span class="live-rain-status">'+liveFmt(rain10,1," mm")+'</span>';
-  metrics.innerHTML=[
-   liveMetric("目前天氣",'<span class="wxcell">'+weatherIcon+weatherText+'</span>'),
-   liveMetric("濕度",liveFmt(rh,0," %")),
-   liveMetric(liveTemperatureIcon(temp)+"氣溫",liveFmt(temp,1," °C"),liveTemperatureClass(temp,"air")),
-   liveMetric(liveFeelIcon(feel)+'估算體感',liveFmt(feel,1," °C"),liveTemperatureClass(feel,"feel")),
-   liveMetric(liveRainIcon(rain10,"10m")+'近10分鐘雨量',rainHtml,liveRainClass(rain10)),liveMetric(liveRainIcon(rain1h,"1h")+'近1小時雨量',liveFmt(rain1h,1," mm"),liveRainClass(rain1h)),
-   liveMetric("風速",liveFmt(windKm,1," km/h")),liveMetric("陣風",liveFmt(gustKm,1," km/h"))
-  ].join("");;;
-  const ages=[ws&&ws.observation_age_minutes,rs&&rs.observation_age_minutes].filter(x=>x!==null&&x!==undefined&&Number.isFinite(Number(x)));
-  const snapshotAge=Math.max(0,(Date.now()-new Date(snap.generated_at).getTime())/60000);
-  const maxAge=ages.length?Math.max.apply(null,ages)+snapshotAge:null,stale=maxAge===null||maxAge>60,warning=maxAge!==null&&maxAge>30&&maxAge<=60;
-  state.className="pill "+(stale||warning?"live-state-stale":"live-state-fresh");
-  const ageLabel=maxAge===null?"觀測時間無法確認":"最舊觀測約"+Math.round(maxAge)+"分鐘前";
-  state.textContent=stale?"資料已過期／不足（"+ageLabel+"）":warning?"觀測資料稍舊（"+ageLabel+"）":"觀測資料正常（"+ageLabel+"）";
-  const fmtTime=x=>x&&x.observed_at?new Date(x.observed_at).toLocaleTimeString("zh-TW",{timeZone:"Asia/Taipei",hour12:false}):"無資料";
-  const fmtDateTime=x=>x?new Date(x).toLocaleString("zh-TW",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"時間未知";
-  const snapshotDateTime=fmtDateTime(snap.generated_at);
-  const dateTimeEl=$("liveObservationDateTime");
-  if(dateTimeEl){dateTimeEl.textContent=snapshotDateTime;dateTimeEl.dateTime=snap.generated_at||"";}
-  summary.textContent="氣象站："+(ws?ws.name:"未配對")+"（"+(ws?ws.distance_km:"—")+" km）｜雨量站："+(rs?rs.name:"未配對")+"（"+(rs?rs.distance_km:"—")+" km）";
-  times.textContent="氣象觀測時間："+fmtTime(ws)+"｜雨量觀測時間："+fmtTime(rs)+"｜快照更新時間："+fmtTime({observed_at:snap.generated_at})+"。體感為依氣溫、濕度及風速估算，非氣象站直接量測。";
- }catch(err){
-  state.className="pill live-state-missing";state.textContent="尚無即時資料";
-  const dateTimeEl=$("liveObservationDateTime");if(dateTimeEl)dateTimeEl.textContent="日期時間暫缺";
-  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),$("courseDate")?.value||active?.date);
-  summary.textContent=course.name+"｜"+err.message+"。逐時預報仍可獨立使用。";
-  metrics.innerHTML=["目前天氣","氣溫","估算體感","濕度","近10分鐘雨量","近1小時雨量","風速","陣風"].map(x=>liveMetric(x,"—")).join("");
-  times.textContent="不以預報值代替實際觀測值，也不將缺漏資料視為零。";
- }
-}
-async function autoLoadDatabaseCourse(c,button){
- const date=$("courseDate").value;
- if(!date)initForecastDatePicker();
- const selectedDate=$("courseDate").value;
- if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
- if(databaseAutoBusy)return;
- selectedCourseForReload=c;selectedCourseButton=button;
- databaseAutoBusy=true;
- $("courseDate").disabled=true;
- $("courseList").querySelectorAll("button[data-course]").forEach(x=>{x.disabled=true;x.classList.toggle("course-selected",x===button);});
- try{
-   const lat=Number(c.lat),lon=Number(c.lon);
-   if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat<21.5||lat>25.5||lon<119||lon>122.5)throw Error("此球場座標資料無效。");
-   $("courseAutoStatus").textContent=`${c.name}｜固定座標 ${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在載入 ${selectedDate} 氣象…`;
-   $("status").textContent=`${c.name}｜${lat.toFixed(5)}, ${lon.toFixed(5)}｜正在取得六組氣象模型…`;
-   loadLiveObservation(c);
-   await loadForecast({name:c.name,address:c.address,lat,lon,source:"使用者提供的57球場固定座標清單",timezone:"Asia/Taipei"},selectedDate);
-   $("courseAutoStatus").textContent="";$("courseAutoStatus").classList.remove("error");
- }catch(e){
-   $("courseAutoStatus").textContent=`${c.name}：${e.message}`;$("courseAutoStatus").classList.add("error");
-   $("status").textContent="載入失敗："+e.message;
-   const diag=$("apiDiagnosticsText");if(diag)diag.textContent=e.message;
- }finally{
-   databaseAutoBusy=false;
-   $("courseDate").disabled=false;
-   $("courseList").querySelectorAll("button[data-course]").forEach(x=>x.disabled=false);
- }
-}
-window.loadCourseByIndex=(index,button)=>{const c=taiwanCourses[Number(index)];if(c&&!databaseAutoBusy)autoLoadDatabaseCourse(c,button);};
-document.getElementById("quickCourseButtons").addEventListener("click",event=>{const btn=event.target.closest("button[data-quick-course]");if(!btn||databaseAutoBusy)return;const name=btn.dataset.quickCourse;const idx=taiwanCourses.findIndex(c=>c.name===name);if(idx<0)return;document.querySelectorAll("[data-quick-course]").forEach(x=>x.classList.toggle("quick-selected",x===btn));autoLoadDatabaseCourse(taiwanCourses[idx],btn);});
-// 選好球場後更改日期，立即以同一球場座標重新載入，不沿用舊日期資料。
-$("courseDate").addEventListener("change",()=>{
- if(!selectedCourseForReload||databaseAutoBusy)return;
- autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
-});
-// 以日期按鈕的直接 onclick 觸發，避免 PWA 內事件委派失效。
-window.selectDailyForecastDate=async function(date){
- const input=$("courseDate"),dailyScroll=$("dailyForecastScroll");
- if(!date||!input||!selectedCourseForReload)return;
- if(date<input.min||date>input.max)return;
- // 點選前記住16天區塊的水平位置；切換日期不移動頁面垂直位置。
- window.dailyForecastKeepScrollLeft=dailyScroll?.scrollLeft||0;
- syncForecastDatePickerDisplay(date);
- syncDailyForecastSelection(date);
- syncDailyForecastToSelectedDate();
- if(databaseAutoBusy)return;
- const status=$("dailyForecastStatus");
- if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
- await autoLoadDatabaseCourse(selectedCourseForReload,selectedCourseButton);
- // 預報載入流程結束後再次同步，避免任何重繪覆寫頁首日期。
- syncForecastDatePickerDisplay(date);
- // 等待逐日資料重新繪製及版面完成後，恢復原水平位置。
- const restore=()=>{const el=$("dailyForecastScroll");if(el)el.scrollLeft=window.dailyForecastKeepScrollLeft||0;};
- requestAnimationFrame(restore);
- setTimeout(restore,180);
-};
-setInterval(()=>{if(selectedCourseForReload&&!document.hidden)loadLiveObservation(selectedCourseForReload);},10*60*1000);
-const modelDefs=[
- ["ECMWF IFS","ecmwf_ifs025"],
- ["NOAA GFS","ncep_gfs_seamless"],
- ["DWD ICON","icon_seamless"],
- ["JMA GSM","jma_seamless"],
- ["Canada GEM","cmc_gem_seamless"],
- ["ECMWF AIFS","ecmwf_aifs025_single"]
-];
-// 確定性模式逐時欄位：雨量與溫度／風場分開取值；降雨機率由系集API獨立計算。
-const hourlyVars="temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover,uv_index";
-function wxIcon(code){
- const n=Number(code);
- if(!Number.isFinite(n))return '<span aria-label="無資料">—</span>';
- // Hourly weather row reuses the same seven custom icons as the 16-day daytime forecast.
- // Snow is intentionally not shown; unsupported codes fall back to cloudy.
- let kind="cloud";
- if(n===0)kind="sun";
- else if(n<=2)kind="partly";
- else if(n===3)kind="cloud";
- else if(n===45||n===48)kind="fog";
- else if([51,53,55,56,57].includes(n))kind="drizzle";
- else if([61,63,65,66,67,80,81,82].includes(n))kind="rain";
- else if([95,96,99].includes(n))kind="storm";
- else if([71,73,75,77,85,86].includes(n))kind="cloud";
- return dailyWeatherIcon(kind);
-}
-function wx(code){if(code>=95)return "雷雨";if(code>=80)return "陣雨";if(code>=61)return "降雨";if(code>=51)return "毛毛雨";if(code>=45)return "有霧";if(code===0)return "晴朗";if(code<=3)return "多雲";return "天氣變化";}
-function score(rain,wind,gust,feel){let v=100-(rain||0)*0.55-Math.max(0,(wind||0)-12)*1.2-Math.max(0,(gust||0)-22)*0.8-Math.max(0,Math.abs((feel??24)-24)-7)*2;return Math.max(0,Math.min(100,Math.round(v)));}
-function cls(v){return v>=75?"good":v>=50?"mid":"bad";}
-function dir(v){if(v===null||v===undefined)return "—";return ["北","東北","東","東南","南","西南","西","西北"][Math.round(v/45)%8];}
-function apparentFeelIcon(v){
- if(v===null||v===undefined||v==="")return "normal";
- const raw=String(v).trim().replace(/,/g,".");
- const match=raw.match(/[-+]?\d+(?:\.\d+)?/);
- if(!match)return "normal";
- const n=Number(match[0]);
- if(n<15)return "cold-warning";
- if(n<=19)return "cold";
- if(n<=27)return "normal";
- if(n<=30)return "hot";
- return "hot-warning";
-}
-
-function airTempColor(v){
- if(v===null||v===undefined||!Number.isFinite(Number(v)))return "#64748b";
- const n=Number(v);if(n<=15)return "#2563eb";if(n<=22)return "#0891b2";if(n<=28)return "#ea8a18";return "#dc2626";
-}
-
-function displayTemp(v){return v===null||v===undefined||!Number.isFinite(Number(v))?"—":Number(v).toFixed(1);}
-
-function thermometerHTML(v){
- const color=airTempColor(v);
- return '<span class="temp-value" style="color:'+color+';font-size:18px;font-weight:800;white-space:nowrap"><svg aria-hidden="true" viewBox="0 0 20 28" width="13" height="18" style="vertical-align:-4px;margin-right:2px"><defs><linearGradient id="thermoFill" x1="0" y1="1" x2="0" y2="0"><stop stop-color="'+color+'"/><stop offset="1" stop-color="#fff"/></linearGradient></defs><path d="M7 16V5a3 3 0 0 1 6 0v11a6 6 0 1 1-6 0Z" fill="#fff" stroke="'+color+'" stroke-width="2"/><path d="M10 9v11" stroke="'+color+'" stroke-width="3" stroke-linecap="round"/><circle cx="10" cy="21" r="3.5" fill="'+color+'"/></svg>'+displayTemp(v)+'</span>';
-}
-
-function apparentFeelHTML(v){
- const state=apparentFeelIcon(v);
- const color=state==="cold"||state==="cold-warning"?"#2563eb":state==="hot"||state==="hot-warning"?"#dc2626":"#16a34a";
- let icon="";
- if(state==="cold-warning"){
-  // 15°C以下：依照使用者指定的藍色冰凍表情，白色冰帽、冰晶雪花及顫抖咬牙表情。
-  icon='<svg aria-hidden="true" viewBox="0 0 64 64" width="40" height="40" style="display:block!important;width:40px!important;height:40px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="coldWarningFace" cx="48%" cy="42%" r="65%"><stop offset="0" stop-color="#42d9df"/><stop offset=".65" stop-color="#12a9e5"/><stop offset="1" stop-color="#0874d1"/></radialGradient></defs><circle cx="32" cy="34" r="28" fill="url(#coldWarningFace)" stroke="#0872c5" stroke-width="1.8"/><path d="M5 25Q4 17 14 14Q19 5 32 7Q47 3 53 13Q62 15 58 24Q53 27 42 23L17 25Q8 31 5 25Z" fill="#d9f3ff"/><g fill="#43290e"><ellipse cx="22" cy="30" rx="4.2" ry="6"/><ellipse cx="42" cy="30" rx="4.2" ry="6"/></g><g><rect x="13" y="41" width="38" height="11" rx="5.5" fill="#fff" stroke="#0877d2" stroke-width="1.2"/><path d="M20 41v11M27 41v11M34 41v11M41 41v11M48 41v11M13 46.5h38" stroke="#aebbc7" stroke-width="1.2"/></g><g fill="none" stroke="#d9f4ff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 29v12M3 32l10 6M3 38l10-6M8 29l-2 2M8 29l2 2M8 41l-2-2M8 41l2-2"/><path d="M53 13v13M47.5 16.5l11 6M47.5 22.5l11-6M53 13l-2 2M53 13l2 2M53 26l-2-2M53 26l2-2"/><path d="M30 54v9M22 58.5h16M23.5 55l13 7.5M23.5 62l13-7.5M30 54l-2 2M30 54l2 2M30 63l-2-2M30 63l2-2M22 58.5l2-2M22 58.5l2 2M38 58.5l-2-2M38 58.5l-2 2M23.5 55l.5 3M23.5 55l3 .5M36.5 62l-.5-3M36.5 62l-3-.5M23.5 62l.5-3M23.5 62l3-.5M36.5 55l-.5 3M36.5 55l-3 .5"/></g></svg>';
- }else if(state==="cold"){
-  // 15–19°C：使用新版藍色保暖外套圖示。
-  icon='<img src="'+COLD_JACKET_ICON_DATA+'" alt="" width="40" height="40" style="display:block;width:40px;height:40px;object-fit:contain"/>';
- }else if(state==="hot-warning"){
-  // 30°C以上：依照使用者提供的高溫表情圖，使用大紅橙色熱臉、吐舌及多處汗滴。
-  icon='<svg aria-hidden="true" viewBox="0 0 64 48" width="40" height="30" style="display:block!important;width:40px!important;height:30px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="extremeHeatFace" cx="48%" cy="35%" r="68%"><stop offset="0" stop-color="#ffd84a"/><stop offset=".55" stop-color="#ff7a18"/><stop offset="1" stop-color="#d92d0b"/></radialGradient><linearGradient id="extremeHeatTongue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ff78b7"/><stop offset="1" stop-color="#e52e87"/></linearGradient></defs><circle cx="32" cy="24" r="22" fill="url(#extremeHeatFace)" stroke="#9b260d" stroke-width="1.3"/><g fill="none" stroke="#6f210e" stroke-width="2" stroke-linecap="round"><path d="M13 15q5 2 9-4M42 11q4 6 9 4"/></g><g stroke="#080808" stroke-width="1.5" stroke-linejoin="round"><path d="M10 17Q20 13 29 17L30 23Q29 28 22 28H17Q11 27 10 22Z" fill="#050505"/><path d="M34 17Q44 13 54 17L54 22Q53 27 47 28H42Q35 28 34 23Z" fill="#050505"/><path d="M29 19Q32 17 35 19" fill="none" stroke="#050505" stroke-width="2.2"/><path d="M14 18l8-1M38 18l8-1" stroke="#777" stroke-width=".9" opacity=".75"/></g><ellipse cx="32" cy="32" rx="8.5" ry="5" fill="#68130f" stroke="#50120d" stroke-width="1"/><path d="M26.5 32q0-2 5.5-2t5.5 2v9q0 5-5.5 5t-5.5-5Z" fill="url(#extremeHeatTongue)" stroke="#7b1738" stroke-width="1.1"/><path d="M32 32v10" stroke="#b51d59" stroke-width="1"/><g fill="#ff713b"><path d="M8 18q-3 4 0 7 3-3 0-7ZM18 3q-3 4 0 7 3-3 0-7ZM39 2q-3 4 0 7 3-3 0-7ZM56 20q-3 4 0 7 3-3 0-7Z"/></g><g fill="#36b9f4" stroke="#07558e" stroke-width=".8"><path d="M5 27q-4 6-4 9a4 4 0 0 0 8 0q0-3-4-9ZM59 3q-4 6-4 9a4 4 0 0 0 8 0q0-3-4-9ZM12 37q-3 4-3 6a3 3 0 0 0 6 0q0-2-3-6Z"/></g></svg>';
- }else if(state==="hot"){
-  // 28–30°C：依照使用者提供的吐舌流汗表情圖，單側大汗滴、張眼、張嘴吐舌。
-  icon='<svg aria-hidden="true" viewBox="0 0 64 48" width="40" height="30" style="display:block!important;width:40px!important;height:30px!important;min-width:40px;flex:0 0 40px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="hotFaceGrad" cx="48%" cy="34%" r="68%"><stop offset="0" stop-color="#ffe45b"/><stop offset=".56" stop-color="#ff8a19"/><stop offset="1" stop-color="#e83d0b"/></radialGradient><linearGradient id="hotTongueGrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ff83bf"/><stop offset="1" stop-color="#e8328d"/></linearGradient><linearGradient id="hotDropGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b8f4ff"/><stop offset=".45" stop-color="#35bdec"/><stop offset="1" stop-color="#0874bd"/></linearGradient></defs><circle cx="34" cy="24" r="21.5" fill="url(#hotFaceGrad)" stroke="#b52d0b" stroke-width="1.1"/><path d="M16 14q6 1 11-6M43 8q5 7 11 6" fill="none" stroke="#75260f" stroke-width="2.3" stroke-linecap="round"/><ellipse cx="25" cy="22" rx="2.6" ry="3.6" fill="#5a1b10"/><ellipse cx="43" cy="22" rx="2.6" ry="3.6" fill="#5a1b10"/><ellipse cx="34" cy="33" rx="8.6" ry="5.5" fill="#64110f" stroke="#51100e" stroke-width="1"/><path d="M28.5 33q0-2 5.5-2t5.5 2v8q0 5-5.5 5t-5.5-5Z" fill="url(#hotTongueGrad)" stroke="#8b174c" stroke-width="1"/><path d="M34 33v10" stroke="#bd286c" stroke-width=".8"/><path d="M10 17c-3.8 6-6.8 9.3-6.8 13a6.8 6.8 0 0 0 13.6 0c0-3.7-3-7-6.8-13Z" fill="url(#hotDropGrad)" stroke="#0874bd" stroke-width="1.1"/><path d="M8 26q-.8 3 0 5" fill="none" stroke="#e4fbff" stroke-width="1.8" stroke-linecap="round"/></svg>';
- }else{
-  // 20–27°C：保留原本綠色笑臉。
-  icon='<svg aria-hidden="true" viewBox="0 0 48 48" width="30" height="30" style="display:block!important;width:30px!important;height:30px!important;min-width:30px;flex:0 0 30px;overflow:visible" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="21" fill="#16a34a"/><circle cx="17" cy="19" r="2.4" fill="#fff"/><circle cx="31" cy="19" r="2.4" fill="#fff"/><path d="M14 26Q24 39 34 26" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>';
- }
- const label=state==="cold-warning"?"低溫特別警示":state==="hot-warning"?"高溫特別警示":state==="cold"?"寒冷":state==="hot"?"炎熱":"舒適";
- return '<span class="hourly-feel-icon" data-feel-state="'+state+'" title="'+label+'" aria-label="'+label+' '+displayTemp(v)+'度" style="color:'+color+';font-weight:800;white-space:nowrap;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px;vertical-align:middle">'+icon+'<span>'+displayTemp(v)+'</span></span>';
-}
-
-function rainProbHTML(v){
- if(v===null||v===undefined)return "—";
- const n=Math.max(0,Math.min(100,Math.round(Number(v)))),level=n>=60?"high":n>=30?"mid":"low";
- const common='viewBox="0 0 48 42" aria-hidden="true" style="width:24px;height:21px;vertical-align:-5px;margin-right:2px;flex:none"';
- const cap='<svg viewBox="0 0 550 354" aria-hidden="true" style="width:25px;height:16px;vertical-align:-4px;margin-right:2px;flex:none"><g fill="none" stroke="#111318" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><path d="M120 198C122 88 208 5 331 5c123 0 211 98 214 231 1 47-55 56-120 34"/><path d="M120 198C210 191 323 217 425 270"/><path d="M350 237C344 177 341 91 331 5"/><path d="M238 204C238 120 269 43 331 5"/><path d="M120 198C91 216 47 240 18 259C-2 273 21 298 54 304c35 7 63-10 87-1 31 11 42 42 91 46 53 4 91-36 118-75l75-4"/></g></svg>';
- const jacket='<svg '+common+'><path d="M17 10Q17 3 24 3Q31 3 31 10L37 14 45 26 39 31 34 25 34 39H14V25L9 31 3 26 11 14Z" fill="#FDE047" stroke="#854D0E" stroke-width="2.2" stroke-linejoin="round"/><path d="M17 10Q24 18 31 10M17 10 13 16M31 10l4 6" fill="none" stroke="#A16207" stroke-width="1.8" stroke-linejoin="round"/><path d="M24 17v21M21 23h2m2 0h2" stroke="#854D0E" stroke-width="1.8" stroke-linecap="round"/><path d="M15 34h18M7 27l4 2m30-2-4 2" stroke="#A16207" stroke-width="1.6" stroke-linecap="round"/></svg>';
- const umbrella='<svg '+common+'><path d="M4 20Q6 5 24 4Q42 5 44 20Q39 16 34 20Q29 16 24 20Q19 16 14 20Q9 16 4 20Z" fill="#EF4444" stroke="#7F1D1D" stroke-width="2" stroke-linejoin="round"/><path d="M24 20v13q0 6 7 4" fill="none" stroke="#1F2937" stroke-width="2.8" stroke-linecap="round"/><path d="m11 25-3 6m16-6-3 6m16-6-3 6" stroke="#0284C7" stroke-width="2.2" stroke-linecap="round"/></svg>';
- const icon=n>=60?umbrella:n>=30?jacket:cap,label=n>=60?"高降雨機率":n>=30?"中降雨機率":"低降雨機率";
- return '<span class="rainpill '+level+'" title="'+label+'：'+n+'%"><span aria-hidden="true">'+icon+'</span><b>'+n+'%</b></span>';
-}
-function rainInterpretation(prob,mm,weatherCode){
- if(prob===null||prob===undefined||mm===null||mm===undefined||!Number.isFinite(Number(prob))||!Number.isFinite(Number(mm)))return '<span class="rain-interpretation neutral">—</span>';
- const p=Number(prob),r=Number(mm),code=Number(weatherCode);
- let level,label,detail;
- if([95,96,99].includes(code)||r>5){level=5;label="大雨／雷雨";detail="雷雨或雨量過大，不建議打球";}
- else if(r>2){level=4;label="持續降雨";detail="降雨量較大，建議雨衣、防水鞋及雨傘";}
- else if(p>=30||r>0.1){level=3;label="零星小雨";detail="可能短暫降雨，建議雨傘及輕便雨衣";}
- else if(p>0||r>0){level=2;label="低降雨風險";detail="降雨風險低，可正常打球，建議備輕便雨傘";}
- else{level=1;label="晴朗乾燥";detail="降雨風險極低，正常服裝，不需雨傘";}
- return '<span class="rain-interpretation level-'+level+'" title="'+detail+'"><b>'+label+'</b></span>';
-}
-function rainAmountHTML(v){
- if(v===null||v===undefined)return "—";
- const n=Number(v),level=n>=5?"heavy":n>0?"light":"none",drops=n<=0?0:n<1?1:n<5?2:3;
- const cloud='<svg viewBox="0 0 40 30" aria-hidden="true" style="width:27px;height:21px;vertical-align:-5px;margin-right:3px"><path d="M7 23h26a7 7 0 0 0 0-14 10 10 0 0 0-19-2 8 8 0 0 0-7 16Z" fill="#CBD5E1" stroke="#64748B" stroke-width="1.7"/></svg>';
- const drop='<svg viewBox="0 0 18 24" aria-hidden="true" style="width:13px;height:19px;vertical-align:-4px;margin-right:1px"><path d="M9 1C7 6 2 11 2 15a7 7 0 0 0 14 0C16 11 11 6 9 1Z" fill="url(#dropGradient)" stroke="#0369A1" stroke-width="1.2"/><path d="M5 15q0 3 3 4" fill="none" stroke="#E0F2FE" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="dropGradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7DD3FC"/><stop offset="1" stop-color="#0284C7"/></linearGradient></defs></svg>';
- const icons=drops?drop.repeat(drops):cloud;
- return '<span class="rainamount '+level+'" title="預報雨量 '+n.toFixed(1)+' mm"><span aria-hidden="true">'+icons+'</span><b>'+n.toFixed(1)+' mm</b></span>';
-}
-function compactPlayabilityGrade(v){
- if(v===null||v===undefined||!Number.isFinite(Number(v)))return {grade:"—",label:"資料不足",color:"#aab4af",description:"目前資料不足，無法判定適打等級。"};
- const n=Number(v);
- if(n>=90)return {grade:"A",label:"非常適合",color:"#18865a",description:"天氣穩定，降雨與風勢影響低，非常適合打球。"};
- if(n>=80)return {grade:"B",label:"適合",color:"#319a9a",description:"整體天氣良好，適合正常打球。"};
- if(n>=65)return {grade:"C",label:"尚可，需留意",color:"#d99a27",description:"可能偶有小毛毛雨、短暫降雨或風勢變化。"};
- if(n>=50)return {grade:"D",label:"不佳，宜審慎",color:"#d97735",description:"降雨或風勢影響明顯，建議考慮調整開球時間。"};
- return {grade:"E",label:"不適合",color:"#c74343",description:"天候風險高，不建議安排打球。"};
-}
-function renderCompactPlayability(rows){
- const host=$("compactPlayabilityContent");if(!host)return;
- const a=(rows||[]).filter(x=>x&&x.available!==false);
- const nums=k=>a.map(x=>x[k]).filter(v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))).map(Number);
- const mean=x=>x.length?x.reduce((z,v)=>z+v,0)/x.length:null;
- const max=x=>x.length?Math.max(...x):null;
- const sum=x=>x.length?x.reduce((z,v)=>z+v,0):null;
- const rain=nums("rain"),mm=nums("mm"),wind=nums("wind"),gust=nums("gust"),feel=nums("feel"),codes=nums("code");
- let rp=[];if(rain.length)rp.push({v:Math.max(0,100-max(rain)),w:.6});if(mm.length){const total=sum(mm);rp.push({v:total<=0?100:total<=1?80:total<=3?60:total<=5?35:0,w:.4});}
- const rainScore=rp.length?rp.reduce((z,x)=>z+x.v*x.w,0)/rp.reduce((z,x)=>z+x.w,0):null;
- let wp=[];if(wind.length)wp.push({v:Math.max(0,Math.min(100,100-Math.max(0,mean(wind)-10)*3.33)),w:.5});if(gust.length)wp.push({v:Math.max(0,Math.min(100,100-Math.max(0,max(gust)-20)*2.5)),w:.5});
- const windScore=wp.length?wp.reduce((z,x)=>z+x.v*x.w,0)/wp.reduce((z,x)=>z+x.w,0):null;
- const t=mean(feel),tempScore=t===null?null:(t>=20&&t<=27?100:t>=15&&t<20||t>27&&t<=30?80:t>=10&&t<15||t>30&&t<=33?60:30);
- let stability=null,visibility=null;
- if(codes.length){const transitions=codes.slice(1).reduce((z,v,i)=>z+(v!==codes[i]?1:0),0),severe=codes.filter(v=>[95,96,99].includes(v)).length,rainy=codes.filter(v=>[51,53,55,56,57,61,63,65,66,67,80,81,82].includes(v)).length,fog=codes.filter(v=>[45,48].includes(v)).length;stability=Math.max(0,100-(transitions/Math.max(1,codes.length-1))*35-(rainy/codes.length)*20-(severe/codes.length)*70);visibility=Math.max(0,100-(fog/codes.length)*85);}
- const factors=[{name:"降雨風險",w:50,v:rainScore},{name:"風速與陣風",w:15,v:windScore},{name:"氣溫與體感",w:15,v:tempScore},{name:"天氣穩定度",w:10,v:stability},{name:"能見度",w:10,v:visibility}];
- const valid=factors.filter(x=>x.v!==null),weight=valid.reduce((z,x)=>z+x.w,0),score=weight?Math.round(valid.reduce((z,x)=>z+x.v*x.w,0)/weight):null;
- if(score===null){host.innerHTML='<div class="playability-placeholder">目前缺少足夠逐時資料，無法產生可靠的適打性評估。</div>';return;}
- const thunder=codes.some(v=>[95,96,99].includes(v)),heavyRain=sum(mm)!==null&&sum(mm)>=5,dangerWind=(max(gust)!==null&&max(gust)>=40)||(mean(wind)!==null&&mean(wind)>=25);
- let grade=compactPlayabilityGrade(score),safetyText="";
- if(thunder){grade={grade:"E",label:"雷雨警示｜不建議下場",color:"#c74343",description:"分析時段出現雷雨訊號，安全警示優先於分數。"};safetyText="預報時段出現雷雨訊號，請暫緩下場並遵循球場及官方即時警示。";}
- else if(heavyRain||dangerWind){grade={grade:"D",label:"安全警示｜不宜下場",color:"#d97735",description:"出現較高降雨或風勢風險，等級最高限制為 D。"};safetyText=[heavyRain?"預報累積雨量達 5 mm 以上":"",dangerWind?"平均風速達 25 km/h 或最大陣風達 40 km/h":""] .filter(Boolean).join("；")+"，適打等級至少調降至 D 級。";}
- const tiles=factors.map(x=>{const contribution=x.v===null?null:x.v*x.w/100;return '<div class="playability-item" style="padding:10px;border:1px solid #e0e9e4;border-radius:10px;min-width:0"><div style="display:flex;justify-content:space-between;gap:6px;font-size:13px;font-weight:800"><span>'+x.name+'（'+x.w+'%）</span><b>'+(contribution===null?"資料不足":contribution.toFixed(1)+" / "+x.w+" 分")+'</b></div><div style="height:7px;background:#edf1ef;border-radius:99px;overflow:hidden;margin:7px 0"><i style="display:block;height:100%;width:'+(x.v===null?0:x.v)+'%;background:'+grade.color+'"></i></div><small style="color:#64748b">原始評分 '+(x.v===null?"無資料":Math.round(x.v)+" 分")+'</small></div>';}).join("");
- host.innerHTML='<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 14px;align-items:center;padding:15px;background:#f3f8f5;border-radius:12px;margin-bottom:12px"><div><small style="display:block;color:#526b63;font-size:12px;font-weight:800;margin-bottom:5px">天氣適打性總得分</small><strong style="font-size:34px;line-height:1.15;color:#173f35">'+score+' <span style="font-size:19px">分</span></strong></div><div><small style="display:block;color:#526b63;font-size:12px;font-weight:800;margin-bottom:5px">適打等級</small><div style="display:flex;align-items:center;gap:9px"><b style="width:42px;height:42px;flex:none;display:flex;align-items:center;justify-content:center;border:3px solid '+grade.color+';border-radius:50%;font-size:25px;color:'+grade.color+';background:#fff">'+grade.grade+'</b><strong style="font-size:18px;line-height:1.3;color:'+grade.color+'">'+grade.label+'</strong></div></div><div style="grid-column:1/-1;padding:10px 11px;border-radius:9px;background:#fff;font-size:14px;line-height:1.55;color:#40534a;font-weight:700">'+grade.description+'</div><small style="grid-column:1/-1;color:#64748b;font-size:11px;line-height:1.45">依所選時段計算；可計算權重 '+weight+'%。缺漏指標不會當成零分。有效資料 '+a.length+'/'+(rows||[]).length+' 小時。</small></div><div style="font-weight:900;color:#174b39;margin:8px 0">五項加權評分</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">'+tiles+'</div>'+(safetyText?'<div class="playability-alert danger" style="margin-top:10px">'+safetyText+'</div>':'')+'<small style="display:block;color:#64748b;margin-top:9px">依所選開球時段計算；可計算權重 '+weight+'%。缺漏指標不會當成零分。'+(a.length?'有效資料 '+a.length+'/'+(rows||[]).length+' 小時。':'')+'</small>';
-}
-function golfabilityScore(rows){if(rows.length!==4||rows.some(x=>!x.available))return null;if(rows.some(x=>x.code>=95))return 0;return Math.round(rows.reduce((z,x)=>z+score(x.rain,x.wind,x.gust,x.feel),0)/4);}
-function golfScoreLabel(v){return v>=85?"非常適合":v>=70?"適合":v>=55?"尚可，留意天氣":"不建議";}
 function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCodes=[]){
  const el=$(id);if(!el)return;
  const canvas=el.tagName==="CANVAS"?el:el.querySelector("canvas");
@@ -2125,7 +2135,8 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  for(let t=0;t<=tickCount;t++){
   const value=tempMin+(top-tempMin)*t/tickCount,y=yAt(value);
   ctx.strokeStyle="#e2e8f0";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();
-  ctx.fillStyle="#475569";ctx.fillText(`${Number(value.toFixed(0))}${unit}`,left-7,y);
+  ctx.fillStyle="#475569";const tickText=chartTheme==="rainAmount"?value.toFixed(1):Number(value.toFixed(0));
+  ctx.fillText(`${tickText}${unit}`,left-7,y);
  }
  ctx.strokeStyle="#94a3b8";ctx.beginPath();ctx.moveTo(left,topPad);ctx.lineTo(left,topPad+plotH);ctx.lineTo(w-right,topPad+plotH);ctx.stroke();
  const n=Math.max(1,series[0]?.length||0),xAt=i=>left+(i*plotW/Math.max(1,n-1));
@@ -2184,19 +2195,37 @@ function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCo
  if(chartTheme==="temperature"&&series.length>=2){
   ctx.save();ctx.font="bold 12px system-ui,sans-serif";ctx.textAlign="center";
   const red=series[1],blue=series[0],labelGap=14;
-  red.forEach((v,i)=>{
+  // 依每個時點兩條線的相對高低安排標籤：較高的數值在線上方，
+  // 較低的數值在線下方，避免藍紅數字固定上下而交錯重疊。
+  function drawTempLabel(v,i,color,placeAbove){
    if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=yAt(v),labelY=Math.max(topPad+15,y-labelGap);
-   ctx.textBaseline="bottom";
-   ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-13,labelY-14,26,16);
-   ctx.fillStyle="#dc2626";ctx.fillText(Math.round(v)+"°",x,labelY);
-  });
-  blue.forEach((v,i)=>{
-   if(v===null||!Number.isFinite(v))return;
-   const x=xAt(i),y=yAt(v),labelY=Math.min(ch-bottom-1,y+labelGap);
-   ctx.textBaseline="top";
-   ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-13,labelY-1,26,16);
-   ctx.fillStyle="#1769aa";ctx.fillText(Math.round(v)+"°",x,labelY);
+   const x=xAt(i),y=yAt(v);
+   let labelY=placeAbove?y-labelGap:y+labelGap;
+   if(placeAbove){
+    labelY=Math.max(topPad+14,labelY);
+    ctx.textBaseline="bottom";
+    ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-14,labelY-14,28,16);
+    ctx.fillStyle=color;ctx.fillText(Math.round(v)+"°",x,labelY);
+   }else{
+    labelY=Math.min(ch-bottom-16,labelY);
+    ctx.textBaseline="top";
+    ctx.fillStyle="rgba(255,255,255,0.96)";ctx.fillRect(x-14,labelY-1,28,16);
+    ctx.fillStyle=color;ctx.fillText(Math.round(v)+"°",x,labelY);
+   }
+  }
+  red.forEach((rv,i)=>{
+   const bv=blue[i];
+   if(rv===null||!Number.isFinite(rv)||bv===null||!Number.isFinite(bv))return;
+   if(rv>bv){
+    drawTempLabel(rv,i,"#dc2626",true);
+    drawTempLabel(bv,i,"#1769aa",false);
+   }else if(bv>rv){
+    drawTempLabel(bv,i,"#1769aa",true);
+    drawTempLabel(rv,i,"#dc2626",false);
+   }else{
+    drawTempLabel(bv,i,"#1769aa",true);
+    drawTempLabel(rv,i,"#dc2626",false);
+   }
   });
   ctx.restore();
  }
@@ -2307,6 +2336,49 @@ function consensusRows(modelRows,amountWeights=null,probabilityWeights=null,exte
   return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:weightedProbability===null?get('rain'):weightedProbability,mm:weightedAmount===null?get('mm'):weightedAmount,weightingApplied:weightedAmount!==null,probabilityWeightingApplied:weightedProbability!==null,code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
  });
 }
+
+const v2ProviderIndexCache={};
+const v2ProviderCourseCache=new Map();
+async function loadV2ProviderRows(provider,courseName,date){
+ const branch=provider==="Foreca"?"foreca-cache":"visual-crossing-cache";
+ const key=provider+"|"+String(courseName||"").trim().normalize("NFC");
+ if(!v2ProviderCourseCache.has(key)){
+  v2ProviderCourseCache.set(key,(async()=>{
+   if(!v2ProviderIndexCache[provider])v2ProviderIndexCache[provider]=fetchJsonBounded("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/"+branch+"/index.json?ts="+Date.now(),6000,"no-cache");
+   const index=await v2ProviderIndexCache[provider];
+   const rel=index.courses?.[courseName]||Object.entries(index.courses||{}).find(([n])=>String(n).trim().normalize("NFC")===String(courseName).trim().normalize("NFC"))?.[1];
+   if(!rel)return {index,course:null};
+   const cache=await fetchJsonBounded("https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/"+branch+"/"+rel+"?v="+encodeURIComponent(index.generated_at||"latest"),6000,"no-cache");
+   const course=(cache.courses||{})[courseName]||Object.entries(cache.courses||{}).find(([n])=>String(n).trim().normalize("NFC")===String(courseName).trim().normalize("NFC"))?.[1]||null;
+   return {index,course};
+  })().catch(e=>{v2ProviderCourseCache.delete(key);throw e;}));
+ }
+ const loaded=await v2ProviderCourseCache.get(key);
+ const hours=loaded.course?.[date]?.providers?.[provider]?.hourly||[];
+ const toCode=x=>{
+  const t=String(x||"").toLowerCase();
+  if(/thunder|雷/.test(t))return 95;
+  if(/heavy rain|downpour|大雨/.test(t))return 65;
+  if(/rain|shower|drizzle|雨/.test(t))return 61;
+  if(/fog|mist|霧/.test(t))return 45;
+  if(/overcast|cloudy|陰/.test(t))return 3;
+  if(/partly|mostly cloudy|多雲/.test(t))return 2;
+  if(/clear|sunny|晴/.test(t))return 0;
+  return null;
+ };
+ const rows=hours.filter(x=>{
+  const stamp=String(x.time||"");
+  return stamp.slice(0,10)===date&&Number(stamp.slice(11,13))>=6&&Number(stamp.slice(11,13))<=18;
+ }).map(x=>({
+  time:String(x.time).slice(11,16),temp:x.temperature_2m??null,feel:x.apparent_temperature??null,
+  mm:x.precipitation??null,rain:x.precipitation_probability??null,
+  wind:x.wind_speed_10m??null,gust:x.wind_gusts_10m??null,dir:x.wind_direction_10m??null,
+  rh:x.relative_humidity_2m??null,cloud:x.cloud_cover??null,uv:x.uv_index??null,
+  code:toCode(x.conditions||x.icon||x.symbol),available:true
+ })).filter(x=>/^\d{2}:\d{2}$/.test(x.time));
+ return {rows,generatedAt:loaded.index.generated_at,horizon:loaded.index.hourly_horizon||loaded.index.forecast_horizon||""};
+}
+
 async function loadVisualCrossingRainRows(courseName,date){
  const base="https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/visual-crossing-cache/";
  const index=await fetchJsonBounded(base+"index.json?ts="+Date.now(),6000,"no-store");
@@ -2551,30 +2623,6 @@ async function fetchDailyForecast(lat,lon){
  });
  dailyForecastCache.set(key,{at:Date.now(),rows});return rows;
 }
-function syncDailyForecastSelection(date){
- if(!date)return;
- const root=$("dailyForecastInner");if(!root)return;
- root.querySelectorAll(".daily-date-cell").forEach(el=>{
-  const selected=el.dataset.dailyDate===date;
-  el.setAttribute("aria-pressed",selected?"true":"false");
-  el.classList.toggle("is-selected",selected);
- });
-}
-function syncForecastDatePickerDisplay(date){
- const input=$("courseDate");if(!input||!date)return;
- input.value=date;
- const trigger=$("forecastDateTrigger");
- const label=trigger?.querySelector(".forecast-date-label");
- if(label)label.textContent=date.replaceAll("-","/");
- else if(trigger)trigger.textContent=date.replaceAll("-","/");
- if(trigger)trigger.setAttribute("aria-label","預報日期："+date.replaceAll("-","/"));
- const calendar=$("forecastCalendar");
- if(calendar){
-  calendar.querySelectorAll(".forecast-calendar-day").forEach(button=>button.classList.toggle("selected",button.dataset.date===date));
-  const title=$("forecastCalendarTitle");
-  if(title)title.textContent=Number(date.slice(0,4))+"年"+Number(date.slice(5,7))+"月";
- }
-}
 function syncDailyForecastToSelectedDate(){
  const input=$("courseDate"),el=$("dailyForecastScroll");
  if(!input?.value||!el)return;
@@ -2594,6 +2642,7 @@ function syncDailyForecastToSelectedDate(){
  setTimeout(move,160);
  setTimeout(move,420);
 }
+
 function renderDailyForecast(rows,courseName){
  const target=$("dailyForecastInner"),status=$("dailyForecastStatus"),heading=$("dailyForecastHeading"),dailyScroll=$("dailyForecastScroll"),dailyScrollLeft=window.dailyForecastKeepScrollLeft??dailyScroll?.scrollLeft??0;if(!target)return;if(!rows?.length){target.innerHTML='<div class="daily-forecast-placeholder">目前沒有可用逐日資料</div>';return;}
  // 逐日預報固定以16天為同一顯示範圍；日期、曲線、天氣及降雨共用完全相同的資料列，避免最右端橫向滑動時各列寬度不一致。
@@ -2619,13 +2668,13 @@ async function loadForecast(p,date,forceRefresh=false){
  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
  $("locname").textContent=p.name;
  $("coords").textContent=`${p.address||""}｜${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜固定座標`;
- $("status").style.display="inline-flex";$("status").textContent="正在以球場座標取得六組氣象模型資料…";
+ $("status").textContent="正在以球場座標取得六組氣象模型資料…";
  // 背景更新保留舊快取畫面，避免畫面閃空。
  if(!forceRefresh){
   ["hourRows","metrics","rainMetrics","modelCards","v26Stats"].forEach(id=>{const el=$(id);if(el)el.innerHTML="";});
   ["rainChart","rainAmountChart","tempChart","windChart"].forEach(id=>{const el=$(id);if(el){const ctx=el.getContext("2d");if(ctx)ctx.clearRect(0,0,el.width,el.height);}});
  }
- let modelErrors=[],forecastSource="六組獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="",staleCacheInUse=false;
+ let modelErrors=[],forecastSource="六組 Open-Meteo 獨立模式（即時API）",cacheGeneratedAt=null,cacheCandidate=null,cacheAgeMinutes=null,cacheNotice="",staleCacheInUse=false;
  let bestMatchFallbackPromise=null;
  const diagBoxStart=$("apiDiagnosticsText");
  if(forceRefresh){
@@ -2639,7 +2688,10 @@ async function loadForecast(p,date,forceRefresh=false){
   if(!Object.keys(cached).length)modelErrors.push("快取沒有此球場／日期的逐時資料");
   else if(cacheAgeMinutes<=360){
    active.modelRows=cached;forecastSource="GitHub Actions 預報快取（"+Object.keys(cached).length+"/6組模式）";
-   if(cacheAgeMinutes>180)cacheNotice="｜提醒：預報快取已超過3小時（"+Math.floor(cacheAgeMinutes/60)+"小時），資料稍舊";
+   if(cacheAgeMinutes>180){
+    staleCacheInUse=true;
+    cacheNotice="｜預報快取已超過3小時（"+Math.floor(cacheAgeMinutes/60)+"小時），先顯示快取並在背景更新";
+   }
   }else if(cacheAgeMinutes<=720){
    active.modelRows=cached;forecastSource="GitHub Actions 舊快取（"+Object.keys(cached).length+"/6組模式）";
    staleCacheInUse=true;
@@ -2685,8 +2737,42 @@ async function loadForecast(p,date,forceRefresh=false){
   if(fallback.value){active.modelRows["Open-Meteo Best Match"]=fallback.value.rows;names=Object.keys(active.modelRows);forecastSource="Open-Meteo Best Match 備援";}
   else{const detail="快取、六組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+(fallback.error?.message||"未知錯誤");const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
  }
+
+ // V2：讀取 Visual Crossing 與 Foreca 獨立逐時快取，與六個 Open-Meteo 模式共同整合。
+ const providerResults=await Promise.allSettled([
+  loadV2ProviderRows("Visual Crossing",p.name,date),
+  loadV2ProviderRows("Foreca",p.name,date)
+ ]);
+ active.v2ProviderStatus={};
+ ["Visual Crossing","Foreca"].forEach((label,i)=>{
+  const r=providerResults[i];
+  if(r.status==="fulfilled"){
+   const rows=r.value.rows||[];
+   if(rows.length)active.modelRows[label]=rows;
+   active.v2ProviderStatus[label]={available:rows.length>0,complete:rows.length>=13,count:rows.length,generatedAt:r.value.generatedAt,horizon:r.value.horizon};
+  }else active.v2ProviderStatus[label]={available:false,complete:false,count:0,error:r.reason?.message||String(r.reason)};
+ });
+ const openMeteoCount=Object.keys(active.modelRows).filter(name=>modelDefs.some(m=>m[0]===name)).length;
+ const externalCompleteCount=["Visual Crossing","Foreca"].filter(name=>active.v2ProviderStatus[name]?.complete).length;
+ active.v2SourceCount=openMeteoCount+externalCompleteCount;
+ active.v2SourceLabel=active.v2SourceCount+"/8 來源";
+ names=Object.keys(active.modelRows);
+ const localDay=new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"});
+ const lead=Math.round((new Date(date+"T00:00:00+08:00")-new Date(localDay+"T00:00:00+08:00"))/86400000);
+ if(lead>=7&&!active.v2ProviderStatus.Foreca?.complete)active.v2SourceLabel=active.v2SourceCount+"/8 來源（Foreca 無完整逐時資料）";
+ else if(!active.v2ProviderStatus.Foreca?.complete)active.v2SourceLabel=active.v2SourceCount+"/8 來源（Foreca 逐時資料不完整）";
+ forecastSource="八來源逐時整合（"+active.v2SourceLabel+"）";
+
  active.forecastSource=forecastSource;
- $("status").textContent="預報完成｜"+names.length+"/6 模式"+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
+ // V2：先以已取得的逐時來源立即繪製適打性及專項報告，避免後續權重／降雨機率服務延遲或失敗時整個分析區空白；正式融合完成後再更新一次。
+ try{
+  const preliminaryBase=consensusRows(active.modelRows);
+  if(preliminaryBase.length){active.rows=preliminaryBase;renderPlayabilityAnalysis(preliminaryBase,p.name,date);}
+ }catch(previewError){
+  const playabilityHost=$("playabilityContent");
+  if(playabilityHost)playabilityHost.innerHTML='<div class="playability-placeholder">初步適打性分析載入失敗：'+esc(previewError.message||String(previewError))+'。系統仍會嘗試完成正式資料整合。</div>';
+ }
+ $("status").textContent="預報完成｜"+active.v2SourceLabel+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
  const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
 let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數（歷史資料累積中）";
@@ -2709,7 +2795,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
   }catch(e){}
  }
  let externalRainRows={};
- if(Number(amountWeights?.["Visual Crossing"]||0)>0||Number(probabilityWeights?.["Visual Crossing"]||0)>0){
+ if(!active.modelRows["Visual Crossing"]&&(Number(amountWeights?.["Visual Crossing"]||0)>0||Number(probabilityWeights?.["Visual Crossing"]||0)>0)){
   try{
    const vcRows=await loadVisualCrossingRainRows(p.name,date);
    if(vcRows.length){externalRainRows["Visual Crossing"]=vcRows;weightingLabel+="＋Visual Crossing";}
@@ -2721,6 +2807,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
  let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'既有模式快取',detail:'降雨機率採有提供欄位的模型資料；有歷史 Brier 權重時採加權融合，否則使用既有系集／模式機率；AIFS 不提供原生降雨機率'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
  active.rows=base;
+ renderPlayabilityAnalysis(base,p.name,date);
  const valid=base.filter(x=>x.available),avg=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?a.reduce((z,v)=>z+v,0)/a.length:null;},mx=k=>{const a=valid.map(x=>x[k]).filter(v=>v!==null);return a.length?Math.max(...a):null;};
  const fmt=(v,d=1)=>v===null||v===undefined?"—":Number(v).toFixed(d);
  $("metrics").innerHTML=[["最高降雨機率",fmt(mx("rain"),0)+"%"],["06–18時預報累積雨量",fmt(valid.reduce((z,x)=>z+(x.mm||0),0))+" mm"],["平均氣溫",fmt(avg("temp"))+" °C"],["平均體感溫度",fmt(avg("feel"))+" °C"],["平均風速",fmt(avg("wind"))+" km/h"],["最大陣風",fmt(mx("gust"))+" km/h"]].map(([a,b])=>`<div class="metric"><small>${a}</small><strong class="${a==='平均體感溫度'?'feel-temp':''}">${b}</strong></div>`).join("");
@@ -2747,7 +2834,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
  loadAndRenderDailyForecast(p);
  loadRadar(p.lat,p.lon);
  loadV28ProviderCache(p.name,date);
- if(!forceRefresh&&cacheAgeMinutes!==null&&cacheAgeMinutes>360&&cacheAgeMinutes<=720&&Object.keys(cachedCourseModels(cacheCandidate,p.name,date)).length){
+ if(!forceRefresh&&cacheAgeMinutes!==null&&cacheAgeMinutes>180&&cacheAgeMinutes<=720&&Object.keys(cachedCourseModels(cacheCandidate,p.name,date)).length){
   $("status").textContent="舊快取已先顯示｜正在背景更新六組即時模型…";
   setTimeout(()=>loadForecast(p,date,true).catch(e=>{const b=$("apiDiagnosticsText");if(b)b.textContent+="\n\n背景更新失敗："+(e.message||String(e));$("status").textContent="目前顯示舊快取｜背景更新失敗，請稍後重試。";}),0);
  }
@@ -2773,7 +2860,7 @@ renderValidation();
 initForecastDatePicker();
 initCourseDatabase();
 $("teeTimeSelect")?.addEventListener("change",()=>{
- if(active?.rows?.length)renderSelectedHourlySections(active.rows);
+ if(active?.rows?.length){renderSelectedHourlySections(active.rows);renderPlayabilityAnalysis(active.rows,active.name,active.date);}
  else{
   const date=$("courseDate")?.value;
   if(date)updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
