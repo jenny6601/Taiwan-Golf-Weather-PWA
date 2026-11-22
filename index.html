@@ -541,7 +541,10 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <canvas height="260" id="tempChart" width="900"></canvas>
 <div class="legend"><span style="color:#1769aa;font-weight:800">🔵 氣溫（2公尺高度）</span><span class="feel-label">🔴 體感溫度（Apparent temperature）</span></div>
 <div class="muted">比較實際預報氣溫與人體感受的估算溫度；體感溫度會受濕度、風速及日照等因素影響，並非人體核心溫度。</div>
-</section><section class="card" id="rainFocusPanel"><h3>降雨專項摘要｜V30</h3><p class="muted">降雨機率改由系集成員統計（每小時降雨量 &gt;0.1 mm 的成員比例）；若系集 API 無法取得，退回 Open-Meteo Best Match 的系集降雨機率。雨量在歷史權重暖機期間採六模型等權中位數；權重啟用後依提前期與球場回測誤差加權融合；AIFS 不提供原生降雨機率，並顯示模式範圍與時段累積量。</p><div class="cards" id="rainMetrics"><div class="metric"><small>06–18時降雨機率最高值</small><strong>—</strong></div><div class="metric"><small>06–18時預報累積雨量</small><strong>—</strong></div><div class="metric"><small>雨量最大時段</small><strong>—</strong></div><div class="metric"><small>連續4小時累積雨量</small><strong>—</strong></div><div class="metric"><small>降雨資料來源</small><strong>—</strong></div></div><div class="status" id="rainMethodStatus">尚未取得降雨資料。</div><div class="hint">注意：系集成員比例是模式機率，不等於已用台灣球場歷史資料校準的真實機率；雨量中位數與模式上界並列，避免只看平均值低估局部強降雨。</div></section>
+</section>
+<div class="reference-materials-control"><button type="button" id="referenceMaterialsToggle" aria-expanded="false" aria-controls="referenceMaterialsPanel">顯示下方參考資料　▼</button><p class="muted">預設收合；需要查看降雨分析、模型驗證及其他參考資訊時再展開。</p></div>
+<div id="referenceMaterialsPanel" hidden>
+<section class="card" id="rainFocusPanel"><h3>降雨專項摘要｜V30</h3><p class="muted">降雨機率改由系集成員統計（每小時降雨量 &gt;0.1 mm 的成員比例）；若系集 API 無法取得，退回 Open-Meteo Best Match 的系集降雨機率。雨量在歷史權重暖機期間採六模型等權中位數；權重啟用後依提前期與球場回測誤差加權融合；AIFS 不提供原生降雨機率，並顯示模式範圍與時段累積量。</p><div class="cards" id="rainMetrics"><div class="metric"><small>06–18時降雨機率最高值</small><strong>—</strong></div><div class="metric"><small>06–18時預報累積雨量</small><strong>—</strong></div><div class="metric"><small>雨量最大時段</small><strong>—</strong></div><div class="metric"><small>連續4小時累積雨量</small><strong>—</strong></div><div class="metric"><small>降雨資料來源</small><strong>—</strong></div></div><div class="status" id="rainMethodStatus">尚未取得降雨資料。</div><div class="hint">注意：系集成員比例是模式機率，不等於已用台灣球場歷史資料校準的真實機率；雨量中位數與模式上界並列，避免只看平均值低估局部強降雨。</div></section>
 <section class="panel">
 <div class="row"><div><h2 id="locname" style="margin:0">宜蘭縣礁溪鄉礁溪高爾夫球場</h2><div class="muted" id="coords">搜尋球場後顯示實際座標</div></div><span class="pill">V28 多來源擴充架構（六模型核心）</span></div>
 </section>
@@ -613,6 +616,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <section class="card mobile-hide-sources"><h3>氣象來源資料庫（57個）</h3><p class="muted">V28 將原始57筆來源逐筆建立整合狀態。狀態標示代表本頁實際使用方式，不代表網站品質排名；外部參考網站不會被假稱為已自動抓取。</p><div id="sources"></div>
 <div class="v27-registry" id="v27SourceRegistry"></div></section>
 <section class="card mobile-hide-quality"><h3>資料品質、球場搜尋來源與使用限制</h3><ul class="muted"><li>本版球場資料庫內建57座球場地址；選取球場及日期後，以該地址向 OpenStreetMap Nominatim 地理編碼取得座標，再呼叫 Open-Meteo 預報。若地址無法定位，不使用行政區中心點代替。</li><li>OpenStreetMap Nominatim 於使用者選取球場及日期後執行單次地址定位；不做批次請求，遵守服務使用政策及資料來源標示要求。OpenStreetMap 資料採 ODbL 授權。</li><li>V29 降雨機率獨立使用系集成員頻率（每小時&gt;0.1 mm），系集API不可用時退回Best Match系集機率；此仍非以台灣57球場歷史觀測完成校準的真實機率。雨量以六個確定性模式可用欄位逐時中位數呈現，並列模式範圍。多模型差異越大，預報不確定性越高；尤其台灣複雜地形、季風及局部陣雨情境，不宜只看單一模型。</li><li>本版逐一查詢 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM、ECMWF AIFS 六組模型，氣溫、風等以可用欄位逐時中位數整合；AIFS 原始資料為 6 小時解析度，Open-Meteo 顯示逐時內插，且沒有原生降雨機率、陣風及 UV。雨量以逐時中位數及最小–最大範圍呈現；模型來源有不同解析度、更新週期及系統性誤差，且並非完全統計獨立。模型覆蓋範圍、解析度及更新時間不同。</li><li>降雨機率、累積雨量、平均風速及陣風是不同變數，不能互相替代。</li><li>RainViewer雷達免費API適用個人／教育用途，需標示來源，且不保證服務可用性。</li><li>CWA API需授權碼；本版採使用者自行輸入，若瀏覽器跨域限制阻擋，需改用後端代理，不能將授權碼公開放在GitHub。</li><li>預報分數不代表球場可開放或安全。雷電、豪雨、強風警報及球場公告優先；聽到雷聲或有雷電警示時應立即停止戶外活動並依球場指示避難。</li><li>Open-Meteo免費API適用非商業使用；商用或高流量部署請先確認授權及服務條款。</li></ul><p><a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">OpenStreetMap attribution</a> ｜ <a href="https://nominatim.org/release-docs/latest/api/Search/" rel="noopener" target="_blank">Nominatim搜尋文件</a> ｜ <a href="https://open-meteo.com/en/docs/geocoding-api" rel="noopener" target="_blank">Open-Meteo地理編碼文件</a> ｜ <a href="https://open-meteo.com/en/docs" rel="noopener" target="_blank">Open-Meteo預報文件</a> ｜ <a href="https://open-meteo.com/en/docs/ensemble-api" rel="noopener" target="_blank">Open-Meteo系集API文件</a> ｜ <a href="https://www.rainviewer.com/api.html" rel="noopener" target="_blank">RainViewer API文件</a> ｜ <a href="https://opendata.cwa.gov.tw/devManual/description" rel="noopener" target="_blank">CWA API文件</a></p></section>
+</div>
 <footer>台灣高爾夫球場天氣預測V31｜API穩定性修復版｜全台57球場・降雨機率／雨量驗證與校正｜06:00–18:00逐時預報｜資料可能延遲或缺漏，請以官方警特報、即時觀測及球場公告為準。</footer>
 </main>
 <script>
@@ -1447,6 +1451,13 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
 .tee-time-summary-tag{flex:none;background:#174f78;color:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}
 #teeTimeWeatherSummary.playability-special-grid{margin:0!important}
 @media(max-width:600px){.tee-time-summary-head{padding:11px 12px}.tee-time-summary-head h3{font-size:17px}.tee-time-summary-meta .playability-title-chip{font-size:11px;padding:4px 7px}.tee-time-summary-tag{font-size:10px;padding:6px 8px}}
+
+/* Toggle the reference material below section ④; collapsed by default. */
+.reference-materials-control{margin:18px 0 14px;padding:14px 16px;border:1px solid #cbd9e3;border-radius:16px;background:#eef5fa;text-align:center}
+#referenceMaterialsToggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:11px 22px;border:0;border-radius:999px;background:#174f78;color:#fff;font-size:16px;font-weight:900;letter-spacing:.3px;box-shadow:0 3px 8px rgba(23,79,120,.18);cursor:pointer}
+#referenceMaterialsToggle:focus-visible{outline:3px solid #e0a52b;outline-offset:3px}
+.reference-materials-control p{margin:8px 0 0;font-size:13px}
+#referenceMaterialsPanel[hidden]{display:none!important}
 </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
@@ -2907,6 +2918,17 @@ autoLoadDefaultCourse();
 })();
 
 
+
+const referenceMaterialsToggle=document.getElementById("referenceMaterialsToggle");
+const referenceMaterialsPanel=document.getElementById("referenceMaterialsPanel");
+if(referenceMaterialsToggle&&referenceMaterialsPanel){
+ referenceMaterialsToggle.addEventListener("click",()=>{
+  const show=referenceMaterialsPanel.hidden;
+  referenceMaterialsPanel.hidden=!show;
+  referenceMaterialsToggle.textContent=show?"隱藏下方參考資料　▲":"顯示下方參考資料　▼";
+  referenceMaterialsToggle.setAttribute("aria-expanded",String(show));
+ });
+}
 </script>
 <script src="./pwa/pwa-install.js"></script>
 </body></html>
