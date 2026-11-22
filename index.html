@@ -350,10 +350,10 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 
 
 /* V2.2：標題資訊單列、移除重複副標，強化低溫門檻 */
-#playabilityTitle .playability-title-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;max-width:100%;min-width:0;margin-top:9px;overflow:visible;white-space:normal}
-#playabilityTitle .playability-title-chip{font-size:14px;padding:5px 10px;flex:0 1 auto;max-width:100%;white-space:nowrap}
-.playability-section-title:not(.cold-report-title) .playability-title-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;font-size:14px;white-space:normal}
-.playability-section-title:not(.cold-report-title) .playability-title-chip{font-size:14px;padding:6px 11px;flex:0 1 auto}
+#playabilityTitle .playability-title-meta{display:flex;flex-wrap:nowrap;align-items:center;gap:clamp(4px, .7vw, 9px);width:100%;max-width:100%;min-width:0;margin-top:9px;overflow:hidden;white-space:nowrap}
+#playabilityTitle .playability-title-chip{font-size:clamp(10px,1.12vw,14px);padding:5px clamp(5px,.8vw,10px);flex:0 1 auto;min-width:0;max-width:100%;white-space:nowrap;justify-content:center}
+.playability-section-title:not(.cold-report-title) .playability-title-meta{display:flex;flex-wrap:nowrap;align-items:center;gap:clamp(4px,.7vw,8px);width:100%;min-width:0;margin-top:8px;font-size:clamp(10px,1.08vw,14px);white-space:nowrap;overflow:hidden}
+.playability-section-title:not(.cold-report-title) .playability-title-chip{font-size:clamp(10px,1.08vw,14px);padding:5px clamp(5px,.8vw,10px);flex:0 1 auto;min-width:0;white-space:nowrap;justify-content:center}
 
 #playabilitySubtitle[hidden]{display:none!important}
 .playability-section-title.cold-report-title{display:flex;align-items:center;flex-wrap:wrap;gap:9px 12px;padding:12px 14px;line-height:1.35}
@@ -361,9 +361,9 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .cold-thresholds{display:inline-flex;align-items:center;flex-wrap:wrap;gap:7px}
 .cold-threshold{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#fff;color:#15558a;border:1px solid #9fc9ed;font-size:14px;font-weight:900;white-space:nowrap}
 .cold-threshold-extreme{background:#c8e4fb;border-color:#78b5e7;color:#103f70}
-.playability-section-title.cold-report-title .playability-title-meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0 0 0 auto;font-size:13px;white-space:normal;max-width:100%}
-.playability-section-title.cold-report-title .playability-title-chip{background:#f7fbff;border-color:#a9cce9;color:#174b78;padding:6px 10px;font-size:13px;flex:0 1 auto}
-@media(max-width:700px){#playabilityTitle .playability-title-meta{gap:6px}.playability-section-title:not(.cold-report-title) .playability-title-meta{gap:6px;font-size:13px}.playability-section-title:not(.cold-report-title) .playability-title-chip{font-size:13px;padding:5px 9px}.playability-section-title.cold-report-title{gap:7px}.cold-title-main{font-size:15px}.cold-threshold{font-size:12px;padding:4px 8px}.playability-section-title.cold-report-title .playability-title-meta{width:100%;margin:0;flex-wrap:wrap;white-space:normal}}
+.playability-section-title.cold-report-title .playability-title-meta{display:flex;flex:0 0 100%;flex-wrap:nowrap;align-items:center;gap:clamp(4px,.7vw,7px);width:100%;max-width:100%;min-width:0;margin:0;font-size:clamp(10px,1.04vw,13px);white-space:nowrap;overflow:hidden}
+.playability-section-title.cold-report-title .playability-title-chip{background:#f7fbff;border-color:#a9cce9;color:#174b78;padding:5px clamp(5px,.75vw,9px);font-size:clamp(10px,1.04vw,13px);flex:0 1 auto;min-width:0;white-space:nowrap;justify-content:center}
+@media(max-width:700px){#playabilityTitle .playability-title-meta{gap:4px}.playability-section-title:not(.cold-report-title) .playability-title-meta{gap:4px}.playability-section-title:not(.cold-report-title) .playability-title-chip{padding:4px 5px}.playability-section-title.cold-report-title{gap:7px}.cold-title-main{font-size:15px}.cold-threshold{font-size:12px;padding:4px 8px}.playability-section-title.cold-report-title .playability-title-meta{width:100%;margin:0;flex-wrap:nowrap;white-space:nowrap}}
 </style>
 <style id="daily-forecast-styles">
 .forecast-heading-daily{background:#174f78!important}.daily-forecast-scroll{width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;touch-action:pan-x pan-y}
