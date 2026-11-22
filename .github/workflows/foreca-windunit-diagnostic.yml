@@ -2,11 +2,6 @@ name: Foreca wind unit diagnostic (manual, no cache writes)
 
 on:
   workflow_dispatch:
-  push:
-    branches: [test/foreca-windunit-diagnostic]
-    paths:
-      - '.github/workflows/foreca-windunit-diagnostic.yml'
-      - 'scripts/foreca_windunit_diagnostic.py'
     inputs:
       course:
         description: "Diagnostic location label"
@@ -28,6 +23,11 @@ on:
         required: true
         default: "48"
         type: string
+  push:
+    branches: [test/foreca-windunit-diagnostic]
+    paths:
+      - '.github/workflows/foreca-windunit-diagnostic.yml'
+      - 'scripts/foreca_windunit_diagnostic.py'
 
 permissions:
   contents: read
@@ -52,10 +52,10 @@ jobs:
           FORECA_API_KEY: ${{ secrets.FORECA_API_KEY }}
         run: |
           python scripts/foreca_windunit_diagnostic.py \
-            --course "${{ inputs.course }}" \
-            --lat "${{ inputs.latitude }}" \
-            --lon "${{ inputs.longitude }}" \
-            --periods "${{ inputs.periods }}" \
+            --course "${{ inputs.course || 'Jiaoxi Golf Course' }}" \
+            --lat "${{ inputs.latitude || '24.8389' }}" \
+            --lon "${{ inputs.longitude || '121.7389' }}" \
+            --periods "${{ inputs.periods || '48' }}" \
             --out /tmp/foreca-windunit-report.json
       - name: Publish aggregate diagnostic summary
         if: always()
