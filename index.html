@@ -333,6 +333,22 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .playability-tag{flex:none;background:#e7f3ed;color:#176344;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:800}
 .playability-placeholder{padding:14px;border-radius:10px;background:#f2f6f4;color:#64748b;font-size:14px}
 .playability-overview{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;padding:12px;background:#f3f8f5;border-radius:12px;margin-bottom:12px}
+.playability-overview-revised{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 14px;align-items:center;padding:15px}
+.playability-total small,.playability-grade-block>small{display:block;color:#526b63;font-size:12px;font-weight:800;margin-bottom:5px}
+.playability-total strong{display:block;font-size:34px;line-height:1.15;font-weight:900;color:#173f35}
+.playability-total strong span{font-size:19px}
+.playability-grade-line{display:flex;align-items:center;gap:9px;min-height:42px}
+.playability-grade-letter{display:flex;width:42px;height:42px;flex:none;align-items:center;justify-content:center;border:3px solid;border-radius:50%;font-size:25px;font-weight:900;background:#fff}
+.playability-grade-letter.score-tier-excellent{color:#087443;border-color:#15945c;background:#e8f7ef}
+.playability-grade-letter.score-tier-good{color:#08649b;border-color:#1684c5;background:#eaf5fc}
+.playability-grade-letter.score-tier-caution{color:#9a5b00;border-color:#d99119;background:#fff5df}
+.playability-grade-letter.score-tier-d{color:#b45309;border-color:#d97735;background:#fff4e8}
+.playability-grade-letter.score-tier-e{color:#b42318;border-color:#c74343;background:#fff0ef}
+.playability-grade-line>strong{font-size:18px;line-height:1.3}
+.playability-description{grid-column:1/-1;padding:10px 11px;border-radius:9px;background:#fff;font-size:14px;line-height:1.55;color:#40534a;font-weight:700}
+.playability-data-note{grid-column:1/-1;font-size:11px;color:#64748b;line-height:1.45}
+@media(max-width:380px){.playability-total strong{font-size:30px}.playability-grade-line>strong{font-size:16px}.playability-overview-revised{gap:8px;padding:12px}}
+
 .playability-score{width:104px;height:104px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border:7px solid #20a36b;color:#176344}
 .playability-score strong{font-size:32px;line-height:1.1;font-weight:900}
 .playability-score small{font-size:11px;font-weight:800}
@@ -2044,7 +2060,7 @@ function renderPlayabilityAnalysis(rows,courseName,date){
  const windows=[];for(let i=0;i<=((rows||[]).length-4);i++){const group=rows.slice(i,i+4);if(group.length===4&&group.every(x=>x&&x.available!==false)){const v=playabilityFactorScore(group);if(v.score!==null)windows.push({time:group[0].time,score:v.score,rain:v.rainTotal,gust:v.maxGust});}}
  windows.sort((a,b)=>b.score-a.score);
  const winHtml=windows.length?windows.slice(0,3).map((x,i)=>'<div class="playability-window"><span><b>'+esc(x.time)+' 起</b>｜連續4小時</span><span class="score-value '+playabilityGrade(x.score).cls+'">'+x.score+'分</span></div>').join(""):'<small>沒有足夠完整的連續4小時資料可比較。</small>';
- host.innerHTML=summaryMarkup+'<div class="playability-overview"><div class="playability-score '+overallGrade.cls+'"><strong>'+data.score+'</strong><small>分｜滿分100分</small></div><div><div class="playability-verdict" style="color:'+tone+'">'+overallGrade.grade+'級｜'+verdict+'</div><div class="playability-summary">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
+ host.innerHTML=summaryMarkup+'<div class="playability-overview playability-overview-revised"><div class="playability-total"><small>天氣適打性總得分</small><strong>'+data.score+' <span>分</span></strong></div><div class="playability-grade-block"><small>適打等級</small><div class="playability-grade-line"><b class="playability-grade-letter '+overallGrade.cls+'">'+overallGrade.grade+'</b><strong style="color:'+tone+'">'+verdict+'</strong></div></div><div class="playability-description">'+overallGrade.description+'</div><div class="playability-data-note">依所選時段逐時預報計算；已取得 '+chosen.length+' 個小時資料。五項權重中 '+pct+'% 可計算，缺漏指標不會當成零分。</div></div><div class="playability-section-title">五項評分</div><div class="playability-grid">'+parts+'</div><div class="playability-section-title">下場注意事項</div><div class="playability-alerts">'+alerts+'</div><div class="playability-section-title">較佳開球時段（每段連續4小時）</div>'+winHtml+'<div class="playability-foot">資料基準：'+esc(active?.forecastSource||"PWA逐時預報")+"｜來源覆蓋："+esc(active?.v2SourceLabel||"六模型來源")+"（"+esc(Object.keys(active?.modelRows||{}).join("、"))+"）"+'。評分為系統輔助判讀，不是官方警報或球場開放判定；遇雷雨、強風或低能見度，仍應以現場安全公告為準。</div>';
  renderV2SpecialReports(chosen);
 }
 function chart(id,series,maxVal,colors,labels=[],unit="",chartTheme="",weatherCodes=[]){
