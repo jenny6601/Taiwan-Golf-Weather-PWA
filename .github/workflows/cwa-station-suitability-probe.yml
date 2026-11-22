@@ -1,0 +1,26 @@
+name: CWA observation station suitability probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout diagnostic branch
+        uses: actions/checkout@v4
+        with:
+          ref: test/foreca-windunit-diagnostic
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Query CWA hourly station observations
+        env:
+          CWA_API_KEY: ${{ secrets.CWA_API_KEY }}
+          CWA_AUTHORIZATION: ${{ secrets.CWA_AUTHORIZATION }}
+        run: python scripts/cwa_station_suitability_probe.py
