@@ -3,7 +3,7 @@ set -euo pipefail
 rm -rf dist
 mkdir -p dist/assets
 python3 -m pip install --quiet Pillow
-cp compact/index.html dist/index.html
+cp index.html dist/index.html
 cp compact/icon-192.png dist/icon-192.png
 cp compact/icon-512.png dist/icon-512.png
 cp compact/icon.svg dist/icon.svg
@@ -15,6 +15,8 @@ import json
 p=Path("dist/index.html")
 s=p.read_text(encoding="utf-8")
 s=s.replace('<base href="../"/>','')
+s=s.replace('./icons/apple-touch-icon.png','./icon-192.png')
+s=s.replace('./pwa/pwa-install.js','./pwa-install.js')
 s=s.replace('<base href="../">','')
 s=s.replace('./compact/manifest.json','./manifest.json')
 s=s.replace('./compact/icon-192.png','./icon-192.png')
@@ -62,7 +64,7 @@ Path("dist/_headers").write_text(
  encoding="utf-8")
 
 Path("dist/sw.js").write_text(
- 'const CACHE_NAME="golf-weather-compact-netlify-v30";\n'
+ 'const CACHE_NAME="golf-weather-compact-netlify-v31";\n'
  'const APP_SHELL=["/","/index.html","/manifest.json","/pwa-install.js","/icon.svg","/icon-192.png","/icon-512.png","/offline.html","/assets/rain-levels-original.webp"];\n'
  'self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)).then(()=>self.skipWaiting())));\n'
  'self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("golf-weather-compact-netlify-")&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));\n'
