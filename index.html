@@ -1216,6 +1216,18 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
  #hourlyForecastTable tbody td:nth-child(6) .temp-value{font-size:16px!important;font-weight:800!important;font-variant-numeric:tabular-nums!important}
  #hourlyForecastTable tbody td:nth-child(7) .hourly-feel-icon>span{font-size:16px!important;font-weight:800!important;font-variant-numeric:tabular-nums!important}
 }
+
+/* Slightly enlarge rain probability and rainfall figures without changing table geometry. */
+@media(max-width:600px){
+ #hourlyForecastTable tbody td:nth-child(3) .rainpill b,
+ #hourlyForecastTable tbody td:nth-child(4) .rainamount b{
+  display:inline-block!important;
+  transform:scale(1.08)!important;
+  transform-origin:center center!important;
+  line-height:1!important;
+  font-variant-numeric:tabular-nums!important;
+ }
+}
 </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
@@ -1317,7 +1329,7 @@ function renderTeeTimeWeatherSummary(rows){
   else if(cloudy.length>=Math.ceil(codes.length/2))weather="多半陰";
   else weather="多雲時晴";
  }
- const fmt=(lo,hi,suffix,d=0)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+(lo===hi?"":"–"+Number(hi).toFixed(d))+suffix;
+ const fmt=(lo,hi,suffix,d=0,forceRange=false)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+((forceRange||lo!==hi)?"–"+Number(hi).toFixed(d):"")+suffix;
  const select=$("teeTimeSelect")?.value||"";
  const period=select?select+"–"+String(Number(select.slice(0,2))+5).padStart(2,"0")+":00":"06:00–18:00";
  const tile=(label,value,note)=>'<div style="padding:12px;border:1px solid #dbe5e1;border-radius:10px;min-width:0"><span style="font-size:13px;color:#526b63;font-weight:800">'+label+'</span><strong style="display:block;margin-top:5px;color:#173f35;font-size:19px;font-weight:900;overflow-wrap:anywhere">'+value+'</strong><small style="display:block;margin-top:4px;color:#64748b">'+note+'</small></div>';
