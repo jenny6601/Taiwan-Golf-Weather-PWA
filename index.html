@@ -1417,6 +1417,18 @@ $("sources").innerHTML=sources.map(([g,a])=>`<details><summary>${g}（${a.length
  #hourlyForecastTable tbody td:nth-child(6) .temp-value{font-size:16px!important;font-weight:800!important;font-variant-numeric:tabular-nums!important}
  #hourlyForecastTable tbody td:nth-child(7) .hourly-feel-icon>span{font-size:16px!important;font-weight:800!important;font-variant-numeric:tabular-nums!important}
 }
+
+/* Slightly enlarge rain probability and rainfall figures without changing table geometry. */
+@media(max-width:600px){
+ #hourlyForecastTable tbody td:nth-child(3) .rainpill b,
+ #hourlyForecastTable tbody td:nth-child(4) .rainamount b{
+  display:inline-block!important;
+  transform:scale(1.08)!important;
+  transform-origin:center center!important;
+  line-height:1!important;
+  font-variant-numeric:tabular-nums!important;
+ }
+}
 </style>
  <h3>V28｜57個來源整合狀態</h3>
  <div class="v27-summary"><div class="v27-stat"><b>${rows.length}</b><span>來源登錄筆數</span></div><div class="v27-stat"><b>${counts.live}</b><span>自動預報來源</span></div><div class="v27-stat"><b>${counts.radar}</b><span>自動雷達來源</span></div><div class="v27-stat"><b>${counts.limited+counts.manual}</b><span>需人工／有限介接</span></div></div>
@@ -1959,10 +1971,10 @@ function playabilitySummaryMarkup(rows){
   else if(cloudy.length>=Math.ceil(codes.length/2))weather="多半陰";
   else weather="多雲時晴";
  }
- const fmt=(lo,hi,suffix,d=0)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+(lo===hi?"":"–"+Number(hi).toFixed(d))+suffix;
+ const fmt=(lo,hi,suffix,d=0,forceRange=false)=>lo===null||hi===null?"資料不足":Number(lo).toFixed(d)+((forceRange||lo!==hi)?"–"+Number(hi).toFixed(d):"")+suffix;
  return '<div class="playability-section-title">開球時段天氣摘要</div><div class="playability-special-grid">'+
   '<div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">'+weather+'</div><small>依分析時段逐時天氣整合</small></div>'+
-  '<div class="playability-item"><b>降雨機率（最低–最高）</b><div class="playability-special-value">'+fmt(rainMin,rainMax,"%")+'</div><small>有效資料 '+prob.length+'/'+a.length+' 小時</small></div>'+
+  '<div class="playability-item"><b>降雨機率（最低–最高）</b><div class="playability-special-value">'+fmt(rainMin,rainMax,"%",0,true)+'</div><small>有效資料 '+prob.length+'/'+a.length+' 小時</small></div>'+
   '<div class="playability-item"><b>體感溫度（最低–最高）</b><div class="playability-special-value">'+fmt(feelMin,feelMax,"°C",1)+'</div><small>有效資料 '+feel.length+'/'+a.length+' 小時</small></div></div>';
 }
 function renderV2SpecialReports(rows){
