@@ -1278,7 +1278,7 @@ function renderTeeTimeWeatherSummary(rows){
  const host=$("teeTimeWeatherSummary");if(!host)return;
  const chosen=selectedTeeTimeRows(rows||[]).filter(x=>x&&x.available!==false);
  const valid=k=>chosen.filter(x=>x[k]!==null&&x[k]!==undefined&&x[k]!==""&&Number.isFinite(Number(x[k])));
- const rain=valid("rain"),feel=valid("feel"),codes=chosen.map(x=>Number(x.code)).filter(Number.isFinite);
+ const rain=valid("rain"),feel=valid("feel"),codes=chosen.filter(x=>x.code!==null&&x.code!==undefined&&x.code!=="").map(x=>Number(x.code)).filter(Number.isFinite);
  const rainMin=rain.length?Math.min(...rain.map(x=>Number(x.rain))):null;
  const rainMax=rain.length?Math.max(...rain.map(x=>Number(x.rain))):null;
  const feelMin=feel.length?Math.min(...feel.map(x=>Number(x.feel))):null;
