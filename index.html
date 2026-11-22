@@ -1899,6 +1899,32 @@ function renderV2SpecialReports(rows){
  const validNum=v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v));
  const rain=a.filter(x=>validNum(x.mm)),prob=a.filter(x=>validNum(x.rain));
  const feel=a.filter(x=>validNum(x.feel));
+ const rainMin=prob.length?Math.min(...prob.map(x=>Number(x.rain))):null;
+ const rainMax=prob.length?Math.max(...prob.map(x=>Number(x.rain))):null;
+ const feelMin=feel.length?Math.min(...feel.map(x=>Number(x.feel))):null;
+ const feelMax=feel.length?Math.max(...feel.map(x=>Number(x.feel))):null;
+ const weatherCodes=a.map(x=>Number(x.code)).filter(Number.isFinite);
+ const rainyCodes=weatherCodes.filter(c=>[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c));
+ const thunderCodes=weatherCodes.filter(c=>[95,96,99].includes(c));
+ const fogCodes=weatherCodes.filter(c=>[45,48].includes(c));
+ const clearCodes=weatherCodes.filter(c=>c>=0&&c<=2);
+ const cloudyCodes=weatherCodes.filter(c=>c===3);
+ let weatherSummary="資料不足";
+ if(weatherCodes.length>=requiredCoverage){
+  if(thunderCodes.length)weatherSummary="有雷雨";
+  else if(rainyCodes.length>=Math.ceil(weatherCodes.length/2))weatherSummary=rainyCodes.some(c=>[65,67,82].includes(c))?"大雨／強陣雨":rainyCodes.some(c=>[61,63,81].includes(c))?"小雨／陣雨":"毛毛雨／小雨";
+  else if(rainyCodes.length)weatherSummary="多雲偶雨";
+  else if(fogCodes.length>=Math.ceil(weatherCodes.length/2))weatherSummary="有霧";
+  else if(clearCodes.length===weatherCodes.length)weatherSummary="晴朗";
+  else if(clearCodes.length>=Math.ceil(weatherCodes.length/2))weatherSummary="多半晴朗";
+  else if(cloudyCodes.length>=Math.ceil(weatherCodes.length/2))weatherSummary="多半陰";
+  else weatherSummary="多雲時晴";
+ }
+ const rangeText=(lo,hi,suffix,digits=0)=>lo===null||hi===null?"資料不足":n(lo,digits)+(lo===hi?"":"–"+n(hi,digits))+suffix;
+ const summaryHtml='<div class="playability-section-title">開球時段天氣摘要</div><div class="playability-special-grid">'+
+  '<div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">'+weatherSummary+'</div><small>依分析時段逐時天氣整合</small></div>'+
+  '<div class="playability-item"><b>降雨機率（最低–最高）</b><div class="playability-special-value">'+rangeText(rainMin,rainMax,"%")+'</div><small>有效資料 '+prob.length+'/'+a.length+' 小時</small></div>'+
+  '<div class="playability-item"><b>體感溫度（最低–最高）</b><div class="playability-special-value">'+rangeText(feelMin,feelMax,"°C",1)+'</div><small>有效資料 '+feel.length+'/'+a.length+' 小時</small></div></div>';
  const total=rain.reduce((z,x)=>z+Number(x.mm),0);
  const requiredCoverage=Math.max(1,Math.ceil(a.length*0.7));
  const maxP=prob.length?Math.max(...prob.map(x=>Number(x.rain))):null;
@@ -1927,7 +1953,7 @@ function renderV2SpecialReports(rows){
  const coldAdvice=!coldCoverageOK?"體感溫度資料覆蓋不足，暫不判定低溫風險。":extreme.length?"體感溫度達10°C以下，屬極低溫警示；建議評估延後開球並加強保暖。":cold.length?"體感溫度達15°C以下，屬低溫警示；建議分層穿著、保暖手套及充分暖身。":"沒有預報到15°C以下的體感溫度時段。";
  const coverageNote="降雨資料："+rain.length+"/"+a.length+"小時；體感資料："+feel.length+"/"+a.length+"小時。";
  const detail=a.map(x=>"<tr><td>"+esc(x.time)+"</td><td>"+n(x.rain,0)+"%</td><td>"+n(x.mm)+"</td><td>"+n(x.temp)+"°C</td><td>"+n(x.feel)+"°C</td></tr>").join("");
- host.innerHTML=
+ host.innerHTML=summaryHtml+
  '<div class="playability-section-title '+rainTitleClass+'">降雨專項分析｜'+rainRisk+'風險'+playabilityContextMarkup()+'</div>'+
  '<div class="playability-special-grid">'+
  '<div class="playability-item"><b>累積雨量</b><div class="playability-special-value">'+n(total)+' mm</div></div>'+
