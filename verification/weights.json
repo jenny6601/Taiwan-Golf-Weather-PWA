@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-25T13:03:29.852714+08:00",
+  "generated_at": "2026-11-26T13:32:18.458205+08:00",
   "status": "warming_up",
   "method": "inverse-error with equal-prior shrinkage and 0.35 maximum source weight",
   "verification_source": "CWA rainfall observations",
@@ -24,13 +24,14 @@
     },
     "3": {
       "sample_count_by_source": {
-        "ECMWF IFS": 114,
-        "NOAA GFS": 114,
-        "DWD ICON": 114,
-        "JMA GSM": 114,
-        "Canada GEM": 114,
-        "ECMWF AIFS": 114,
-        "Visual Crossing": 114
+        "ECMWF IFS": 171,
+        "NOAA GFS": 170,
+        "DWD ICON": 170,
+        "JMA GSM": 170,
+        "Canada GEM": 171,
+        "ECMWF AIFS": 171,
+        "Visual Crossing": 171,
+        "Foreca": 57
       },
       "amount_weights": null,
       "probability_weights": null,

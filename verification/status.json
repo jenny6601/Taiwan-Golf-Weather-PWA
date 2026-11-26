@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-11-26T07:45:11.420749+08:00",
-  "latest_observation_snapshot_at": "2026-11-25T23:40:41.806202+00:00",
+  "generated_at": "2026-11-26T13:32:18.458205+08:00",
+  "latest_observation_snapshot_at": "2026-11-26T05:30:47.341641+00:00",
   "observation_archive": {
     "status": "archived",
-    "snapshot_at": "2026-11-25T23:40:41.806202+00:00",
+    "snapshot_at": "2026-11-26T05:30:47.341641+00:00",
     "course_count": 57,
-    "age_minutes": 4.5,
+    "age_minutes": 1.5,
     "coverage": {
       "weather_courses": 57,
       "rainfall_courses": 57,
       "courses_total": 57
     }
   },
-  "latest_forecast_archive_date": "2026-11-22",
+  "latest_forecast_archive_date": "2026-11-26",
   "verification_status": "warming_up",
   "active_lead_days": [],
   "retention_days": 180
