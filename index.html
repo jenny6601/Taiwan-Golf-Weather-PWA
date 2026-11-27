@@ -540,7 +540,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .page-nav-btn .nav-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;background:#ffffff24;font-size:23px}
 .page-nav-btn .nav-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
 .page-nav-btn strong{font-size:17px;line-height:1.25;white-space:normal}
-.page-nav-btn small{font-size:12px;font-weight:550;opacity:.9;line-height:1.35}
+.page-nav-btn small{font-size:14px;font-weight:650;opacity:.98;line-height:1.4}
 .page-nav-btn.nav-summary{background:#126b4c}
 .page-nav-btn.nav-live{background:#174b78}
 .page-nav-btn.nav-analysis{background:#16766f}
@@ -558,7 +558,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .page-actions .page-home{background:#126b4c;color:#fff}
 #page-hourly .hourly-chart-grid{display:grid;grid-template-columns:1fr;gap:0}
 @media(min-width:760px){.page-home-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.page-nav-btn.nav-hourly{grid-column:1/-1}}
-@media(max-width:480px){.page-home-nav{grid-template-columns:1fr;gap:9px}.page-nav-btn{min-height:68px;padding:11px 13px}.page-nav-btn strong{font-size:16px}.page-nav-btn small{font-size:11px}.page-nav-btn.nav-hourly{grid-column:auto}.page-titlebar{align-items:flex-start}.page-titlebar h2{font-size:18px}.page-actions{width:100%}.page-actions button{flex:1;min-width:0}}
+@media(max-width:480px){.page-home-nav{grid-template-columns:1fr;gap:9px}.page-nav-btn{min-height:72px;padding:11px 13px}.page-nav-btn strong{font-size:16px}.page-nav-btn small{font-size:13px}.page-nav-btn.nav-hourly{grid-column:auto}.page-titlebar{align-items:flex-start}.page-titlebar h2{font-size:18px}.page-actions{width:100%}.page-actions button{flex:1;min-width:0}}
 </style>
 </head>
 <body>
@@ -749,13 +749,17 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   const courseNode=document.getElementById("locname");
   const headerNode=document.getElementById("selectedCourseHeader");
   const rawDate=dateInput?.value||"";
-  let dateLabel="尚未選擇日期";
-  if(rawDate){const parts=rawDate.split("-");dateLabel=parts.length===3?parts[0]+"/"+parts[1]+"/"+parts[2]:rawDate;}
+  const parseDate=value=>{const m=String(value||"").match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);return m?new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12):null;};
+  const formatDate=d=>d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");
+  const selectedDate=parseDate(rawDate);
+  const dateLabel=selectedDate?formatDate(selectedDate):"尚未選擇日期";
+  const rangeEnd=selectedDate?new Date(selectedDate.getFullYear(),selectedDate.getMonth(),selectedDate.getDate()+15,12):null;
+  const rangeLabel=selectedDate?dateLabel+"–"+formatDate(rangeEnd):"16天日期區間";
   const tee=teeInput?.value||"";
   const timeLabel=tee?tee+" 開球":"06:00–18:00";
-  document.querySelectorAll(".nav-date-time").forEach(el=>{el.textContent=dateLabel+"｜"+timeLabel;});
+  document.querySelectorAll(".nav-date-time").forEach(el=>{el.textContent=el.dataset.navDateTime==="nav-daily"?rangeLabel:dateLabel+"｜"+timeLabel;});
   const course=(courseNode?.textContent||"").trim();
-  if(headerNode) headerNode.textContent=course||"尚未選擇球場";
+  if(headerNode)headerNode.textContent=course||"球場載入中…";
  }
  document.getElementById("courseDate")?.addEventListener("change",refreshNavContext);
  document.getElementById("teeTimeSelect")?.addEventListener("change",refreshNavContext);
@@ -2877,6 +2881,8 @@ async function loadForecast(p,date,forceRefresh=false){
  window.dispatchEvent(new Event("golf-course-context-updated"));
  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
  $("locname").textContent=p.name;
+ const courseBadge=document.getElementById("selectedCourseHeader");if(courseBadge)courseBadge.textContent=p.name||"球場載入中…";
+ window.dispatchEvent(new Event("golf-course-context-updated"));
  $("coords").textContent=`${p.address||""}｜${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜固定座標`;
  $("status").textContent="正在以球場座標取得六組氣象模型資料…";
  // 背景更新保留舊快取畫面，避免畫面閃空。
