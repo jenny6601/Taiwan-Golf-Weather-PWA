@@ -735,20 +735,61 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
  const pages=["home","summary","live","analysis","daily","hourly"];
  const historyStack=["home"];
  let current="home";
+ let lastHomeBackAt=0;
+ let backToastTimer=null;
+ function showBackToast(){
+  let toast=document.getElementById("androidBackToast");
+  if(!toast){
+   toast=document.createElement("div");toast.id="androidBackToast";
+   toast.textContent="再按一次返回鍵即可離開";
+   Object.assign(toast.style,{position:"fixed",left:"50%",bottom:"calc(24px + env(safe-area-inset-bottom, 0px))",transform:"translateX(-50%)",zIndex:"99999",padding:"12px 20px",borderRadius:"24px",background:"#263238",color:"#fff",fontSize:"15px",fontWeight:"650",boxShadow:"0 4px 18px #0005",whiteSpace:"nowrap",opacity:"0",transition:"opacity .18s"});
+   document.body.appendChild(toast);
+  }
+  toast.style.opacity="1";
+  clearTimeout(backToastTimer);
+  backToastTimer=setTimeout(()=>{toast.style.opacity="0";},2200);
+ }
+ function pushPageState(name){
+  try{history.pushState({golfWeatherPage:name,guard:true},"","#"+name);}catch(e){}
+ }
  function showPage(name,push){
   if(!pages.includes(name)) return;
   document.querySelectorAll(".app-page").forEach(el=>{el.hidden=el.dataset.page!==name;});
-  if(push&&name!==current) historyStack.push(current);
+  if(push&&name!==current){
+   historyStack.push(current);
+   pushPageState(name);
+  }
   current=name;
   window.scrollTo({top:0,behavior:"instant"});
   window.dispatchEvent(new Event("resize"));
  }
+ // Keep a same-document history entry so Android Back is handled by the PWA first.
+ try{history.replaceState({golfWeatherPage:"home",guard:true},"",location.pathname+location.search);history.pushState({golfWeatherPage:"home",guard:true},"","#home");}catch(e){}
  document.querySelectorAll("[data-go-page]").forEach(btn=>btn.addEventListener("click",()=>showPage(btn.dataset.goPage,true)));
- document.querySelectorAll("[data-page-home]").forEach(btn=>btn.addEventListener("click",()=>{historyStack.length=0;historyStack.push("home");showPage("home",false);}));
- document.querySelectorAll("[data-page-back]").forEach(btn=>btn.addEventListener("click",()=>{
-  const previous=historyStack.pop()||"home";showPage(previous,false);
+ document.querySelectorAll("[data-page-home]").forEach(btn=>btn.addEventListener("click",()=>{
+  historyStack.length=0;historyStack.push("home");showPage("home",false);
+  try{history.replaceState({golfWeatherPage:"home",guard:true},"",location.pathname+location.search);}catch(e){}
  }));
- window.addEventListener("popstate",()=>{const previous=historyStack.pop()||"home";showPage(previous,false);});
+ document.querySelectorAll("[data-page-back]").forEach(btn=>btn.addEventListener("click",()=>{
+  if(historyStack.length>1){history.back();}
+  else showPage("home",false);
+ }));
+ window.addEventListener("popstate",()=>{
+  if(current!=="home"&&historyStack.length>1){
+   const previous=historyStack.pop()||"home";
+   showPage(previous,false);
+   return;
+  }
+  const now=Date.now();
+  if(now-lastHomeBackAt<2500){
+   lastHomeBackAt=0;
+   // Do not add another history entry: allow the browser/Android to leave.
+   return;
+  }
+  lastHomeBackAt=now;
+  showBackToast();
+  try{history.pushState({golfWeatherPage:"home",guard:true},"","#home");}catch(e){}
+ });
  window.showGolfWeatherPage=function(name){showPage(name,true);};
  function refreshNavContext(){
   const dateInput=document.getElementById("courseDate");
