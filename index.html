@@ -749,7 +749,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   const courseNode=document.getElementById("locname");
   const headerNode=document.getElementById("selectedCourseHeader");
   const rawDate=dateInput?.value||"";
-  const parseDate=value=>{const m=String(value||"").match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);return m?new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),12):null;};
+  const parseDate=value=>{const parts=String(value||"").split("-").map(Number);return parts.length===3&&parts.every(Number.isFinite)?new Date(parts[0],parts[1]-1,parts[2],12):null;};
   const formatDate=d=>d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");
   const selectedDate=parseDate(rawDate);
   const dateLabel=selectedDate?formatDate(selectedDate):"尚未選擇日期";
@@ -1850,6 +1850,7 @@ async function autoLoadDatabaseCourse(c,button){
  if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
  if(databaseAutoBusy)return;
  selectedCourseForReload=c;
+ const navCourseBadge=document.getElementById("selectedCourseHeader");if(navCourseBadge)navCourseBadge.textContent=c.name||"球場載入中…";
  window.dispatchEvent(new Event("golf-course-context-updated"));
  showAllCountyCourses=false;
  // 若從常用球場切換縣市，同步縣市選單，並保留該縣市完整球場清單。
@@ -3075,6 +3076,8 @@ document.getElementById('downloadValidationTemplate').addEventListener('click',(
 renderValidation();
 initForecastDatePicker();
 initCourseDatabase();
+const navDateInput=document.getElementById("courseDate");
+if(navDateInput&&!navDateInput.value){const now=new Date();const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(now);navDateInput.value=parts;}
 window.dispatchEvent(new Event("golf-course-context-updated"));
 $("teeTimeSelect")?.addEventListener("change",()=>{
  if(active?.rows?.length){renderSelectedHourlySections(active.rows);renderPlayabilityAnalysis(active.rows,active.name,active.date);}
