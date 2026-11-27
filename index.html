@@ -549,6 +549,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .page-actions .page-back{background:#7043a3!important;color:#fff!important}
 .page-actions .page-home{background:#1769aa!important;color:#fff!important}
 #selectedCourseHeader{display:inline-block;margin-left:9px;padding:2px 10px;border-radius:999px;background:#ffffff20;border:1px solid #ffffff66;font-size:.72em;vertical-align:middle;white-space:nowrap}
+#selectedCourseHeader:empty:after{content:"球場載入中…"}
 @media(max-width:480px){#selectedCourseHeader{display:inline-block;margin:5px 0 0 4px;font-size:.68em}}
 .page-titlebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 14px;padding:12px 14px;background:#eaf1f5;border:1px solid #d7e2e9;border-radius:12px}
 .page-titlebar h2{font-size:20px;margin:0;color:#173b52}
@@ -757,8 +758,12 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   const rangeLabel=selectedDate?dateLabel+"–"+formatDate(rangeEnd):"16天日期區間";
   const tee=teeInput?.value||"";
   const timeLabel=tee?tee+" 開球":"06:00–18:00";
-  document.querySelectorAll(".nav-date-time").forEach(el=>{el.textContent=el.dataset.navDateTime==="nav-daily"?rangeLabel:dateLabel+"｜"+timeLabel;});
   const course=(courseNode?.textContent||"").trim();
+  const courseLabel=course?course.replace(/高爾夫球場/g,"").trim():"球場載入中…";
+  document.querySelectorAll(".nav-date-time").forEach(el=>{
+   const base=el.dataset.navDateTime==="nav-daily"?rangeLabel:dateLabel+"｜"+timeLabel;
+   el.textContent=(courseLabel&&courseLabel!=="球場載入中…"?courseLabel+"｜":"")+base;
+  });
   if(headerNode)headerNode.textContent=course||"球場載入中…";
  }
  document.getElementById("courseDate")?.addEventListener("change",refreshNavContext);
