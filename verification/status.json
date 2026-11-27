@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-27T16:10:04.734526+08:00",
-  "latest_observation_snapshot_at": "2026-11-27T08:00:59.480581+00:00",
+  "generated_at": "2026-11-28T02:11:11.965743+08:00",
+  "latest_observation_snapshot_at": "2026-11-27T18:02:07.785430+00:00",
   "observation_archive": {
     "status": "archived",
-    "snapshot_at": "2026-11-27T08:00:59.480581+00:00",
+    "snapshot_at": "2026-11-27T18:02:07.785430+00:00",
     "course_count": 57,
     "age_minutes": 9.1,
     "coverage": {
