@@ -548,6 +548,10 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 .page-nav-btn.nav-hourly{background:#6943a0;grid-column:1/-1}
 .page-actions .page-back{background:#7043a3!important;color:#fff!important}
 .page-actions .page-home{background:#1769aa!important;color:#fff!important}
+.summary-hourly-link{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:14px 0 4px;padding:15px 18px;border:0;border-radius:13px;background:#7043a3;color:#fff;font-size:17px;font-weight:750;box-shadow:0 4px 12px #40206030;cursor:pointer}
+.summary-hourly-link:active{transform:scale(.99);filter:brightness(.96)}
+.summary-hourly-link .summary-hourly-arrow{font-size:20px}
+@media(max-width:480px){.summary-hourly-link{font-size:16px;padding:14px 15px}}
 #selectedCourseHeader{display:inline-block;margin-left:9px;padding:2px 10px;border-radius:999px;background:#ffffff20;border:1px solid #ffffff66;font-size:.72em;vertical-align:middle;white-space:nowrap}
 #selectedCourseHeader:empty:after{content:"球場載入中…"}
 @media(max-width:480px){#selectedCourseHeader{display:inline-block;margin:5px 0 0 4px;font-size:.68em}}
@@ -601,6 +605,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div class="app-page" id="page-summary" data-page="summary" hidden>
 <div class="page-titlebar"><h2>⛳ 開球天氣摘要</h2><div class="page-actions"><button type="button" class="page-back" data-page-back>← 返回上一頁</button><button type="button" class="page-home" data-page-home>⌂ 回首頁</button></div></div>
 <section class="card tee-time-summary-card" id="teeTimeWeatherSummaryPanel" aria-live="polite"><div class="tee-time-summary-head"><div class="tee-time-summary-title-wrap"><h3><span>⛳ 開球時段天氣摘要</span><span id="teeTimeSummaryCourse"></span></h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div></div><div id="teeTimeWeatherSummary" class="playability-special-grid"><div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">等待資料</div></div></div></section>
+<button type="button" class="summary-hourly-link" data-go-page="hourly"><span>📊 前往逐時天氣與圖表</span><span class="summary-hourly-arrow">→</span></button>
 </div>
 <div class="app-page" id="page-analysis" data-page="analysis" hidden>
 <div class="page-titlebar"><h2>🏌️ 球場適打性分析</h2><div class="page-actions"><button type="button" class="page-back" data-page-back>← 返回上一頁</button><button type="button" class="page-home" data-page-home>⌂ 回首頁</button></div></div>
