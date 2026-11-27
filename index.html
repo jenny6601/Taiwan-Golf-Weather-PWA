@@ -755,10 +755,11 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   const timeLabel=tee?tee+" 開球":"06:00–18:00";
   document.querySelectorAll(".nav-date-time").forEach(el=>{el.textContent=dateLabel+"｜"+timeLabel;});
   const course=(courseNode?.textContent||"").trim();
-  if(headerNode) headerNode.textContent=course&&course!=="宜蘭縣礁溪鄉礁溪高爾夫球場"?course:"尚未選擇球場";
+  if(headerNode) headerNode.textContent=course||"尚未選擇球場";
  }
  document.getElementById("courseDate")?.addEventListener("change",refreshNavContext);
  document.getElementById("teeTimeSelect")?.addEventListener("change",refreshNavContext);
+ window.addEventListener("golf-course-context-updated",refreshNavContext);
  const courseNode=document.getElementById("locname");
  if(courseNode&&window.MutationObserver){new MutationObserver(refreshNavContext).observe(courseNode,{childList:true,subtree:true,characterData:true});}
  refreshNavContext();
@@ -1845,6 +1846,7 @@ async function autoLoadDatabaseCourse(c,button){
  if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
  if(databaseAutoBusy)return;
  selectedCourseForReload=c;
+ window.dispatchEvent(new Event("golf-course-context-updated"));
  showAllCountyCourses=false;
  // 若從常用球場切換縣市，同步縣市選單，並保留該縣市完整球場清單。
  if($("countySelect")&&c.city)$("countySelect").value=c.city;
@@ -2872,6 +2874,7 @@ async function loadAndRenderDailyForecast(p){const status=$("dailyForecastStatus
 async function loadForecast(p,date,forceRefresh=false){
  if(!date)throw Error("請先選擇預報日期。");
  active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{}};
+ window.dispatchEvent(new Event("golf-course-context-updated"));
  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
  $("locname").textContent=p.name;
  $("coords").textContent=`${p.address||""}｜${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜固定座標`;
@@ -3066,6 +3069,7 @@ document.getElementById('downloadValidationTemplate').addEventListener('click',(
 renderValidation();
 initForecastDatePicker();
 initCourseDatabase();
+window.dispatchEvent(new Event("golf-course-context-updated"));
 $("teeTimeSelect")?.addEventListener("change",()=>{
  if(active?.rows?.length){renderSelectedHourlySections(active.rows);renderPlayabilityAnalysis(active.rows,active.name,active.date);}
  else{
