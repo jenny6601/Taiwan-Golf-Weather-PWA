@@ -729,6 +729,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   if(push&&name!==current) historyStack.push(current);
   current=name;
   window.scrollTo({top:0,behavior:"instant"});
+  window.dispatchEvent(new Event("resize"));
  }
  document.querySelectorAll("[data-go-page]").forEach(btn=>btn.addEventListener("click",()=>showPage(btn.dataset.goPage,true)));
  document.querySelectorAll("[data-page-home]").forEach(btn=>btn.addEventListener("click",()=>{historyStack.length=0;historyStack.push("home");showPage("home",false);}));
