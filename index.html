@@ -749,6 +749,7 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   const previous=historyStack.pop()||"home";showPage(previous,false);
  }));
  window.addEventListener("popstate",()=>{const previous=historyStack.pop()||"home";showPage(previous,false);});
+ window.showGolfWeatherPage=function(name){showPage(name,true);};
  function refreshNavContext(){
   const dateInput=document.getElementById("courseDate");
   const teeInput=document.getElementById("teeTimeSelect");
@@ -1946,6 +1947,8 @@ window.selectDailyForecastDate=async function(date){
  syncForecastDatePickerDisplay(date);
  syncDailyForecastSelection(date);
  syncDailyForecastToSelectedDate();
+ // 點選16天中的日期後，直接切換到該日逐時天氣分頁。
+ if(typeof window.showGolfWeatherPage==="function")window.showGolfWeatherPage("hourly");
  if(databaseAutoBusy)return;
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
