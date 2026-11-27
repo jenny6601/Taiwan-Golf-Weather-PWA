@@ -23,7 +23,7 @@
 :root{--bg:#f2f5f7;--card:#fff;--ink:#17212b;--muted:#64748b;--line:#dfe6ec;--green:#126b4c;--blue:#1769aa;--amber:#b7791f;--red:#b42318}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Noto Sans TC",sans-serif}
 header{background:linear-gradient(120deg,#103b31,#177454);color:white;padding:25px 18px}.wrap{max-width:1320px;margin:auto;padding:0 16px}
-h1{font-size:clamp(23px,4vw,34px);margin:0 0 5px}header p{margin:0;color:#d8eee5}
+h1{font-size:clamp(23px,4vw,34px);margin:0 0 8px}header p{margin:0;color:#e5f2ec;font-size:clamp(17px,2.6vw,21px);font-weight:600;line-height:1.55;letter-spacing:.2px}
 main{padding:20px 0 48px}.panel,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px #17212b08}
 .controls{display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end}
 label{display:block;font-size:13px;font-weight:700;color:#475569;margin-bottom:5px}
@@ -532,10 +532,44 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <style>.rain-level-description{display:block!important;visibility:visible!important;width:100%;margin:8px 0 12px;padding:0}.rain-level-description-table{display:table!important;visibility:visible!important;width:100%;border-collapse:collapse;table-layout:fixed;background:#fff;font-size:13px}.rain-level-description-table th{background:#eaf1f4;font-weight:800;text-align:left;padding:8px 6px;border-bottom:1px solid #d7e0e5}.rain-level-description-table td{padding:8px 6px;border-bottom:1px solid #e3e9ed;vertical-align:middle;line-height:1.3}.rain-level-description-table th:first-child,.rain-level-description-table td:first-child{width:48px;text-align:center}.rain-level-description-table th:nth-child(2),.rain-level-description-table td:nth-child(2){width:31%}.rain-lv{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;color:#fff;font-size:13px}.rain-lv.lv1{background:#168044}.rain-lv.lv2{background:#1673c7}.rain-lv.lv3{background:#b77900}.rain-lv.lv4{background:#e45a13}.rain-lv.lv5{background:#c91f2c}@media(max-width:600px){.rain-level-description-table{font-size:12px}.rain-level-description-table th,.rain-level-description-table td{padding:7px 4px}.rain-level-description-table th:first-child,.rain-level-description-table td:first-child{width:38px}.rain-level-description-table th:nth-child(2),.rain-level-description-table td:nth-child(2){width:29%}}</style>
 <style>.rain-level-description{display:block!important;visibility:visible!important;opacity:1!important;width:100%;margin:8px 0 12px;padding:7px;border:1px solid #dce5eb;border-radius:12px;background:#fff;box-sizing:border-box}.rain-level-description-heading,.rain-level-description-row{display:grid!important;grid-template-columns:42px minmax(88px,0.9fr) minmax(0,1.5fr);align-items:center;column-gap:7px;width:100%;box-sizing:border-box}.rain-level-description-heading{padding:5px 4px;background:#edf3f5;border-radius:7px;font-size:12px;font-weight:800}.rain-level-description-row{min-height:39px;padding:5px 4px;border-bottom:1px solid #e5ebef;font-size:12px;line-height:1.3}.rain-level-description-row:last-child{border-bottom:0}.rain-level-description-row strong{font-weight:800}.rain-level-description-row span{display:block;white-space:normal}.rain-lv{display:inline-flex!important;align-items:center;justify-content:center;width:25px;height:25px;border-radius:50%;color:#fff;font-size:13px}.rain-lv.lv1{background:#168044}.rain-lv.lv2{background:#1673c7}.rain-lv.lv3{background:#b77900}.rain-lv.lv4{background:#e45a13}.rain-lv.lv5{background:#c91f2c}@media(max-width:600px){.rain-level-description{padding:5px}.rain-level-description-heading,.rain-level-description-row{grid-template-columns:32px minmax(82px,.9fr) minmax(0,1.5fr);column-gap:5px}.rain-level-description-heading{font-size:11px}.rain-level-description-row{font-size:11px;min-height:36px;padding:5px 2px}.rain-level-description-row span{font-size:10px}.rain-lv{width:23px;height:23px;font-size:12px}}</style>
 <style id="forecast-heading-colors">.forecast-heading{display:block;font-weight:850;letter-spacing:.01em;color:#fff!important;padding:11px 13px;margin:0 0 10px;border:0;border-radius:10px;line-height:1.4}.forecast-heading-1{background:#6D45A8!important}.forecast-heading-2{background:#B86A16!important}.forecast-heading-3{background:#16796F!important}.forecast-heading-4{background:#B93636!important}@media(max-width:600px){.forecast-heading{font-size:18px;line-height:1.4;padding:10px 11px;margin-bottom:9px}}</style>
+<style id="page-navigation-v1">
+.app-page[hidden]{display:none!important}
+.page-home-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0 22px}
+.page-nav-btn{display:flex;align-items:center;gap:12px;min-height:76px;padding:14px 16px;border-radius:14px;text-align:left;color:#fff;box-shadow:0 4px 12px #102a4330;transition:transform .15s,filter .15s}
+.page-nav-btn:active{transform:scale(.985);filter:brightness(.96)}
+.page-nav-btn .nav-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;background:#f1f3f2;border:1px solid #dfe5e2;box-shadow:inset 0 1px 2px #ffffff;font-size:23px}
+.page-nav-btn .nav-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.page-nav-btn strong{font-size:17px;line-height:1.25;white-space:normal}
+.page-nav-btn small{font-size:14px;font-weight:650;opacity:.98;line-height:1.4}
+.page-nav-btn.nav-summary{background:#126b4c}
+.page-nav-btn.nav-live{background:#174b78}
+.page-nav-btn.nav-analysis{background:#16766f}
+.page-nav-btn.nav-daily{background:#2856a0}
+.page-nav-btn.nav-hourly{background:#6943a0;grid-column:1/-1}
+.page-actions .page-back{background:#7043a3!important;color:#fff!important}
+.page-actions .page-home{background:#1769aa!important;color:#fff!important}
+.summary-hourly-link{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:14px 0 4px;padding:15px 18px;border:0;border-radius:13px;background:#7043a3;color:#fff;font-size:17px;font-weight:750;box-shadow:0 4px 12px #40206030;cursor:pointer}
+.summary-hourly-link:active{transform:scale(.99);filter:brightness(.96)}
+.summary-hourly-link .summary-hourly-arrow{font-size:20px}
+@media(max-width:480px){.summary-hourly-link{font-size:16px;padding:14px 15px}}
+#selectedCourseHeader{display:inline-block;margin-left:9px;padding:2px 10px;border-radius:999px;background:#ffffff20;border:1px solid #ffffff66;font-size:.72em;vertical-align:middle;white-space:nowrap}
+#selectedCourseHeader:empty:after{content:"球場載入中…"}
+@media(max-width:480px){#selectedCourseHeader{display:inline-block;margin:5px 0 0 4px;font-size:.68em}}
+.page-titlebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 14px;padding:12px 14px;background:#eaf1f5;border:1px solid #d7e2e9;border-radius:12px}
+.page-titlebar h2{font-size:20px;margin:0;color:#173b52}
+.page-actions{display:flex;gap:8px;flex-wrap:wrap}
+.page-actions button{width:auto;min-width:112px;padding:9px 13px;border-radius:9px;font-size:14px}
+.page-actions .page-back{background:#e1e9ef;color:#24445b}
+.page-actions .page-home{background:#126b4c;color:#fff}
+#page-hourly .hourly-chart-grid{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:760px){.page-home-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.page-nav-btn.nav-hourly{grid-column:1/-1}}
+@media(max-width:480px){.page-home-nav{grid-template-columns:1fr;gap:9px}.page-nav-btn{min-height:72px;padding:11px 13px}.page-nav-btn strong{font-size:16px}.page-nav-btn small{font-size:13px}.page-nav-btn.nav-hourly{grid-column:auto}.page-titlebar{align-items:flex-start}.page-titlebar h2{font-size:18px}.page-actions{width:100%}.page-actions button{flex:1;min-width:0}}
+</style>
 </head>
 <body>
-<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V32.3｜全台57球場即時觀測</h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
+<header><div class="wrap"><h1>⛳ 台灣高爾夫球場天氣預測V32.3｜全台57球場即時觀測 <span id="selectedCourseHeader">尚未選擇球場</span></h1><p>台灣球場資料庫・縣市篩選・手動座標・氣溫／體感溫度逐時分析</p></div></header>
 <main class="wrap">
+<div class="app-page" id="page-home" data-page="home">
 <section class="panel" id="coursePickerPanel">
 <h2 style="margin:0 0 10px">選擇日期、縣市，再按球場</h2>
 <div class="date-field-title">選擇日期</div>
@@ -560,7 +594,22 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <div aria-label="57座高爾夫球場" class="course-list" id="courseList"></div>
 <div class="quick-course-wrap"><div class="quick-course-title" style="display:block!important;font-size:24px!important;font-weight:900!important;line-height:1.45!important;color:#fff!important;background:#16734b!important;padding:12px 15px!important;border-radius:10px!important;margin:0 0 11px!important;">⭐ 常用球場（快速選擇）</div><div class="quick-course-buttons" id="quickCourseButtons"><button data-quick-course="東方" type="button">東方</button><button data-quick-course="礁溪" type="button">礁溪</button><button data-quick-course="美麗華" type="button">美麗華</button><button data-quick-course="林口" type="button">林口</button><button data-quick-course="大溪" type="button">大溪</button></div></div>
 </section>
-<section class="card tee-time-summary-card" id="teeTimeWeatherSummaryPanel" aria-live="polite"><div class="tee-time-summary-head"><div class="tee-time-summary-title-wrap"><h3><span>⛳ 開球時段天氣摘要</span><span id="teeTimeSummaryCourse"></span></h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div></div><div id="teeTimeWeatherSummary" class="playability-special-grid"><div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">等待資料</div></div></div></section><section class="card playability-card" id="playabilityPanel" aria-live="polite">
+<nav class="page-home-nav" aria-label="天氣功能分頁">
+<button type="button" class="page-nav-btn nav-summary" data-go-page="summary"><span class="nav-icon">⛳</span><span class="nav-copy"><strong>開球天氣摘要</strong><small class="nav-date-time" data-nav-date-time="nav-summary">日期｜開球時間</small></span></button>
+<button type="button" class="page-nav-btn nav-live" data-go-page="live"><span class="nav-icon">🌤️</span><span class="nav-copy"><strong>即時天氣</strong><small class="nav-date-time" data-nav-date-time="nav-live">日期｜開球時間</small></span></button>
+<button type="button" class="page-nav-btn nav-analysis" data-go-page="analysis"><span class="nav-icon">🏌️</span><span class="nav-copy"><strong>球場適打分析</strong><small class="nav-date-time" data-nav-date-time="nav-analysis">日期｜開球時間</small></span></button>
+<button type="button" class="page-nav-btn nav-daily" data-go-page="daily"><span class="nav-icon">📅</span><span class="nav-copy"><strong>16 天天氣預報</strong><small class="nav-date-time" data-nav-date-time="nav-daily">日期｜開球時間</small></span></button>
+<button type="button" class="page-nav-btn nav-hourly" data-go-page="hourly"><span class="nav-icon">📊</span><span class="nav-copy"><strong>逐時天氣與圖表</strong><small class="nav-date-time" data-nav-date-time="nav-hourly">日期｜開球時間</small></span></button>
+</nav>
+</div>
+<div class="app-page" id="page-summary" data-page="summary" hidden>
+<div class="page-titlebar"><h2>⛳ 開球天氣摘要</h2><div class="page-actions"><button type="button" class="page-back" data-page-back>← 返回上一頁</button><button type="button" class="page-home" data-page-home>⌂ 回首頁</button></div></div>
+<section class="card tee-time-summary-card" id="teeTimeWeatherSummaryPanel" aria-live="polite"><div class="tee-time-summary-head"><div class="tee-time-summary-title-wrap"><h3><span>⛳ 開球時段天氣摘要</span><span id="teeTimeSummaryCourse"></span></h3><div id="teeTimeWeatherSummaryMeta" class="tee-time-summary-meta"></div></div></div><div id="teeTimeWeatherSummary" class="playability-special-grid"><div class="playability-item"><b>天氣狀況</b><div class="playability-special-value">等待資料</div></div></div></section>
+<button type="button" class="summary-hourly-link" data-go-page="hourly"><span>📊 前往逐時天氣與圖表</span><span class="summary-hourly-arrow">→</span></button>
+</div>
+<div class="app-page" id="page-analysis" data-page="analysis" hidden>
+<div class="page-titlebar"><h2>🏌️ 球場適打性分析</h2><div class="page-actions"><button type="button" class="page-back" data-page-back>← 返回上一頁</button><button type="button" class="page-home" data-page-home>⌂ 回首頁</button></div></div>
+<section class="card playability-card" id="playabilityPanel" aria-live="polite">
  <div class="playability-head">
   <div><h3 id="playabilityTitle" style="margin:0">⛳ 球場適打性綜合分析</h3><p class="muted" id="playabilitySubtitle">選擇球場後，依所選日期的逐時預報自動分析</p></div>
   <span class="playability-tag" hidden aria-hidden="true"></span>
@@ -570,6 +619,9 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
  </div>
  <div id="playabilitySpecialReports"></div>
 </section>
+</div>
+<div class="app-page" id="page-live" data-page="live" hidden>
+<div class="page-titlebar"><h2>🌤️ 即時天氣觀測</h2><div class="page-actions"><button type="button" class="page-back" data-page-back>← 返回上一頁</button><button type="button" class="page-home" data-page-home>⌂ 回首頁</button></div></div>
 <section class="card live-observation-card" id="liveObservationPanel">
  <div class="live-observation-heading"><h3 id="liveObservationHeading" style="margin:0">即時天氣觀測｜—</h3></div>
  <details class="live-data-details">
@@ -587,7 +639,13 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
   <div class="metric"><small>風速</small><strong>—</strong></div><div class="metric"><small>陣風</small><strong>—</strong></div>
  </div>
 </section>
-<section class="card daily-forecast-card" id="dailyForecastPanel"><h3 class="forecast-heading forecast-heading-daily" id="dailyForecastHeading">⓪ 16天逐日天氣預報｜等待球場資料</h3><p class="muted" id="dailyForecastStatus">選擇球場後載入六模型逐日預報。左右連續滑動；手機畫面固定顯示約7天。</p><div class="daily-forecast-scroll" id="dailyForecastScroll" aria-label="16天逐日天氣預報，可左右滑動"><div class="daily-forecast-inner" id="dailyForecastInner"><div class="daily-forecast-placeholder">選擇球場後顯示16天逐日預報</div></div></div><div class="daily-forecast-legend"><span><i class="daily-dot daily-high"></i>最高溫</span><span><i class="daily-dot daily-low"></i>最低溫</span><span><i class="daily-dot daily-feel"></i>體感溫度</span></div></section><section class="card"><h3 id="hourlyForecastHeading" class="forecast-heading forecast-heading-1">① 逐時天氣預報｜—（06:00–18:00）</h3><button type="button" class="secondary forecast-legend-toggle" id="forecastLegendToggle" aria-expanded="false">顯示圖示說明</button><div class="forecast-legend-panel" id="forecastLegendPanel" hidden><div class="rain-level-guide"><img src="./assets/rain-levels-original.webp?v=2" alt="五級降雨判讀圖示" loading="lazy"/></div><div class="rain-level-description" style="display:block!important;visibility:visible!important"><div class="rain-level-description-heading"><b>等級</b><b>名稱</b><b>打球建議</b></div><div class="rain-level-description-row"><b class="rain-lv lv1">1</b><strong>晴朗乾燥</strong><span>正常打球，不需雨傘</span></div><div class="rain-level-description-row"><b class="rain-lv lv2">2</b><strong>低降雨風險</strong><span>備妥輕便雨傘</span></div><div class="rain-level-description-row"><b class="rain-lv lv3">3</b><strong>零星小雨</strong><span>建議雨傘／雨衣</span></div><div class="rain-level-description-row"><b class="rain-lv lv4">4</b><strong>持續降雨</strong><span>雨衣及防水鞋</span></div><div class="rain-level-description-row"><b class="rain-lv lv5">5</b><strong>大雨／雷雨</strong><span>不建議打球</span></div></div><div class="forecast-weather-legend" id="forecastWeatherLegend"></div><div class="forecast-rainprob-legend" id="forecastRainProbLegend"></div></div><div class="muted" id="tableNote">固定列出06:00至18:00共13個時段。手機版同一畫面顯示前7項：時間、天氣、降雨機率、雨量、氣溫、體感及降雨判讀；圖示在上、數字文字在下，縮小欄距。其他風速、陣風、風向、濕度、雲量、UV及打球參考分數可在較寬螢幕查看。降雨判讀綜合降雨機率與逐時預估雨量，不以機率單獨代表雨勢。已過去但API沒有回傳的時段會標示「無資料」，不會以推測值補齊。</div><div class="tablewrap hourly-table-wrap"><table id="hourlyForecastTable"><thead><tr><th>🕒 時間</th><th>🌤️ 天氣</th><th>☔ 機率<br>%</th><th>🌧️ 雨量<br>mm</th><th>☔ 降雨判讀</th><th>🌡️ 氣溫<br>°C</th><th>🥵 體感<br>°C</th><th>風速 km/h</th><th>陣風 km/h</th><th>風向</th><th>濕度</th><th>雲量</th><th>UV</th><th>打球參考分數</th></tr></thead><tbody id="hourRows"><tr><td colspan="14">尚無資料</td></tr></tbody></table></div></section><section class="card rain-chart-card"><h3 id="rainProbabilityHeading" class="forecast-heading forecast-heading-2">② 每小時降雨機率圖（%）｜—</h3><canvas height="240" id="rainChart" width="600"></canvas><p class="muted">以系集成員逐時降雨量大於 0.1 mm 的比例估算；這是模式機率，尚非台灣球場歷史校準後的真實機率。</p></section><section class="card rain-chart-card"><h3 id="rainAmountHeading" class="forecast-heading forecast-heading-3">③ 每小時預報雨量圖（mm）｜—</h3><canvas height="240" id="rainAmountChart" width="600"></canvas><p class="muted">顯示六模型逐時雨量；歷史回測權重啟用後採加權融合；模式範圍另作不確定性參考。</p></section>
+</div>
+<div class="app-page" id="page-daily" data-page="daily" hidden>
+<div class="page-titlebar"><h2>📅 16 天白天高爾夫天氣預報</h2><div class="page-actions"><button type="button" class="page-back" data-page-back>← 返回上一頁</button><button type="button" class="page-home" data-page-home>⌂ 回首頁</button></div></div>
+<section class="card daily-forecast-card" id="dailyForecastPanel"><h3 class="forecast-heading forecast-heading-daily" id="dailyForecastHeading">⓪ 16天逐日天氣預報｜等待球場資料</h3><p class="muted" id="dailyForecastStatus">選擇球場後載入六模型逐日預報。左右連續滑動；手機畫面固定顯示約7天。</p><div class="daily-forecast-scroll" id="dailyForecastScroll" aria-label="16天逐日天氣預報，可左右滑動"><div class="daily-forecast-inner" id="dailyForecastInner"><div class="daily-forecast-placeholder">選擇球場後顯示16天逐日預報</div></div></div><div class="daily-forecast-legend"><span><i class="daily-dot daily-high"></i>最高溫</span><span><i class="daily-dot daily-low"></i>最低溫</span><span><i class="daily-dot daily-feel"></i>體感溫度</span></div></section></div>
+<div class="app-page" id="page-hourly" data-page="hourly" hidden>
+<div class="page-titlebar"><h2>📊 逐時天氣與四大圖表</h2><div class="page-actions"><button type="button" class="page-back" data-page-back>← 返回上一頁</button><button type="button" class="page-home" data-page-home>⌂ 回首頁</button></div></div>
+<section class="card"><h3 id="hourlyForecastHeading" class="forecast-heading forecast-heading-1">① 逐時天氣預報｜—（06:00–18:00）</h3><button type="button" class="secondary forecast-legend-toggle" id="forecastLegendToggle" aria-expanded="false">顯示圖示說明</button><div class="forecast-legend-panel" id="forecastLegendPanel" hidden><div class="rain-level-guide"><img src="./assets/rain-levels-original.webp?v=2" alt="五級降雨判讀圖示" loading="lazy"/></div><div class="rain-level-description" style="display:block!important;visibility:visible!important"><div class="rain-level-description-heading"><b>等級</b><b>名稱</b><b>打球建議</b></div><div class="rain-level-description-row"><b class="rain-lv lv1">1</b><strong>晴朗乾燥</strong><span>正常打球，不需雨傘</span></div><div class="rain-level-description-row"><b class="rain-lv lv2">2</b><strong>低降雨風險</strong><span>備妥輕便雨傘</span></div><div class="rain-level-description-row"><b class="rain-lv lv3">3</b><strong>零星小雨</strong><span>建議雨傘／雨衣</span></div><div class="rain-level-description-row"><b class="rain-lv lv4">4</b><strong>持續降雨</strong><span>雨衣及防水鞋</span></div><div class="rain-level-description-row"><b class="rain-lv lv5">5</b><strong>大雨／雷雨</strong><span>不建議打球</span></div></div><div class="forecast-weather-legend" id="forecastWeatherLegend"></div><div class="forecast-rainprob-legend" id="forecastRainProbLegend"></div></div><div class="muted" id="tableNote">固定列出06:00至18:00共13個時段。手機版同一畫面顯示前7項：時間、天氣、降雨機率、雨量、氣溫、體感及降雨判讀；圖示在上、數字文字在下，縮小欄距。其他風速、陣風、風向、濕度、雲量、UV及打球參考分數可在較寬螢幕查看。降雨判讀綜合降雨機率與逐時預估雨量，不以機率單獨代表雨勢。已過去但API沒有回傳的時段會標示「無資料」，不會以推測值補齊。</div><div class="tablewrap hourly-table-wrap"><table id="hourlyForecastTable"><thead><tr><th>🕒 時間</th><th>🌤️ 天氣</th><th>☔ 機率<br>%</th><th>🌧️ 雨量<br>mm</th><th>☔ 降雨判讀</th><th>🌡️ 氣溫<br>°C</th><th>🥵 體感<br>°C</th><th>風速 km/h</th><th>陣風 km/h</th><th>風向</th><th>濕度</th><th>雲量</th><th>UV</th><th>打球參考分數</th></tr></thead><tbody id="hourRows"><tr><td colspan="14">尚無資料</td></tr></tbody></table></div></section><section class="card rain-chart-card"><h3 id="rainProbabilityHeading" class="forecast-heading forecast-heading-2">② 每小時降雨機率圖（%）｜—</h3><canvas height="240" id="rainChart" width="600"></canvas><p class="muted">以系集成員逐時降雨量大於 0.1 mm 的比例估算；這是模式機率，尚非台灣球場歷史校準後的真實機率。</p></section><section class="card rain-chart-card"><h3 id="rainAmountHeading" class="forecast-heading forecast-heading-3">③ 每小時預報雨量圖（mm）｜—</h3><canvas height="240" id="rainAmountChart" width="600"></canvas><p class="muted">顯示六模型逐時雨量；歷史回測權重啟用後採加權融合；模式範圍另作不確定性參考。</p></section>
 <section class="card">
 <h3 id="temperatureHeading" class="forecast-heading forecast-heading-4">④ 逐小時氣溫與體感溫度（°C）｜—</h3>
 <canvas height="260" id="tempChart" width="900"></canvas>
@@ -670,6 +728,59 @@ footer{color:var(--muted);font-size:12px;padding:18px 0}
 <section class="card mobile-hide-quality"><h3>資料品質、球場搜尋來源與使用限制</h3><ul class="muted"><li>本版球場資料庫內建57座球場地址；選取球場及日期後，以該地址向 OpenStreetMap Nominatim 地理編碼取得座標，再呼叫 Open-Meteo 預報。若地址無法定位，不使用行政區中心點代替。</li><li>OpenStreetMap Nominatim 於使用者選取球場及日期後執行單次地址定位；不做批次請求，遵守服務使用政策及資料來源標示要求。OpenStreetMap 資料採 ODbL 授權。</li><li>V29 降雨機率獨立使用系集成員頻率（每小時&gt;0.1 mm），系集API不可用時退回Best Match系集機率；此仍非以台灣57球場歷史觀測完成校準的真實機率。雨量以六個確定性模式可用欄位逐時中位數呈現，並列模式範圍。多模型差異越大，預報不確定性越高；尤其台灣複雜地形、季風及局部陣雨情境，不宜只看單一模型。</li><li>本版逐一查詢 ECMWF IFS、NOAA GFS、DWD ICON、JMA GSM、加拿大 GEM、ECMWF AIFS 六組模型，氣溫、風等以可用欄位逐時中位數整合；AIFS 原始資料為 6 小時解析度，Open-Meteo 顯示逐時內插，且沒有原生降雨機率、陣風及 UV。雨量以逐時中位數及最小–最大範圍呈現；模型來源有不同解析度、更新週期及系統性誤差，且並非完全統計獨立。模型覆蓋範圍、解析度及更新時間不同。</li><li>降雨機率、累積雨量、平均風速及陣風是不同變數，不能互相替代。</li><li>RainViewer雷達免費API適用個人／教育用途，需標示來源，且不保證服務可用性。</li><li>CWA API需授權碼；本版採使用者自行輸入，若瀏覽器跨域限制阻擋，需改用後端代理，不能將授權碼公開放在GitHub。</li><li>預報分數不代表球場可開放或安全。雷電、豪雨、強風警報及球場公告優先；聽到雷聲或有雷電警示時應立即停止戶外活動並依球場指示避難。</li><li>Open-Meteo免費API適用非商業使用；商用或高流量部署請先確認授權及服務條款。</li></ul><p><a href="https://www.openstreetmap.org/copyright" rel="noopener" target="_blank">OpenStreetMap attribution</a> ｜ <a href="https://nominatim.org/release-docs/latest/api/Search/" rel="noopener" target="_blank">Nominatim搜尋文件</a> ｜ <a href="https://open-meteo.com/en/docs/geocoding-api" rel="noopener" target="_blank">Open-Meteo地理編碼文件</a> ｜ <a href="https://open-meteo.com/en/docs" rel="noopener" target="_blank">Open-Meteo預報文件</a> ｜ <a href="https://open-meteo.com/en/docs/ensemble-api" rel="noopener" target="_blank">Open-Meteo系集API文件</a> ｜ <a href="https://www.rainviewer.com/api.html" rel="noopener" target="_blank">RainViewer API文件</a> ｜ <a href="https://opendata.cwa.gov.tw/devManual/description" rel="noopener" target="_blank">CWA API文件</a></p></section>
 </div>
 <footer>台灣高爾夫球場天氣預測V31｜API穩定性修復版｜全台57球場・降雨機率／雨量驗證與校正｜06:00–18:00逐時預報｜資料可能延遲或缺漏，請以官方警特報、即時觀測及球場公告為準。</footer>
+</div>
+</main>
+<script id="page-navigation-v1-script">
+(function(){
+ const pages=["home","summary","live","analysis","daily","hourly"];
+ const historyStack=["home"];
+ let current="home";
+ function showPage(name,push){
+  if(!pages.includes(name)) return;
+  document.querySelectorAll(".app-page").forEach(el=>{el.hidden=el.dataset.page!==name;});
+  if(push&&name!==current) historyStack.push(current);
+  current=name;
+  window.scrollTo({top:0,behavior:"instant"});
+  window.dispatchEvent(new Event("resize"));
+ }
+ document.querySelectorAll("[data-go-page]").forEach(btn=>btn.addEventListener("click",()=>showPage(btn.dataset.goPage,true)));
+ document.querySelectorAll("[data-page-home]").forEach(btn=>btn.addEventListener("click",()=>{historyStack.length=0;historyStack.push("home");showPage("home",false);}));
+ document.querySelectorAll("[data-page-back]").forEach(btn=>btn.addEventListener("click",()=>{
+  const previous=historyStack.pop()||"home";showPage(previous,false);
+ }));
+ window.addEventListener("popstate",()=>{const previous=historyStack.pop()||"home";showPage(previous,false);});
+ window.showGolfWeatherPage=function(name){showPage(name,true);};
+ function refreshNavContext(){
+  const dateInput=document.getElementById("courseDate");
+  const teeInput=document.getElementById("teeTimeSelect");
+  const courseNode=document.getElementById("locname");
+  const headerNode=document.getElementById("selectedCourseHeader");
+  const rawDate=dateInput?.value||"";
+  const parseDate=value=>{const parts=String(value||"").split("-").map(Number);return parts.length===3&&parts.every(Number.isFinite)?new Date(parts[0],parts[1]-1,parts[2],12):null;};
+  const formatDate=d=>d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");
+  const selectedDate=parseDate(rawDate);
+  const dateLabel=selectedDate?formatDate(selectedDate):"尚未選擇日期";
+  const rangeEnd=selectedDate?new Date(selectedDate.getFullYear(),selectedDate.getMonth(),selectedDate.getDate()+15,12):null;
+  const rangeLabel=selectedDate?dateLabel+"–"+formatDate(rangeEnd):"16天日期區間";
+  const tee=teeInput?.value||"";
+  const timeLabel=tee?tee+" 開球":"06:00–18:00";
+  const course=(courseNode?.textContent||"").trim();
+  const courseLabel=course?course.replace(/高爾夫球場/g,"").trim():"球場載入中…";
+  document.querySelectorAll(".nav-date-time").forEach(el=>{
+   const base=el.dataset.navDateTime==="nav-daily"?rangeLabel:dateLabel+"｜"+timeLabel;
+   el.textContent=(courseLabel&&courseLabel!=="球場載入中…"?courseLabel+"｜":"")+base;
+  });
+  if(headerNode)headerNode.textContent=course||"球場載入中…";
+ }
+ document.getElementById("courseDate")?.addEventListener("change",refreshNavContext);
+ document.getElementById("teeTimeSelect")?.addEventListener("change",refreshNavContext);
+ window.addEventListener("golf-course-context-updated",refreshNavContext);
+ const courseNode=document.getElementById("locname");
+ if(courseNode&&window.MutationObserver){new MutationObserver(refreshNavContext).observe(courseNode,{childList:true,subtree:true,characterData:true});}
+ refreshNavContext();
+ showPage("home",false);
+})();
+</script>
 </main>
 <script>
 const taiwanCourses = [
@@ -1750,6 +1861,8 @@ async function autoLoadDatabaseCourse(c,button){
  if(!selectedDate){$("courseAutoStatus").textContent="日期尚未設定，請重新選擇預報日期。";return;}
  if(databaseAutoBusy)return;
  selectedCourseForReload=c;
+ const navCourseBadge=document.getElementById("selectedCourseHeader");if(navCourseBadge)navCourseBadge.textContent=c.name||"球場載入中…";
+ window.dispatchEvent(new Event("golf-course-context-updated"));
  showAllCountyCourses=false;
  // 若從常用球場切換縣市，同步縣市選單，並保留該縣市完整球場清單。
  if($("countySelect")&&c.city)$("countySelect").value=c.city;
@@ -1834,6 +1947,8 @@ window.selectDailyForecastDate=async function(date){
  syncForecastDatePickerDisplay(date);
  syncDailyForecastSelection(date);
  syncDailyForecastToSelectedDate();
+ // 點選16天中的日期後，直接切換到該日逐時天氣分頁。
+ if(typeof window.showGolfWeatherPage==="function")window.showGolfWeatherPage("hourly");
  if(databaseAutoBusy)return;
  const status=$("dailyForecastStatus");
  if(status)status.textContent="正在切換至 "+date+" 的逐時預報…";
@@ -2777,8 +2892,11 @@ async function loadAndRenderDailyForecast(p){const status=$("dailyForecastStatus
 async function loadForecast(p,date,forceRefresh=false){
  if(!date)throw Error("請先選擇預報日期。");
  active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{}};
+ window.dispatchEvent(new Event("golf-course-context-updated"));
  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
  $("locname").textContent=p.name;
+ const courseBadge=document.getElementById("selectedCourseHeader");if(courseBadge)courseBadge.textContent=p.name||"球場載入中…";
+ window.dispatchEvent(new Event("golf-course-context-updated"));
  $("coords").textContent=`${p.address||""}｜${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}｜固定座標`;
  $("status").textContent="正在以球場座標取得六組氣象模型資料…";
  // 背景更新保留舊快取畫面，避免畫面閃空。
@@ -2971,6 +3089,9 @@ document.getElementById('downloadValidationTemplate').addEventListener('click',(
 renderValidation();
 initForecastDatePicker();
 initCourseDatabase();
+const navDateInput=document.getElementById("courseDate");
+if(navDateInput&&!navDateInput.value){const now=new Date();const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).format(now);navDateInput.value=parts;}
+window.dispatchEvent(new Event("golf-course-context-updated"));
 $("teeTimeSelect")?.addEventListener("change",()=>{
  if(active?.rows?.length){renderSelectedHourlySections(active.rows);renderPlayabilityAnalysis(active.rows,active.name,active.date);}
  else{
