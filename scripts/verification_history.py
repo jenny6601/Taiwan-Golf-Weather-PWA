@@ -22,7 +22,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Asia/Taipei")
-LEADS = (1, 3, 5, 7, 10, 14)
+LEADS = tuple(range(1, 17))
 RETENTION_DAYS = 180
 OBS_MAX_AGE_MIN = 28
 FORECAST_MAX_AGE_HOURS = 4
@@ -35,6 +35,7 @@ MIN_COURSE_PAIRS = 100
 MIN_GLOBAL_WET_PAIRS = 20
 MIN_COURSE_WET_PAIRS = 10
 MIN_FORECAST_VINTAGES = 20
+MIN_COURSE_VINTAGES = 10
 SOURCES = (
     "ECMWF IFS", "NOAA GFS", "DWD ICON", "JMA GSM",
     "Canada GEM", "ECMWF AIFS", "Visual Crossing", "Foreca",
@@ -409,10 +410,15 @@ class Score:
         self.wet_abs_error = 0.0
         self.wet_squared_error = 0.0
         self.wet_sample_count = 0
+        self.probability_wet_sample_count = 0
+        self.vintages = set()
+        self.probability_vintages = set()
         self.hit = self.miss = self.false_alarm = self.correct_negative = 0
         self.brier_sum = 0.0
         self.prob_n = 0
-    def add(self, forecast, actual, probability):
+    def add(self, forecast, actual, probability, vintage_id=None):
+        if vintage_id is not None:
+            self.vintages.add(str(vintage_id))
         self.n += 1
         error = forecast - actual
         self.abs_error += abs(error)
@@ -429,6 +435,10 @@ class Score:
         elif event_forecast: self.false_alarm += 1
         else: self.correct_negative += 1
         if probability is not None:
+            if vintage_id is not None:
+                self.probability_vintages.add(str(vintage_id))
+            if event_actual:
+                self.probability_wet_sample_count += 1
             p = max(0.0, min(1.0, probability / 100.0))
             y = 1.0 if event_actual else 0.0
             self.brier_sum += (p - y) ** 2
@@ -444,6 +454,9 @@ class Score:
             "RMSE_mm": round(math.sqrt(self.squared_error / n), 3) if n else None,
             "Bias_mm": round(self.bias / n, 3) if n else None,
             "wet_sample_count": self.wet_sample_count,
+            "distinct_vintage_count": len(self.vintages),
+            "probability_wet_sample_count": self.probability_wet_sample_count,
+            "probability_vintage_count": len(self.probability_vintages),
             "MAE_wet_mm": round(self.wet_abs_error / self.wet_sample_count, 3) if self.wet_sample_count else None,
             "RMSE_wet_mm": round(math.sqrt(self.wet_squared_error / self.wet_sample_count), 3) if self.wet_sample_count else None,
             "Weight_error_mm": round(
@@ -523,13 +536,17 @@ def build_actual_hourly(now: datetime):
                 }
     return actual
 
-def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_strength: float, cap: float = 0.35):
-    count_key = "probability_sample_count" if metric_key == "Brier_score" else "sample_count"
+def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_strength: float, cap: float = 0.35, minimum_vintages: int = MIN_FORECAST_VINTAGES):
+    is_probability = metric_key == "Brier_score"
+    count_key = "probability_sample_count" if is_probability else "sample_count"
+    wet_key = "probability_wet_sample_count" if is_probability else "wet_sample_count"
+    vintage_key = "probability_vintage_count" if is_probability else "distinct_vintage_count"
     wet_minimum = MIN_GLOBAL_WET_PAIRS if minimum_n == MIN_GLOBAL_PAIRS else MIN_COURSE_WET_PAIRS
     eligible = {
         name: row for name, row in scores.items()
         if row.get(count_key, 0) >= minimum_n
-        and row.get("wet_sample_count", 0) >= wet_minimum
+        and row.get(wet_key, 0) >= wet_minimum
+        and row.get(vintage_key, 0) >= minimum_vintages
         and isinstance(row.get(metric_key), (int, float))
     }
     if len(eligible) < 3:
@@ -611,8 +628,9 @@ def verify_and_weight(now: datetime) -> dict:
                         prob = row.get("precip_probability_pct")
                         if not isinstance(prob, (int, float)) or not math.isfinite(prob):
                             prob = None
-                        global_scores[lead][source].add(float(forecast_mm), float(actual_mm), prob)
-                        course_scores[course_name][lead][source].add(float(forecast_mm), float(actual_mm), prob)
+                        vintage_id = archive.get("issue_date", path.stem.split(".")[0])
+                        global_scores[lead][source].add(float(forecast_mm), float(actual_mm), prob, vintage_id)
+                        course_scores[course_name][lead][source].add(float(forecast_mm), float(actual_mm), prob, vintage_id)
         evaluated_vintages += 1
 
     metrics = {
@@ -627,6 +645,7 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_evaluated_vintages_for_weights": MIN_FORECAST_VINTAGES,
         "minimum_global_wet_samples_for_weights": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples_for_weights": MIN_COURSE_WET_PAIRS,
+        "minimum_course_vintages_for_weights": MIN_COURSE_VINTAGES,
         "lead_days": {},
         "by_course": {},
     }
@@ -638,6 +657,7 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_evaluated_vintages": MIN_FORECAST_VINTAGES,
         "minimum_global_wet_samples": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples": MIN_COURSE_WET_PAIRS,
+        "minimum_course_vintages": MIN_COURSE_VINTAGES,
         "verification_source": "CWA rainfall observations",
         "lead_days": {},
         "by_course": {},
@@ -652,7 +672,8 @@ def verify_and_weight(now: datetime) -> dict:
             prob_scores = {
                 source: {
                     "sample_count": row.get("probability_sample_count", 0),
-                    "wet_sample_count": row.get("wet_sample_count", 0),
+                    "probability_wet_sample_count": row.get("probability_wet_sample_count", 0),
+                    "probability_vintage_count": row.get("probability_vintage_count", 0),
                     "Brier_score": row.get("Brier_score"),
                 }
                 for source, row in rows.items()
@@ -679,7 +700,7 @@ def verify_and_weight(now: datetime) -> dict:
             key = str(lead)
             rows = {source: score.result() for source, score in leads[key].items()}
             course_out[key] = rows
-            local_weights = normalized_weights(rows, "Weight_error_mm", MIN_COURSE_PAIRS, 500) if evaluated_vintages >= MIN_FORECAST_VINTAGES else None
+            local_weights = normalized_weights(rows, "Weight_error_mm", MIN_COURSE_PAIRS, 500, minimum_vintages=MIN_COURSE_VINTAGES) if evaluated_vintages >= MIN_FORECAST_VINTAGES else None
             if local_weights:
                 course_weight_out[key] = local_weights
         metrics["by_course"][course_name] = course_out
@@ -696,6 +717,7 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_evaluated_vintages_for_weights": MIN_FORECAST_VINTAGES,
         "minimum_global_wet_samples_for_weights": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples_for_weights": MIN_COURSE_WET_PAIRS,
+        "minimum_course_vintages_for_weights": MIN_COURSE_VINTAGES,
         "lead_days": {
             key: {
                 "sources": len(metrics["lead_days"][key]),
