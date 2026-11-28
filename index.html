@@ -3064,7 +3064,8 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
    const weightDoc=await loadVerificationWeights(),lead=weightDoc?.lead_days?.[String(leadDays)];
    const courseWeights=weightDoc?.by_course?.[p.name]?.[String(leadDays)];
    const globalAmountWeights=lead?.amount_weights||{};
-   const amountCandidate=courseWeights?{...globalAmountWeights,...courseWeights}:globalAmountWeights;
+   // Prefer a fully qualified course-specific set; use global weights only when local evidence is insufficient.
+   const amountCandidate=courseWeights||globalAmountWeights;
    const probabilityCandidate=lead?.probability_weights;
    if(Object.keys(amountCandidate).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3)amountWeights=amountCandidate;
    if(probabilityCandidate&&Object.keys(probabilityCandidate).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3)probabilityWeights=probabilityCandidate;
