@@ -2583,7 +2583,7 @@ function weightedRainValue(pairs,weights,key,minSources=3){
  if(total<=0)return null;
  return usable.reduce((z,x)=>z+Number(x.row[key])*Number(weights[x.name]),0)/total;
 }
-function consensusRows(modelRows,amountWeights=null,probabilityWeights=null,externalRainRows={}){
+function consensusRows(modelRows,amountWeights=null,probabilityWeights=null,externalRainRows={},variableWeights={}){
  const names=Object.keys(modelRows),times=(modelRows[names[0]]||[]).map(x=>x.time);
  return times.map(time=>{
   const pairs=names.map(n=>({name:n,row:modelRows[n].find(x=>x.time===time)})).filter(x=>x.row);
@@ -2594,7 +2594,11 @@ function consensusRows(modelRows,amountWeights=null,probabilityWeights=null,exte
   const amounts=rainPairs.map(x=>x.row.mm).filter(v=>v!==null&&v!==undefined&&Number.isFinite(Number(v))).map(Number);
   const weightedAmount=weightedRainValue(rainPairs,amountWeights,"mm");
   const weightedProbability=weightedRainValue(rainPairs,probabilityWeights,"rain",1);
-  return {time,available:rs.length>0,temp:get('temp'),feel:get('feel'),rain:weightedProbability===null?get('rain'):weightedProbability,mm:weightedAmount===null?get('mm'):weightedAmount,weightingApplied:weightedAmount!==null,probabilityWeightingApplied:weightedProbability!==null,code,wind:get('wind'),gust:get('gust'),dir:circularMean(rs.map(x=>x.dir)),rh:get('rh'),cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
+  const weightedTemp=weightedRainValue(pairs,variableWeights.temperature_c,"temp");
+  const weightedWind=weightedRainValue(pairs,variableWeights.wind_speed_kmh,"wind");
+  const weightedGust=weightedRainValue(pairs,variableWeights.wind_gust_kmh,"gust");
+  const weightedHumidity=weightedRainValue(pairs,variableWeights.relative_humidity_pct,"rh");
+  return {time,available:rs.length>0,temp:weightedTemp===null?get('temp'):weightedTemp,feel:get('feel'),rain:weightedProbability===null?get('rain'):weightedProbability,mm:weightedAmount===null?get('mm'):weightedAmount,weightingApplied:weightedAmount!==null,probabilityWeightingApplied:weightedProbability!==null,code,wind:weightedWind===null?get('wind'):weightedWind,gust:weightedGust===null?get('gust'):weightedGust,dir:circularMean(rs.map(x=>x.dir)),rh:weightedHumidity===null?get('rh'):weightedHumidity,cloud:get('cloud'),uv:get('uv'),modelCount:rs.length,spreads:{rain:null,mmMin:amounts.length?Math.min(...amounts):undefined,mmMax:amounts.length?Math.max(...amounts):undefined,temp:spread(rs.map(x=>x.temp)),gust:spread(rs.map(x=>x.gust))}};
  });
 }
 
@@ -2854,8 +2858,8 @@ function dailyWx(code){
  if([71,73,75,77,85,86].includes(n))return {icon:dailyWeatherIcon("cloud"),desc:"陰／多雲"};
  return {icon:dailyWeatherIcon("cloud"),desc:"陰／多雲"};
 }
-async function fetchDailyForecast(lat,lon){
- const key=Number(lat).toFixed(4)+","+Number(lon).toFixed(4),cached=dailyForecastCache.get(key);
+async function fetchDailyForecast(lat,lon,courseName=""){
+ const key=Number(lat).toFixed(4)+","+Number(lon).toFixed(4)+"|"+String(courseName||""),cached=dailyForecastCache.get(key);
  if(cached&&Date.now()-cached.at<20*60*1000)return cached.rows;
  // 每個模式先計算台灣時間06:00–18:00白天統計，再整合六模式中位數。
  const hourlyFields="temperature_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m";
@@ -2886,17 +2890,34 @@ async function fetchDailyForecast(lat,lon){
  }));
  const good=results.filter(x=>x.status==="fulfilled").map(x=>x.value);
  if(!good.length)throw Error("六個氣象模型均未能取得白天逐時資料");
+ const weightDoc=await loadVerificationWeights();
  const dates=Array.from({length:16},(_,i)=>taiwanYmd(i));
+ const today=taiwanYmd(0);
  const rows=dates.map(date=>{
   const vals={hi:[],lo:[],feel:[],rain:[],prob:[],codes:[],wind:[],gust:[]};
-  for(const model of good){
-   const d=model.daily[date];if(!d)continue;
+  const pairs=good.map(model=>({name:model.name,row:model.daily[date]})).filter(x=>x.row);
+  for(const pair of pairs){
+   const d=pair.row;
    for(const k of ["hi","lo","feel","rain","prob","wind","gust"]){const v=d[k];if(v!==null&&Number.isFinite(Number(v)))vals[k].push(Number(v));}
    if(d.code!==null)vals.codes.push(d.code);
   }
   const counts={};vals.codes.forEach(n=>counts[n]=(counts[n]||0)+1);
   const code=Object.keys(counts).length?Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]):null;
-  return {date,hi:dailyMedian(vals.hi),lo:dailyMedian(vals.lo),feel:dailyMedian(vals.feel),rain:dailyMedian(vals.rain),prob:dailyMedian(vals.prob),code,wind:dailyMedian(vals.wind),gust:dailyMedian(vals.gust),modelCount:vals.hi.length,probModelCount:vals.prob.length};
+  const leadDays=Math.round((new Date(date+"T00:00:00+08:00")-new Date(today+"T00:00:00+08:00"))/86400000);
+  const leadKey=String(leadDays);
+  const courseWeights=variable=>weightDoc?.variables?.[variable]?.by_course?.[courseName]?.[leadKey];
+  const globalWeights=variable=>weightDoc?.variables?.[variable]?.lead_days?.[leadKey];
+  const selectVariableWeights=variable=>courseWeights(variable)||globalWeights(variable);
+  const amountWeights=weightDoc?.lead_days?.[leadKey]?.amount_weights;
+  const probabilityWeights=weightDoc?.lead_days?.[leadKey]?.probability_weights;
+  const tempWeights=selectVariableWeights("temperature_c");
+  const windWeights=selectVariableWeights("wind_speed_kmh");
+  const gustWeights=selectVariableWeights("wind_gust_kmh");
+  const weighted=(weights,key)=>weightedRainValue(pairs,weights,key);
+  const hi=weighted(tempWeights,"hi"),lo=weighted(tempWeights,"lo");
+  const rain=weighted(amountWeights,"rain"),prob=weighted(probabilityWeights,"prob");
+  const wind=weighted(windWeights,"wind"),gust=weighted(gustWeights,"gust");
+  return {date,hi:hi===null?dailyMedian(vals.hi):hi,lo:lo===null?dailyMedian(vals.lo):lo,feel:dailyMedian(vals.feel),rain:rain===null?dailyMedian(vals.rain):rain,prob:prob===null?dailyMedian(vals.prob):prob,code,wind:wind===null?dailyMedian(vals.wind):wind,gust:gust===null?dailyMedian(vals.gust):gust,modelCount:vals.hi.length,probModelCount:vals.prob.length};
  });
  dailyForecastCache.set(key,{at:Date.now(),rows});return rows;
 }
@@ -2938,7 +2959,7 @@ function renderDailyForecast(rows,courseName){
  const dayBands=displayRows.map((r,i)=>'<rect x="'+(i*col)+'" y="0" width="'+col+'" height="'+chartH+'" fill="'+(selectedDailyDate===r.date?"#b8def4":i%2===0?"#f3f6f9":"#d5e2ed")+'" fill-opacity="'+(selectedDailyDate===r.date?"0.95":"0.72")+'"/>'+(selectedDailyDate===r.date?'<rect x="'+(i*col+1)+'" y="1" width="'+(col-2)+'" height="'+(chartH-2)+'" fill="none" stroke="#1682bd" stroke-width="2"/>':"")).join("");target.innerHTML='<div class="daily-grid">'+dates+'</div><svg class="daily-temp-chart" width="'+chartWidth+'" height="'+chartH+'" viewBox="0 0 '+chartWidth+' '+chartH+'" role="img" aria-label="僅顯示前16天最高溫、最低溫與體感溫度曲線"><defs><clipPath id="dailyTempCurveClip"><rect x="0" y="0" width="'+chartWidth+'" height="'+chartH+'"/></clipPath></defs><g clip-path="url(#dailyTempCurveClip)">'+dayBands+grid+paths+points+'</g></svg><div class="daily-grid">'+weather+'</div><div class="daily-grid">'+rain+'</div>';
  const count=Math.max(...rows.map(x=>x.modelCount||0));if(heading)heading.textContent="⓪ 16天白天高爾夫天氣預報｜"+(courseName||"已選球場");if(status)status.textContent="白天逐日預報｜每日06:00–18:00｜各模型先計算白天逐時統計，再以可用模型中位數整合；顯示白天最高／最低溫、平均體感、降雨機率及累積雨量。可用模型數："+count+"；降雨機率可用模型數依日期而異。";if(dailyScroll)syncDailyForecastToSelectedDate();
 }
-async function loadAndRenderDailyForecast(p){const status=$("dailyForecastStatus");if(status)status.textContent="正在取得六模型16天逐日資料…";try{const rows=await fetchDailyForecast(p.lat,p.lon);renderDailyForecast(rows,p.name);}catch(e){const target=$("dailyForecastInner");if(target)target.innerHTML='<div class="daily-forecast-placeholder">逐日預報暫時無法取得：'+esc(e.message)+'</div>';if(status)status.textContent="逐日預報載入失敗；原有逐時預報不受影響。";}}
+async function loadAndRenderDailyForecast(p){const status=$("dailyForecastStatus");if(status)status.textContent="正在取得六模型16天逐日資料…";try{const rows=await fetchDailyForecast(p.lat,p.lon,p.name);renderDailyForecast(rows,p.name);}catch(e){const target=$("dailyForecastInner");if(target)target.innerHTML='<div class="daily-forecast-placeholder">逐日預報暫時無法取得：'+esc(e.message)+'</div>';if(status)status.textContent="逐日預報載入失敗；原有逐時預報不受影響。";}}
 async function loadForecast(p,date,forceRefresh=false){
  if(!date)throw Error("請先選擇預報日期。");
  active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{},externalProviderRows:{}};
@@ -3056,10 +3077,10 @@ async function loadForecast(p,date,forceRefresh=false){
  $("status").textContent="預報完成｜"+active.v2SourceLabel+(cacheAgeMinutes!==null?"｜快取 "+Math.floor(cacheAgeMinutes/60)+" 小時":"");$("status").style.display="none";
  const diagLines=["球場："+p.name,"座標："+p.lat+", "+p.lon,"日期："+date,"主要資料來源："+forecastSource,"快取更新時間："+(cacheGeneratedAt||"非快取資料"),"快取年齡："+(cacheAgeMinutes===null?"—":Math.floor(cacheAgeMinutes/60)+"小時"+Math.floor(cacheAgeMinutes%60)+"分"),"快取狀態："+(cacheNotice||"正常（3小時內）"),"成功模型："+names.join("、"),"快取／API備註："+(modelErrors.length?modelErrors.join("\n"):"無")];
  const diagBox=$("apiDiagnosticsText");if(diagBox)diagBox.textContent=diagLines.join("\n");
-let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數（歷史資料累積中）";
+let amountWeights=null,probabilityWeights=null,variableWeights={},weightingLabel="等權中位數（歷史資料累積中）";
  const localToday=new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"});
  const leadDays=Math.round((new Date(date+"T00:00:00+08:00")-new Date(localToday+"T00:00:00+08:00"))/86400000);
- if(leadDays>=1&&leadDays<=14){
+ if(leadDays>=1&&leadDays<=16){
   try{
    const weightDoc=await loadVerificationWeights(),lead=weightDoc?.lead_days?.[String(leadDays)];
    const courseWeights=weightDoc?.by_course?.[p.name]?.[String(leadDays)];
@@ -3069,6 +3090,14 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
    const probabilityCandidate=lead?.probability_weights;
    if(Object.keys(amountCandidate).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3)amountWeights=amountCandidate;
    if(probabilityCandidate&&Object.keys(probabilityCandidate).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3)probabilityWeights=probabilityCandidate;
+   const variableNames=["temperature_c","wind_speed_kmh","wind_gust_kmh","relative_humidity_pct"];
+   variableNames.forEach(variable=>{
+    const block=weightDoc?.variables?.[variable];
+    const local=block?.by_course?.[p.name]?.[String(leadDays)];
+    const global=block?.lead_days?.[String(leadDays)];
+    const candidate=local||global;
+    if(candidate&&Object.keys(candidate).filter(k=>active.modelRows[k]).length>=3)variableWeights[variable]=candidate;
+   });
    if(amountWeights||probabilityWeights){
     const mode=courseWeights&&amountWeights?"逐球場雨量權重":"全台回測權重";
     weightingLabel=mode+"（"+leadDays+"天）";
@@ -3084,7 +3113,7 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
    else weightingLabel+="（Visual Crossing該日資料缺漏）";
   }catch(e){weightingLabel+="（Visual Crossing暫缺，使用可用模式權重）";}
  }
- let base=consensusRows(active.modelRows,amountWeights,probabilityWeights,externalRainRows);
+ let base=consensusRows(active.modelRows,amountWeights,probabilityWeights,externalRainRows,variableWeights);
  if(probabilityWeights&&!base.some(x=>x.probabilityWeightingApplied))weightingLabel+="（本次機率採系集資料，尚未套用來源機率權重）";
  if(!base.length)throw Error("所選日期沒有06:00–18:00逐時資料。");
  let rainProbInfo;const cachedRain=base.some(x=>x.rain!==null&&x.rain!==undefined);if(cachedRain){rainProbInfo={source:'既有模式快取',detail:'降雨機率採有提供欄位的模型資料；有歷史 Brier 權重時採加權融合，否則使用既有系集／模式機率；AIFS 不提供原生降雨機率'};}else if(staleCacheInUse){rainProbInfo={source:'背景更新中',detail:'舊快取未包含降雨機率；目前先顯示其他預報欄位，降雨機率待即時更新完成後補入'};base=base.map(x=>({...x,rain:null}));}else{try{rainProbInfo=await getRainProbability(p.lat,p.lon,date);base=base.map(x=>({...x,rain:rainProbInfo.rows[x.time]?.prob??null,rainMembers:rainProbInfo.rows[x.time]?.members??null}));}catch(e){rainProbInfo={source:'不可用',detail:'降雨機率服務未回傳資料：'+e.message};base=base.map(x=>({...x,rain:null}));}}
