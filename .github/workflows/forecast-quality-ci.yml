@@ -1,6 +1,8 @@
 name: Forecast quality regression tests
 
 on:
+  push:
+    branches: [fix/forecast-source-isolation-20261128]
   pull_request:
     branches: [main]
     paths:
