@@ -2628,10 +2628,12 @@ async function loadV2ProviderRows(provider,courseName,date){
   return null;
  };
  const rows=hours.filter(x=>{
-  const stamp=String(x.time||"");
-  return stamp.slice(0,10)===date&&Number(stamp.slice(11,13))>=6&&Number(stamp.slice(11,13))<=18;
+  const stamp=String(x.time||""),hour=Number(stamp.slice(11,13));
+  // Visual Crossing precipitation is timestamped at the start of its hourly period;
+  // shift its rain row one hour forward to match the 06:00-18:00 verification convention.
+  return stamp.slice(0,10)===date&&(provider==="Visual Crossing"?(hour>=5&&hour<=17):(hour>=6&&hour<=18));
  }).map(x=>({
-  time:String(x.time).slice(11,16),temp:x.temperature_2m??null,feel:x.apparent_temperature??null,
+  time:provider==="Visual Crossing"?String(Number(String(x.time).slice(11,13))+1).padStart(2,"0")+":00":String(x.time).slice(11,16),temp:x.temperature_2m??null,feel:x.apparent_temperature??null,
   mm:x.precipitation??null,rain:x.precipitation_probability??null,
   wind:x.wind_speed_10m??null,gust:x.wind_gusts_10m??null,dir:x.wind_direction_10m??null,
   rh:x.relative_humidity_2m??null,cloud:x.cloud_cover??null,uv:x.uv_index??null,
@@ -2939,7 +2941,7 @@ function renderDailyForecast(rows,courseName){
 async function loadAndRenderDailyForecast(p){const status=$("dailyForecastStatus");if(status)status.textContent="正在取得六模型16天逐日資料…";try{const rows=await fetchDailyForecast(p.lat,p.lon);renderDailyForecast(rows,p.name);}catch(e){const target=$("dailyForecastInner");if(target)target.innerHTML='<div class="daily-forecast-placeholder">逐日預報暫時無法取得：'+esc(e.message)+'</div>';if(status)status.textContent="逐日預報載入失敗；原有逐時預報不受影響。";}}
 async function loadForecast(p,date,forceRefresh=false){
  if(!date)throw Error("請先選擇預報日期。");
- active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{}};
+ active={lat:Number(p.lat),lon:Number(p.lon),name:p.name,date,rows:[],modelRows:{},externalProviderRows:{}};
  window.dispatchEvent(new Event("golf-course-context-updated"));
  updateWeatherDateHeadings(new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Taipei"}),date);
  $("locname").textContent=p.name;
@@ -3016,7 +3018,8 @@ async function loadForecast(p,date,forceRefresh=false){
   else{const detail="快取、六組模式及 Best Match 均無法提供資料："+modelErrors.join("｜")+"；Best Match："+(fallback.error?.message||"未知錯誤");const box=$("apiDiagnosticsText");if(box)box.textContent="球場："+p.name+"\n日期："+date+"\n\n"+detail;throw Error(detail);}
  }
 
- // V2：讀取 Visual Crossing 與 Foreca 獨立逐時快取，與六個 Open-Meteo 模式共同整合。
+ // V2：讀取 Visual Crossing 與 Foreca 獨立逐時快取；外部來源與六個核心模式分開保存。
+ // 外部來源只可進入具備歷史權重的降雨融合，不得混入核心氣溫／風場中位數。
  const providerResults=await Promise.allSettled([
   loadV2ProviderRows("Visual Crossing",p.name,date),
   loadV2ProviderRows("Foreca",p.name,date)
@@ -3026,7 +3029,7 @@ async function loadForecast(p,date,forceRefresh=false){
   const r=providerResults[i];
   if(r.status==="fulfilled"){
    const rows=r.value.rows||[];
-   if(rows.length)active.modelRows[label]=rows;
+   if(rows.length)active.externalProviderRows[label]=rows;
    active.v2ProviderStatus[label]={available:rows.length>0,complete:rows.length>=13,count:rows.length,generatedAt:r.value.generatedAt,horizon:r.value.horizon};
   }else active.v2ProviderStatus[label]={available:false,complete:false,count:0,error:r.reason?.message||String(r.reason)};
  });
@@ -3063,8 +3066,8 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
    const globalAmountWeights=lead?.amount_weights||{};
    const amountCandidate=courseWeights?{...globalAmountWeights,...courseWeights}:globalAmountWeights;
    const probabilityCandidate=lead?.probability_weights;
-   if(Object.keys(amountCandidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3)amountWeights=amountCandidate;
-   if(probabilityCandidate&&Object.keys(probabilityCandidate).filter(k=>active.modelRows[k]||k==="Visual Crossing").length>=3)probabilityWeights=probabilityCandidate;
+   if(Object.keys(amountCandidate).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3)amountWeights=amountCandidate;
+   if(probabilityCandidate&&Object.keys(probabilityCandidate).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3)probabilityWeights=probabilityCandidate;
    if(amountWeights||probabilityWeights){
     const mode=courseWeights&&amountWeights?"逐球場雨量權重":"全台回測權重";
     weightingLabel=mode+"（"+leadDays+"天）";
@@ -3072,8 +3075,8 @@ let amountWeights=null,probabilityWeights=null,weightingLabel="等權中位數�
    }
   }catch(e){}
  }
- let externalRainRows={};
- if(!active.modelRows["Visual Crossing"]&&(Number(amountWeights?.["Visual Crossing"]||0)>0||Number(probabilityWeights?.["Visual Crossing"]||0)>0)){
+ let externalRainRows={...(active.externalProviderRows||{})};
+ if(!externalRainRows["Visual Crossing"]&&(Number(amountWeights?.["Visual Crossing"]||0)>0||Number(probabilityWeights?.["Visual Crossing"]||0)>0)){
   try{
    const vcRows=await loadVisualCrossingRainRows(p.name,date);
    if(vcRows.length){externalRainRows["Visual Crossing"]=vcRows;weightingLabel+="＋Visual Crossing";}
