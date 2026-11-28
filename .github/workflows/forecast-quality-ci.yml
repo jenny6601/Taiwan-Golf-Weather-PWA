@@ -30,8 +30,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Audit live forecast and CWA source schemas
+        run: python scripts/audit_live_sources.py
       - name: Validate Python syntax
-        run: python -m py_compile scripts/verification_history.py
+        run: python -m py_compile scripts/verification_history.py scripts/audit_live_sources.py
       - name: Validate inline JavaScript syntax
         run: |
           python - <<'PY'
