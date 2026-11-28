@@ -79,11 +79,15 @@ def main() -> None:
         provider_path = index["courses"][sample_name]
         provider_file = fetch_json(base + provider_path)
         provider_course = provider_file["courses"][sample_name]
-        provider_date = max(provider_course)
-        provider = provider_course[provider_date]["providers"][provider_name]
-        hourly = provider.get("hourly") or []
-        if provider.get("status") != "ok" or not hourly:
-            raise SystemExit(f"{label} provider cache is not usable for {sample_name}")
+        usable_dates = []
+        for candidate_date, candidate_day in provider_course.items():
+            candidate_provider = (candidate_day.get("providers") or {}).get(provider_name) or {}
+            candidate_hourly = candidate_provider.get("hourly") or []
+            if candidate_provider.get("status") == "ok" and candidate_hourly:
+                usable_dates.append((candidate_date, candidate_provider, candidate_hourly))
+        if not usable_dates:
+            raise SystemExit(f"{label} provider cache has no usable hourly date for {sample_name}")
+        provider_date, provider, hourly = max(usable_dates, key=lambda item: item[0])
         required_provider = {
             "temperature_2m", "apparent_temperature", "precipitation",
             "precipitation_probability", "wind_speed_10m", "wind_gusts_10m",
@@ -91,7 +95,7 @@ def main() -> None:
         }
         if not required_provider.issubset(hourly[0]):
             raise SystemExit(f"{label} fields missing: {sorted(required_provider - set(hourly[0]))}")
-        provider_checks.append(f"{label}: {provider_date}, {len(hourly)} hourly rows")
+        provider_checks.append(f"{label}: latest usable {provider_date}, {len(hourly)} hourly rows across {len(usable_dates)} usable dates")
 
     weather_pass = 0
     for item in live_courses:
