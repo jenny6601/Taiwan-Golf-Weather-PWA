@@ -807,7 +807,7 @@ def verify_and_weight(now: datetime) -> dict:
     metrics = {
         "schema_version": 1,
         "generated_at": now.astimezone(TZ).isoformat(),
-        "verification_source": "CWA rainfall observations",
+        "verification_source": "CWA rainfall and hourly weather observations",
         "verification_window_days": 60,
         "station_distance_limit_km": MIN_STATION_DISTANCE_KM,
         "rain_event_threshold_mm": 0.1,
@@ -830,7 +830,7 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_global_wet_samples": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples": MIN_COURSE_WET_PAIRS,
         "minimum_course_vintages": MIN_COURSE_VINTAGES,
-        "verification_source": "CWA rainfall observations",
+        "verification_source": "CWA rainfall and hourly weather observations",
         "lead_days": {},
         "by_course": {},
     }
