@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Archive immutable forecast vintages and CWA rainfall observations; verify skill.
+"""Archive immutable 16-day forecast vintages and CWA observations; verify skill.
 
 Storage is the dedicated verification-history branch. Forecast vintages are
-captured once daily for lead days 1,3,5,7,10,14. CWA course rainfall snapshots
+captured once daily for lead days 1-16. CWA rainfall and hourly weather snapshots
 are appended every ten minutes. No source forecast is overwritten.
 """
 from __future__ import annotations
@@ -19,6 +19,7 @@ import urllib.request
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from statistics import median as statistics_median
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Asia/Taipei")
@@ -673,6 +674,63 @@ def build_actual_weather_hourly(now: datetime):
         )
         actual[course][(valid_date, hour)] = chosen
     return actual
+
+
+def build_daily_verification_pairs(source, hours, valid_date, course_key, actual_rain, actual_weather):
+    """Pair source hourly rows with CWA observations for 06:00-18:00 daily aggregates."""
+    pairs = {
+        "rain": [],
+        "temperature": [],
+        "wind": [],
+        "gust": [],
+        "humidity": [],
+    }
+    for row in hours:
+        try:
+            forecast_hour = int(str(row.get("time", ""))[:2])
+        except Exception:
+            forecast_hour = -1
+        if source == "Visual Crossing":
+            rain_hour = forecast_hour if 5 <= forecast_hour <= 17 else None
+        else:
+            rain_hour = forecast_hour - 1 if 6 <= forecast_hour <= 18 else None
+        if rain_hour is not None:
+            observed_rain = actual_rain.get(course_key, {}).get((valid_date, rain_hour))
+            forecast_mm = row.get("precip_mm")
+            if (
+                observed_rain
+                and isinstance(forecast_mm, (int, float))
+                and math.isfinite(forecast_mm)
+            ):
+                probability = row.get("precip_probability_pct")
+                if not isinstance(probability, (int, float)) or not math.isfinite(probability):
+                    probability = None
+                pairs["rain"].append((float(forecast_mm), float(observed_rain["precip_mm"]), probability))
+
+        weather_time = str(row.get("weather_time") or row.get("time") or "")
+        try:
+            weather_hour = int(weather_time[:2])
+        except Exception:
+            continue
+        if not 6 <= weather_hour <= 18:
+            continue
+        observed_weather = actual_weather.get(course_key, {}).get((valid_date, weather_hour))
+        if not observed_weather:
+            continue
+        for key, forecast_key, actual_key in (
+            ("temperature", "temp_c", "temperature_c"),
+            ("wind", "wind_kmh", "wind_speed_kmh"),
+            ("gust", "gust_kmh", "wind_gust_kmh"),
+            ("humidity", "humidity_pct", "relative_humidity_pct"),
+        ):
+            forecast_value = row.get(forecast_key)
+            actual_value = observed_weather.get(actual_key)
+            if (
+                isinstance(forecast_value, (int, float)) and math.isfinite(forecast_value)
+                and isinstance(actual_value, (int, float)) and math.isfinite(actual_value)
+            ):
+                pairs[key].append((float(forecast_value), float(actual_value)))
+    return pairs
 
 
 def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_strength: float, cap: float = 0.35, minimum_vintages: int = MIN_FORECAST_VINTAGES):
