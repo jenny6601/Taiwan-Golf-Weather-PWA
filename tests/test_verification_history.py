@@ -43,6 +43,8 @@ class ForecastVerificationGateTests(unittest.TestCase):
         self.assertIn("externalRainRows,variableWeights", source)
         self.assertIn("const weightDoc=await loadVerificationWeights()", source)
         self.assertIn('weightDoc?.variables?.[variable]?.lead_days?.[leadKey]', source)
+        self.assertIn('const hi=weighted(tempWeights,"hi"),lo=weighted(tempWeights,"lo")', source)
+        self.assertIn('fetchDailyForecast(p.lat,p.lon,p.name)', source)
 
     def test_forecast_archive_contains_weather_variables_and_vc_hour_alignment(self):
         source = (Path(__file__).resolve().parents[1] / "scripts" / "verification_history.py").read_text(encoding="utf-8")
