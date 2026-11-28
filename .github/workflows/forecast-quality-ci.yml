@@ -1,0 +1,73 @@
+name: Forecast quality regression tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'scripts/verification_history.py'
+      - 'tests/**'
+      - '.github/workflows/forecast-quality-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  forecast-quality-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate Python syntax
+        run: python -m py_compile scripts/verification_history.py
+      - name: Validate inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class InlineScripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.capture = False
+                  self.parts = []
+                  self.files = []
+
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == "script":
+                      attrs = dict(attrs)
+                      self.capture = not attrs.get("src") and attrs.get("type", "").lower() not in ("application/json", "application/ld+json")
+                      self.parts = []
+
+              def handle_data(self, data):
+                  if self.capture:
+                      self.parts.append(data)
+
+              def handle_endtag(self, tag):
+                  if tag.lower() == "script" and self.capture:
+                      path = Path(f"/tmp/pwa-inline-{len(self.files)}.js")
+                      path.write_text("".join(self.parts), encoding="utf-8")
+                      self.files.append(path)
+                      self.capture = False
+
+          parser = InlineScripts()
+          parser.feed(Path("index.html").read_text(encoding="utf-8"))
+          if not parser.files:
+              raise SystemExit("No inline JavaScript blocks found")
+          for path in parser.files:
+              print(f"Checking {path}")
+          Path("/tmp/pwa-inline-files.txt").write_text("\n".join(map(str, parser.files)), encoding="utf-8")
+          PY
+          while IFS= read -r file; do node --check "$file"; done < /tmp/pwa-inline-files.txt
+      - name: Run forecast verification regression tests
+        run: python -m unittest discover -s tests -v
