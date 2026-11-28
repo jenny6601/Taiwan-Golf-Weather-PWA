@@ -1,5 +1,7 @@
 import sys
+import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -80,6 +82,78 @@ class ForecastVerificationGateTests(unittest.TestCase):
         self.assertEqual(result["probability_sample_count"], 1)
         self.assertEqual(result["distinct_vintage_count"], 2)
         self.assertEqual(result["probability_vintage_count"], 1)
+
+    def test_continuous_score_reports_mae_rmse_bias_and_vintages(self):
+        score = vh.ContinuousScore()
+        score.add(20.0, 22.0, "v1")
+        score.add(25.0, 24.0, "v2")
+        result = score.result()
+        self.assertEqual(result["sample_count"], 2)
+        self.assertEqual(result["distinct_vintage_count"], 2)
+        self.assertEqual(result["MAE"], 1.5)
+        self.assertEqual(result["Bias"], -0.5)
+        self.assertAlmostEqual(result["RMSE"], (2.5 ** 0.5), places=3)
+
+    def test_cwa_weather_observations_are_hour_aligned_and_wind_converted(self):
+        original_root = vh.ROOT
+        with tempfile.TemporaryDirectory() as temp_dir:
+            vh.ROOT = Path(temp_dir)
+            obs_dir = vh.ROOT / "observations"
+            obs_dir.mkdir()
+            snapshot = {
+                "snapshot_schema_version": 2,
+                "courses": {
+                    "TWG001": {
+                        "course_name": "Test Course",
+                        "weather_station_code": "466900",
+                        "weather_station_observed_at": "2026-11-27T02:00:00+00:00",
+                        "weather_station_distance_km": 5.0,
+                        "weather_station_quality_status": "passed",
+                        "weather_station_observation_age_minutes": 10,
+                        "temperature_c": 22.0,
+                        "relative_humidity_pct": 60,
+                        "wind_speed_ms": 2.0,
+                        "wind_gust_ms": 3.0,
+                        "wind_direction_deg": 150,
+                    }
+                },
+            }
+            vh.write_gzip_jsonl(obs_dir / "2026-11-27.jsonl.gz", [snapshot])
+            actual = vh.build_actual_weather_hourly(
+                datetime(2026, 11, 28, 12, 0, tzinfo=vh.TZ)
+            )
+            row = actual["test course"][("2026-11-27", 10)]
+            self.assertEqual(row["temperature_c"], 22.0)
+            self.assertEqual(row["relative_humidity_pct"], 60)
+            self.assertAlmostEqual(row["wind_speed_kmh"], 7.2, places=2)
+            self.assertAlmostEqual(row["wind_gust_kmh"], 10.8, places=2)
+        vh.ROOT = original_root
+
+    def test_stale_or_distant_weather_station_is_excluded(self):
+        original_root = vh.ROOT
+        with tempfile.TemporaryDirectory() as temp_dir:
+            vh.ROOT = Path(temp_dir)
+            obs_dir = vh.ROOT / "observations"
+            obs_dir.mkdir()
+            base = {
+                "course_name": "Test Course",
+                "weather_station_code": "466900",
+                "weather_station_observed_at": "2026-11-27T02:00:00+00:00",
+                "weather_station_distance_km": 5.0,
+                "weather_station_quality_status": "passed",
+                "weather_station_observation_age_minutes": 120,
+                "temperature_c": 22.0,
+                "relative_humidity_pct": 60,
+                "wind_speed_ms": 2.0,
+                "wind_gust_ms": None,
+            }
+            snapshot = {"snapshot_schema_version": 2, "courses": {"TWG001": base}}
+            vh.write_gzip_jsonl(obs_dir / "2026-11-27.jsonl.gz", [snapshot])
+            actual = vh.build_actual_weather_hourly(
+                datetime(2026, 11, 28, 12, 0, tzinfo=vh.TZ)
+            )
+            self.assertEqual(actual, {})
+        vh.ROOT = original_root
 
 
 if __name__ == "__main__":
