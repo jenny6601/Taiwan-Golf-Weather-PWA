@@ -1,25 +1,33 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-27T16:10:04.734526+08:00",
-  "status": "warming_up",
+  "generated_at": "2026-11-28T08:46:02.482942+08:00",
+  "status": "active",
   "method": "inverse-error with equal-prior shrinkage and 0.35 maximum source weight",
   "verification_source": "CWA rainfall observations",
   "lead_days": {
     "1": {
       "sample_count_by_source": {
-        "ECMWF IFS": 114,
-        "NOAA GFS": 113,
-        "DWD ICON": 113,
-        "JMA GSM": 113,
-        "Canada GEM": 114,
-        "ECMWF AIFS": 114,
-        "Visual Crossing": 114,
-        "Foreca": 57
+        "ECMWF IFS": 228,
+        "NOAA GFS": 227,
+        "DWD ICON": 227,
+        "JMA GSM": 227,
+        "Canada GEM": 228,
+        "ECMWF AIFS": 228,
+        "Visual Crossing": 228,
+        "Foreca": 171
       },
-      "amount_weights": null,
+      "amount_weights": {
+        "ECMWF IFS": 0.14227,
+        "NOAA GFS": 0.13852,
+        "DWD ICON": 0.14925,
+        "JMA GSM": 0.14925,
+        "Canada GEM": 0.14928,
+        "ECMWF AIFS": 0.13443,
+        "Visual Crossing": 0.13701
+      },
       "probability_weights": null,
-      "weighting_active": false,
-      "amount_weighting_active": false,
+      "weighting_active": true,
+      "amount_weighting_active": true,
       "probability_weighting_active": false
     },
     "3": {
@@ -41,13 +49,14 @@
     },
     "5": {
       "sample_count_by_source": {
-        "ECMWF IFS": 57,
-        "NOAA GFS": 57,
-        "DWD ICON": 57,
-        "JMA GSM": 57,
-        "Canada GEM": 57,
-        "ECMWF AIFS": 57,
-        "Visual Crossing": 57
+        "ECMWF IFS": 171,
+        "NOAA GFS": 169,
+        "DWD ICON": 169,
+        "JMA GSM": 169,
+        "Canada GEM": 171,
+        "ECMWF AIFS": 171,
+        "Visual Crossing": 171,
+        "Foreca": 114
       },
       "amount_weights": null,
       "probability_weights": null,
