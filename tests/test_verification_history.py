@@ -35,6 +35,7 @@ class ForecastVerificationGateTests(unittest.TestCase):
         self.assertIn("temp:get('temp')", source)
         self.assertIn("wind:get('wind')", source)
         self.assertIn("gust:get('gust')", source)
+        self.assertIn("const amountCandidate=courseWeights||globalAmountWeights", source)
 
     def test_dry_only_pairs_never_activate_amount_weights(self):
         rows = self.eligible_rows(wet_sample_count=0, Weight_error_mm=None)
