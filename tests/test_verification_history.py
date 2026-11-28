@@ -194,5 +194,85 @@ class ForecastVerificationGateTests(unittest.TestCase):
         vh.ROOT = original_root
 
 
+    def test_full_verification_writes_weather_scores_without_early_weights(self):
+        original_root = vh.ROOT
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                vh.ROOT = Path(temp_dir)
+                (vh.ROOT / "forecasts").mkdir()
+                (vh.ROOT / "observations").mkdir()
+                archive = {
+                    "issue_date": "2026-11-20",
+                    "courses": {
+                        "Test Course": {
+                            "valid_dates": {
+                                "2026-11-21": {
+                                    "lead_days": 1,
+                                    "sources": {
+                                        "ECMWF IFS": [{
+                                            "time": "10:00",
+                                            "weather_time": "10:00",
+                                            "precip_mm": 0.0,
+                                            "precip_probability_pct": 20,
+                                            "temp_c": 23.0,
+                                            "wind_kmh": 8.0,
+                                            "gust_kmh": 12.0,
+                                            "humidity_pct": 62.0,
+                                        }]
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
+                vh.write_gzip_json(vh.ROOT / "forecasts" / "2026-11-20.json.gz", archive)
+                observation = {
+                    "snapshot_schema_version": 2,
+                    "courses": {
+                        "TWG001": {
+                            "course_name": "Test Course",
+                            "station_code": "rain-station",
+                            "station_observed_at": "2026-11-21T02:00:00+00:00",
+                            "distance_km": 5.0,
+                            "quality_status": "passed",
+                            "precipitation_10m_mm": 0.0,
+                            "precipitation_1h_mm": 0.0,
+                            "weather_station_code": "weather-station",
+                            "weather_station_observed_at": "2026-11-21T02:00:00+00:00",
+                            "weather_station_distance_km": 5.0,
+                            "weather_station_quality_status": "passed",
+                            "weather_station_observation_age_minutes": 10,
+                            "temperature_c": 22.0,
+                            "relative_humidity_pct": 60.0,
+                            "wind_speed_ms": 2.0,
+                            "wind_gust_ms": 3.0,
+                        }
+                    },
+                }
+                vh.write_gzip_jsonl(
+                    vh.ROOT / "observations" / "2026-11-21.jsonl.gz",
+                    [observation],
+                )
+                report = vh.verify_and_weight(
+                    datetime(2026, 11, 28, 12, 0, tzinfo=vh.TZ)
+                )
+                metrics = __import__("json").loads(
+                    (vh.ROOT / "verification" / "metrics" / "latest.json").read_text(encoding="utf-8")
+                )
+                weights = __import__("json").loads(
+                    (vh.ROOT / "verification" / "weights.json").read_text(encoding="utf-8")
+                )
+                temperature = metrics["variables"]["temperature_c"]["lead_days"]["1"]["ECMWF IFS"]
+                wind = metrics["variables"]["wind_speed_kmh"]["lead_days"]["1"]["ECMWF IFS"]
+                self.assertEqual(temperature["sample_count"], 1)
+                self.assertEqual(temperature["MAE"], 1.0)
+                self.assertAlmostEqual(wind["MAE"], 0.8, places=2)
+                self.assertEqual(report["actual_weather_course_hours"], 1)
+                self.assertEqual(weights["status"], "warming_up")
+                self.assertIsNone(weights["variables"]["temperature_c"]["lead_days"]["1"])
+        finally:
+            vh.ROOT = original_root
+
+
 if __name__ == "__main__":
     unittest.main()
