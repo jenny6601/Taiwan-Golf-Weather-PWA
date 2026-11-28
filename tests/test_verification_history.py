@@ -122,7 +122,7 @@ class ForecastVerificationGateTests(unittest.TestCase):
             actual = vh.build_actual_weather_hourly(
                 datetime(2026, 11, 28, 12, 0, tzinfo=vh.TZ)
             )
-            row = actual["test course"][("2026-11-27", 10)]
+            row = actual[vh.name_key("Test Course")][("2026-11-27", 10)]
             self.assertEqual(row["temperature_c"], 22.0)
             self.assertEqual(row["relative_humidity_pct"], 60)
             self.assertAlmostEqual(row["wind_speed_kmh"], 7.2, places=2)
