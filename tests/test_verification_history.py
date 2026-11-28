@@ -1,0 +1,361 @@
+import sys
+import tempfile
+import unittest
+from datetime import datetime
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import verification_history as vh
+
+
+class ForecastVerificationGateTests(unittest.TestCase):
+    def eligible_rows(self, **overrides):
+        base = {
+            "sample_count": 250,
+            "wet_sample_count": 25,
+            "distinct_vintage_count": 25,
+            "Weight_error_mm": 1.2,
+            "probability_sample_count": 250,
+            "probability_wet_sample_count": 25,
+            "probability_vintage_count": 25,
+            "Brier_score": 0.12,
+        }
+        base.update(overrides)
+        return {f"source-{i}": dict(base) for i in range(3)}
+
+    def test_all_sixteen_lead_days_are_archived(self):
+        self.assertEqual(tuple(range(1, 17)), vh.LEADS)
+
+    def test_old_six_lead_vintage_is_not_treated_as_complete(self):
+        source = (Path(__file__).resolve().parents[1] / "scripts" / "verification_history.py").read_text(encoding="utf-8")
+        self.assertIn('previous_vintage.get("lead_days") == list(LEADS)', source)
+
+    def test_external_providers_are_isolated_from_core_weather_variables(self):
+        source = (Path(__file__).resolve().parents[1] / "index.html").read_text(encoding="utf-8")
+        self.assertIn("const rainPairs=pairs.concat(Object.entries(externalRainRows)", source)
+        self.assertIn("const rs=pairs.map(x=>x.row)", source)
+        self.assertIn("temp:weightedTemp===null?get('temp'):weightedTemp", source)
+        self.assertIn("wind:weightedWind===null?get('wind'):weightedWind", source)
+        self.assertIn("gust:weightedGust===null?get('gust'):weightedGust", source)
+        self.assertIn("if(hasRainSources(courseWeights)){amountWeights=courseWeights;usedCourseRainWeights=true;}", source)
+        self.assertIn("const candidate=hasCoreSources(local)?local:global", source)
+        self.assertIn("const weightedTemp=weightedRainValue(pairs,variableWeights.temperature_c", source)
+        self.assertIn("const weightedWind=weightedRainValue(pairs,variableWeights.wind_speed_kmh", source)
+        self.assertIn("externalRainRows,variableWeights", source)
+        self.assertIn("const weightDoc=await loadVerificationWeights()", source)
+        self.assertIn('const block=weightDoc?.variables?.[variable]', source)
+        self.assertIn('const global=block?.lead_days?.[String(leadDays)]', source)
+        self.assertIn('const hi=weighted(tempHighWeights,"hi"),lo=weighted(tempLowWeights,"lo")', source)
+        self.assertIn('weightDoc?.daily_variables?.[variable]?.lead_days?.[leadKey]', source)
+        self.assertIn('const dailyRain=weightDoc?.daily_variables?.rain_mm', source)
+        self.assertIn('const amountWeights=hasThreeSources(localRain?.amount_weights)?localRain.amount_weights:globalRain?.amount_weights', source)
+        self.assertIn('fetchDailyForecast(p.lat,p.lon,p.name)', source)
+
+    def test_forecast_archive_contains_weather_variables_and_vc_hour_alignment(self):
+        source = (Path(__file__).resolve().parents[1] / "scripts" / "verification_history.py").read_text(encoding="utf-8")
+        self.assertIn('"temp_c": r.get("temp")', source)
+        self.assertIn('"wind_kmh": r.get("wind")', source)
+        self.assertIn('"humidity_pct": r.get("rh")', source)
+        self.assertIn('"temperature_c": weather.get("temperature_c")', source)
+        self.assertIn('def build_actual_weather_hourly(now: datetime):', source)
+        self.assertIn('weather_time = str(row.get("weather_time") or row.get("time") or "")', source)
+        self.assertIn('f"{(int(str(r.get(\'time\', \'\'))[11:13]) + 1):02d}:00"', source)
+
+    def test_dry_only_pairs_never_activate_amount_weights(self):
+        rows = self.eligible_rows(wet_sample_count=0, Weight_error_mm=None)
+        self.assertIsNone(
+            vh.normalized_weights(rows, "Weight_error_mm", vh.MIN_GLOBAL_PAIRS, 2000)
+        )
+
+    def test_probability_weights_require_wet_probability_samples(self):
+        rows = self.eligible_rows(probability_wet_sample_count=0)
+        self.assertIsNone(
+            vh.normalized_weights(rows, "Brier_score", vh.MIN_GLOBAL_PAIRS, 2000)
+        )
+
+    def test_probability_weights_require_their_own_vintage_coverage(self):
+        rows = self.eligible_rows(probability_vintage_count=19)
+        self.assertIsNone(
+            vh.normalized_weights(rows, "Brier_score", vh.MIN_GLOBAL_PAIRS, 2000)
+        )
+
+    def test_amount_weights_require_distinct_forecast_vintages(self):
+        rows = self.eligible_rows(distinct_vintage_count=19)
+        self.assertIsNone(
+            vh.normalized_weights(rows, "Weight_error_mm", vh.MIN_GLOBAL_PAIRS, 2000)
+        )
+
+    def test_valid_weights_are_normalized_and_capped(self):
+        rows = self.eligible_rows()
+        weights = vh.normalized_weights(
+            rows, "Weight_error_mm", vh.MIN_GLOBAL_PAIRS, 2000
+        )
+        self.assertIsNotNone(weights)
+        self.assertAlmostEqual(sum(weights.values()), 1.0, places=4)
+        self.assertTrue(all(value <= 0.35 for value in weights.values()))
+
+    def test_probability_wet_count_only_uses_rows_with_probability(self):
+        score = vh.Score()
+        score.add(0.0, 0.0, 30, "2026-11-01")
+        score.add(0.0, 0.5, None, "2026-11-02")
+        result = score.result()
+        self.assertEqual(result["wet_sample_count"], 1)
+        self.assertEqual(result["probability_wet_sample_count"], 0)
+        self.assertEqual(result["probability_sample_count"], 1)
+        self.assertEqual(result["distinct_vintage_count"], 2)
+        self.assertEqual(result["probability_vintage_count"], 1)
+
+    def test_continuous_score_reports_mae_rmse_bias_and_vintages(self):
+        score = vh.ContinuousScore()
+        score.add(20.0, 22.0, "v1")
+        score.add(25.0, 24.0, "v2")
+        result = score.result()
+        self.assertEqual(result["sample_count"], 2)
+        self.assertEqual(result["distinct_vintage_count"], 2)
+        self.assertEqual(result["MAE"], 1.5)
+        self.assertEqual(result["Bias"], -0.5)
+        self.assertAlmostEqual(result["RMSE"], (2.5 ** 0.5), places=3)
+
+    def test_continuous_weights_use_only_qualified_core_models(self):
+        rows = {
+            "ECMWF IFS": {"sample_count": 250, "distinct_vintage_count": 25, "MAE": 1.0},
+            "NOAA GFS": {"sample_count": 250, "distinct_vintage_count": 25, "MAE": 1.5},
+            "DWD ICON": {"sample_count": 250, "distinct_vintage_count": 25, "MAE": 2.0},
+            "Visual Crossing": {"sample_count": 500, "distinct_vintage_count": 40, "MAE": 0.1},
+        }
+        weights = vh.normalized_continuous_weights(rows, 200, 20, 2000)
+        self.assertEqual(set(weights), {"ECMWF IFS", "NOAA GFS", "DWD ICON"})
+        self.assertAlmostEqual(sum(weights.values()), 1.0, places=4)
+        self.assertTrue(all(value <= 0.35 for value in weights.values()))
+
+    def test_continuous_weights_reject_insufficient_samples_or_vintages(self):
+        rows = {
+            name: {"sample_count": 199, "distinct_vintage_count": 25, "MAE": 1.0}
+            for name in vh.CORE_MODEL_SOURCES[:3]
+        }
+        self.assertIsNone(vh.normalized_continuous_weights(rows, 200, 20, 2000))
+        for row in rows.values():
+            row["sample_count"] = 250
+            row["distinct_vintage_count"] = 19
+        self.assertIsNone(vh.normalized_continuous_weights(rows, 200, 20, 2000))
+
+    def test_daily_verification_pairs_align_vc_rain_period_and_weather_hour(self):
+        valid_date = "2026-11-21"
+        course_key = vh.name_key("Test Course")
+        actual_rain = {course_key: {}}
+        actual_weather = {course_key: {}}
+        rows = []
+        for offset in range(9):
+            rain_hour = 5 + offset
+            weather_hour = 6 + offset
+            actual_rain[course_key][(valid_date, rain_hour)] = {"precip_mm": 1.0}
+            actual_weather[course_key][(valid_date, weather_hour)] = {
+                "temperature_c": 22.0 + offset,
+                "wind_speed_kmh": 7.2,
+                "wind_gust_kmh": 10.8,
+                "relative_humidity_pct": 60.0,
+            }
+            rows.append({
+                "time": f"{rain_hour:02d}:00",
+                "weather_time": f"{weather_hour:02d}:00",
+                "precip_mm": 0.2,
+                "precip_probability_pct": 30,
+                "temp_c": 23.0 + offset,
+                "wind_kmh": 8.0,
+                "gust_kmh": 12.0,
+                "humidity_pct": 62.0,
+            })
+        paired = vh.build_daily_verification_pairs(
+            "Visual Crossing", rows, valid_date, course_key, actual_rain, actual_weather
+        )
+        self.assertEqual(len(paired["rain"]), 9)
+        self.assertEqual(len(paired["temperature"]), 9)
+        self.assertEqual(len(paired["wind"]), 9)
+        self.assertEqual(len(paired["gust"]), 9)
+        self.assertEqual(len(paired["humidity"]), 9)
+        self.assertEqual(paired["rain"][0], (0.2, 1.0, 30))
+        self.assertEqual(paired["temperature"][0], (23.0, 22.0))
+
+    def test_daily_verification_requires_nine_paired_hours_for_main_metrics(self):
+        valid_date = "2026-11-21"
+        course_key = vh.name_key("Test Course")
+        actual_rain = {course_key: {}}
+        actual_weather = {course_key: {}}
+        rows = []
+        for offset in range(8):
+            rain_hour = 5 + offset
+            weather_hour = 6 + offset
+            actual_rain[course_key][(valid_date, rain_hour)] = {"precip_mm": 0.5}
+            actual_weather[course_key][(valid_date, weather_hour)] = {
+                "temperature_c": 22.0,
+                "wind_speed_kmh": 7.2,
+                "wind_gust_kmh": 10.8,
+                "relative_humidity_pct": 60.0,
+            }
+            rows.append({
+                "time": f"{rain_hour:02d}:00",
+                "weather_time": f"{weather_hour:02d}:00",
+                "precip_mm": 0.2,
+                "precip_probability_pct": 20,
+                "temp_c": 23.0,
+                "wind_kmh": 8.0,
+                "gust_kmh": 12.0,
+                "humidity_pct": 62.0,
+            })
+        paired = vh.build_daily_verification_pairs(
+            "Visual Crossing", rows, valid_date, course_key, actual_rain, actual_weather
+        )
+        self.assertEqual(len(paired["rain"]), 8)
+        self.assertLess(len(paired["rain"]), 9)
+
+    def test_cwa_weather_observations_are_hour_aligned_and_wind_converted(self):
+        original_root = vh.ROOT
+        with tempfile.TemporaryDirectory() as temp_dir:
+            vh.ROOT = Path(temp_dir)
+            obs_dir = vh.ROOT / "observations"
+            obs_dir.mkdir()
+            snapshot = {
+                "snapshot_schema_version": 2,
+                "courses": {
+                    "TWG001": {
+                        "course_name": "Test Course",
+                        "weather_station_code": "466900",
+                        "weather_station_observed_at": "2026-11-27T02:00:00+00:00",
+                        "weather_station_distance_km": 5.0,
+                        "weather_station_quality_status": "passed",
+                        "weather_station_observation_age_minutes": 10,
+                        "temperature_c": 22.0,
+                        "relative_humidity_pct": 60,
+                        "wind_speed_ms": 2.0,
+                        "wind_gust_ms": 3.0,
+                        "wind_direction_deg": 150,
+                    }
+                },
+            }
+            vh.write_gzip_jsonl(obs_dir / "2026-11-27.jsonl.gz", [snapshot])
+            actual = vh.build_actual_weather_hourly(
+                datetime(2026, 11, 28, 12, 0, tzinfo=vh.TZ)
+            )
+            row = actual[vh.name_key("Test Course")][("2026-11-27", 10)]
+            self.assertEqual(row["temperature_c"], 22.0)
+            self.assertEqual(row["relative_humidity_pct"], 60)
+            self.assertAlmostEqual(row["wind_speed_kmh"], 7.2, places=2)
+            self.assertAlmostEqual(row["wind_gust_kmh"], 10.8, places=2)
+        vh.ROOT = original_root
+
+    def test_stale_or_distant_weather_station_is_excluded(self):
+        original_root = vh.ROOT
+        with tempfile.TemporaryDirectory() as temp_dir:
+            vh.ROOT = Path(temp_dir)
+            obs_dir = vh.ROOT / "observations"
+            obs_dir.mkdir()
+            base = {
+                "course_name": "Test Course",
+                "weather_station_code": "466900",
+                "weather_station_observed_at": "2026-11-27T02:00:00+00:00",
+                "weather_station_distance_km": 5.0,
+                "weather_station_quality_status": "passed",
+                "weather_station_observation_age_minutes": 120,
+                "temperature_c": 22.0,
+                "relative_humidity_pct": 60,
+                "wind_speed_ms": 2.0,
+                "wind_gust_ms": None,
+            }
+            snapshot = {"snapshot_schema_version": 2, "courses": {"TWG001": base}}
+            vh.write_gzip_jsonl(obs_dir / "2026-11-27.jsonl.gz", [snapshot])
+            actual = vh.build_actual_weather_hourly(
+                datetime(2026, 11, 28, 12, 0, tzinfo=vh.TZ)
+            )
+            self.assertEqual(actual, {})
+        vh.ROOT = original_root
+
+
+    def test_full_verification_writes_weather_scores_without_early_weights(self):
+        original_root = vh.ROOT
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                vh.ROOT = Path(temp_dir)
+                (vh.ROOT / "forecasts").mkdir()
+                (vh.ROOT / "observations").mkdir()
+                archive = {
+                    "issue_date": "2026-11-20",
+                    "courses": {
+                        "Test Course": {
+                            "valid_dates": {
+                                "2026-11-21": {
+                                    "lead_days": 1,
+                                    "sources": {
+                                        "ECMWF IFS": [{
+                                            "time": "10:00",
+                                            "weather_time": "10:00",
+                                            "precip_mm": 0.0,
+                                            "precip_probability_pct": 20,
+                                            "temp_c": 23.0,
+                                            "wind_kmh": 8.0,
+                                            "gust_kmh": 12.0,
+                                            "humidity_pct": 62.0,
+                                        }]
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
+                vh.write_gzip_json(vh.ROOT / "forecasts" / "2026-11-20.json.gz", archive)
+                observation = {
+                    "snapshot_schema_version": 2,
+                    "courses": {
+                        "TWG001": {
+                            "course_name": "Test Course",
+                            "station_code": "rain-station",
+                            "station_observed_at": "2026-11-21T02:00:00+00:00",
+                            "distance_km": 5.0,
+                            "quality_status": "passed",
+                            "precipitation_10m_mm": 0.0,
+                            "precipitation_1h_mm": 0.0,
+                            "weather_station_code": "weather-station",
+                            "weather_station_observed_at": "2026-11-21T02:00:00+00:00",
+                            "weather_station_distance_km": 5.0,
+                            "weather_station_quality_status": "passed",
+                            "weather_station_observation_age_minutes": 10,
+                            "temperature_c": 22.0,
+                            "relative_humidity_pct": 60.0,
+                            "wind_speed_ms": 2.0,
+                            "wind_gust_ms": 3.0,
+                        }
+                    },
+                }
+                vh.write_gzip_jsonl(
+                    vh.ROOT / "observations" / "2026-11-21.jsonl.gz",
+                    [observation],
+                )
+                report = vh.verify_and_weight(
+                    datetime(2026, 11, 28, 12, 0, tzinfo=vh.TZ)
+                )
+                metrics = __import__("json").loads(
+                    (vh.ROOT / "verification" / "metrics" / "latest.json").read_text(encoding="utf-8")
+                )
+                weights = __import__("json").loads(
+                    (vh.ROOT / "verification" / "weights.json").read_text(encoding="utf-8")
+                )
+                temperature = metrics["variables"]["temperature_c"]["lead_days"]["1"]["ECMWF IFS"]
+                wind = metrics["variables"]["wind_speed_kmh"]["lead_days"]["1"]["ECMWF IFS"]
+                self.assertEqual(temperature["sample_count"], 1)
+                self.assertEqual(temperature["MAE"], 1.0)
+                self.assertAlmostEqual(wind["MAE"], 0.8, places=2)
+                self.assertEqual(report["actual_weather_course_hours"], 1)
+                self.assertEqual(weights["status"], "warming_up")
+                self.assertIsNone(weights["variables"]["temperature_c"]["lead_days"]["1"])
+                self.assertEqual(metrics["daily_variables"]["temperature_high_c"]["lead_days"]["1"], {})
+                self.assertIsNone(weights["daily_variables"]["temperature_high_c"]["lead_days"]["1"])
+                self.assertIsNone(weights["daily_variables"]["rain_mm"]["lead_days"]["1"]["amount_weights"])
+                self.assertEqual(report["verified_daily_variables"], [
+                    "temperature_high_c", "temperature_low_c", "wind_speed_kmh",
+                    "wind_gust_kmh", "relative_humidity_pct", "rain_mm"
+                ])
+        finally:
+            vh.ROOT = original_root
+
+
+if __name__ == "__main__":
+    unittest.main()

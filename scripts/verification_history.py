@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Archive immutable forecast vintages and CWA rainfall observations; verify skill.
+"""Archive immutable 16-day forecast vintages and CWA observations; verify skill.
 
 Storage is the dedicated verification-history branch. Forecast vintages are
-captured once daily for lead days 1,3,5,7,10,14. CWA course rainfall snapshots
+captured once daily for lead days 1-16. CWA rainfall and hourly weather snapshots
 are appended every ten minutes. No source forecast is overwritten.
 """
 from __future__ import annotations
@@ -19,12 +19,14 @@ import urllib.request
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from statistics import median as statistics_median
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Asia/Taipei")
-LEADS = (1, 3, 5, 7, 10, 14)
+LEADS = tuple(range(1, 17))
 RETENTION_DAYS = 180
 OBS_MAX_AGE_MIN = 28
+WEATHER_OBS_MAX_AGE_MIN = 90
 FORECAST_MAX_AGE_HOURS = 4
 VC_MAX_AGE_HOURS = 36
 FORECA_MAX_AGE_HOURS = 36
@@ -32,9 +34,18 @@ MIN_STATION_DISTANCE_KM = 15.0
 MIN_10M_SAMPLES = 6
 MIN_GLOBAL_PAIRS = 200
 MIN_COURSE_PAIRS = 100
+MIN_DAILY_COURSE_PAIRS = 30
+MIN_GLOBAL_WET_PAIRS = 20
+MIN_COURSE_WET_PAIRS = 10
+MIN_FORECAST_VINTAGES = 20
+MIN_COURSE_VINTAGES = 10
 SOURCES = (
     "ECMWF IFS", "NOAA GFS", "DWD ICON", "JMA GSM",
     "Canada GEM", "ECMWF AIFS", "Visual Crossing", "Foreca",
+)
+CORE_MODEL_SOURCES = (
+    "ECMWF IFS", "NOAA GFS", "DWD ICON", "JMA GSM",
+    "Canada GEM", "ECMWF AIFS",
 )
 LIVE_URL = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/live_observations.json"
 COURSE_INDEX_URL = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/course-cache/index.json"
@@ -156,6 +167,8 @@ def archive_observations(now: datetime) -> dict:
     for course_id, item in courses.items():
         rain = item.get("rainfall") or {}
         station = rain.get("station") or {}
+        weather = item.get("weather") or {}
+        weather_station = weather.get("station") or {}
         normalized[str(course_id)] = {
             "course_id": str(course_id),
             "course_name": item.get("course_name") or item.get("name"),
@@ -168,6 +181,18 @@ def archive_observations(now: datetime) -> dict:
             "precipitation_10m_mm": rain.get("precipitation_10m_mm"),
             "precipitation_1h_mm": rain.get("precipitation_1h_mm"),
             "precipitation_period": rain.get("precipitation_period"),
+            "weather_station_code": weather_station.get("code"),
+            "weather_station_name": weather_station.get("name"),
+            "weather_station_observed_at": weather_station.get("observed_at"),
+            "weather_station_distance_km": weather_station.get("distance_km"),
+            "weather_station_quality_status": weather_station.get("quality_status"),
+            "weather_station_observation_age_minutes": weather_station.get("observation_age_minutes"),
+            "temperature_c": weather.get("temperature_c"),
+            "relative_humidity_pct": weather.get("relative_humidity_pct"),
+            "wind_speed_ms": weather.get("wind_speed_ms"),
+            "wind_gust_ms": weather.get("wind_gust_ms"),
+            "wind_direction_deg": weather.get("wind_direction_deg"),
+            "weather_text": weather.get("weather_text"),
         }
     history.append({
         "snapshot_at": generated,
@@ -218,7 +243,9 @@ def archive_forecast_vintage(now: datetime) -> dict:
             previous_vintage = read_gzip_json(out_path)
             if (
                 len(previous_vintage.get("courses", {})) == 57
+                and previous_vintage.get("schema_version") == 2
                 and previous_vintage.get("hour_alignment_version") == 3
+                and previous_vintage.get("lead_days") == list(LEADS)
             ):
                 return {"status": "already_archived", "issue_date": issue_date.isoformat()}
         except Exception:
@@ -278,7 +305,7 @@ def archive_forecast_vintage(now: datetime) -> dict:
     foreca_name_lookup = {name_key(k): (k, v) for k, v in foreca_names.items()}
     valid_dates = { (issue_date + timedelta(days=lead)).isoformat(): lead for lead in LEADS }
     archive = {
-        "schema_version": 1,
+        "schema_version": 2,
         "hour_alignment_version": 3,
         "source_hour_alignment": {
             "Open-Meteo": "preceding-hour",
@@ -319,8 +346,18 @@ def archive_forecast_vintage(now: datetime) -> dict:
                 model_rows[model] = [
                     {
                         "time": str(r.get("time", ""))[:5],
+                        "weather_time": str(r.get("time", ""))[:5],
                         "precip_mm": r.get("mm"),
                         "precip_probability_pct": r.get("rain"),
+                        "temp_c": r.get("temp"),
+                        "feel_c": r.get("feel"),
+                        "wind_kmh": r.get("wind"),
+                        "gust_kmh": r.get("gust"),
+                        "humidity_pct": r.get("rh"),
+                        "wind_dir_deg": r.get("dir"),
+                        "cloud_pct": r.get("cloud"),
+                        "uv_index": r.get("uv"),
+                        "weather_code": r.get("code"),
                     }
                     for r in rows
                     if r.get("available") and str(r.get("time", ""))[:5] in {f"{h:02d}:00" for h in range(6, 19)}
@@ -332,8 +369,18 @@ def archive_forecast_vintage(now: datetime) -> dict:
                 model_rows["Visual Crossing"] = [
                     {
                         "time": str(r.get("time", ""))[11:16],
+                        "weather_time": f"{(int(str(r.get('time', ''))[11:13]) + 1):02d}:00",
                         "precip_mm": r.get("precipitation"),
                         "precip_probability_pct": r.get("precipitation_probability"),
+                        "temp_c": r.get("temperature_2m"),
+                        "feel_c": r.get("apparent_temperature"),
+                        "wind_kmh": r.get("wind_speed_10m"),
+                        "gust_kmh": r.get("wind_gusts_10m"),
+                        "humidity_pct": r.get("relative_humidity_2m"),
+                        "wind_dir_deg": r.get("wind_direction_10m"),
+                        "cloud_pct": r.get("cloud_cover"),
+                        "uv_index": r.get("uv_index"),
+                        "weather_code": r.get("weather_code"),
                     }
                     for r in vc_rows
                     if str(r.get("time", ""))[11:13].isdigit()
@@ -351,8 +398,18 @@ def archive_forecast_vintage(now: datetime) -> dict:
             if foreca_rows:
                 model_rows["Foreca"] = [
                     {"time": str(r.get("time", ""))[11:16],
+                     "weather_time": str(r.get("time", ""))[11:16],
                      "precip_mm": r.get("precipitation"),
-                     "precip_probability_pct": r.get("precipitation_probability")}
+                     "precip_probability_pct": r.get("precipitation_probability"),
+                     "temp_c": r.get("temperature_2m"),
+                     "feel_c": r.get("apparent_temperature"),
+                     "wind_kmh": r.get("wind_speed_10m"),
+                     "gust_kmh": r.get("wind_gusts_10m"),
+                     "humidity_pct": r.get("relative_humidity_2m"),
+                     "wind_dir_deg": r.get("wind_direction_10m"),
+                     "cloud_pct": r.get("cloud_cover"),
+                     "uv_index": r.get("uv_index"),
+                     "weather_code": r.get("weather_code")}
                     for r in foreca_rows
                     if str(r.get("time", ""))[11:13].isdigit()
                     and 6 <= int(str(r.get("time", ""))[11:13]) <= 18
@@ -406,10 +463,15 @@ class Score:
         self.wet_abs_error = 0.0
         self.wet_squared_error = 0.0
         self.wet_sample_count = 0
+        self.probability_wet_sample_count = 0
+        self.vintages = set()
+        self.probability_vintages = set()
         self.hit = self.miss = self.false_alarm = self.correct_negative = 0
         self.brier_sum = 0.0
         self.prob_n = 0
-    def add(self, forecast, actual, probability):
+    def add(self, forecast, actual, probability, vintage_id=None):
+        if vintage_id is not None:
+            self.vintages.add(str(vintage_id))
         self.n += 1
         error = forecast - actual
         self.abs_error += abs(error)
@@ -426,6 +488,10 @@ class Score:
         elif event_forecast: self.false_alarm += 1
         else: self.correct_negative += 1
         if probability is not None:
+            if vintage_id is not None:
+                self.probability_vintages.add(str(vintage_id))
+            if event_actual:
+                self.probability_wet_sample_count += 1
             p = max(0.0, min(1.0, probability / 100.0))
             y = 1.0 if event_actual else 0.0
             self.brier_sum += (p - y) ** 2
@@ -441,11 +507,14 @@ class Score:
             "RMSE_mm": round(math.sqrt(self.squared_error / n), 3) if n else None,
             "Bias_mm": round(self.bias / n, 3) if n else None,
             "wet_sample_count": self.wet_sample_count,
+            "distinct_vintage_count": len(self.vintages),
+            "probability_wet_sample_count": self.probability_wet_sample_count,
+            "probability_vintage_count": len(self.probability_vintages),
             "MAE_wet_mm": round(self.wet_abs_error / self.wet_sample_count, 3) if self.wet_sample_count else None,
             "RMSE_wet_mm": round(math.sqrt(self.wet_squared_error / self.wet_sample_count), 3) if self.wet_sample_count else None,
             "Weight_error_mm": round(
                 0.5 * (self.abs_error / n) + 0.5 * (self.wet_abs_error / self.wet_sample_count), 3
-            ) if n and self.wet_sample_count >= 20 else (round(self.abs_error / n, 3) if n else None),
+            ) if n and self.wet_sample_count >= 20 else None,
             "POD": round(self.hit / pod_den, 4) if pod_den else None,
             "FAR": round(self.false_alarm / far_den, 4) if far_den else None,
             "CSI": round(self.hit / csi_den, 4) if csi_den else None,
@@ -454,6 +523,34 @@ class Score:
             "probability_sample_count": self.prob_n,
             "Brier_score": round(self.brier_sum / self.prob_n, 4) if self.prob_n else None,
         }
+
+class ContinuousScore:
+    """Continuous-variable forecast skill against quality-controlled CWA observations."""
+    def __init__(self):
+        self.n = 0
+        self.abs_error = 0.0
+        self.squared_error = 0.0
+        self.bias = 0.0
+        self.vintages = set()
+
+    def add(self, forecast, actual, vintage_id=None):
+        error = float(forecast) - float(actual)
+        self.n += 1
+        self.abs_error += abs(error)
+        self.squared_error += error * error
+        self.bias += error
+        if vintage_id is not None:
+            self.vintages.add(str(vintage_id))
+
+    def result(self):
+        return {
+            "sample_count": self.n,
+            "distinct_vintage_count": len(self.vintages),
+            "MAE": round(self.abs_error / self.n, 3) if self.n else None,
+            "RMSE": round(math.sqrt(self.squared_error / self.n), 3) if self.n else None,
+            "Bias": round(self.bias / self.n, 3) if self.n else None,
+        }
+
 
 def build_actual_hourly(now: datetime):
     cutoff = now.astimezone(TZ).date() - timedelta(days=60)
@@ -520,11 +617,136 @@ def build_actual_hourly(now: datetime):
                 }
     return actual
 
-def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_strength: float, cap: float = 0.35):
-    count_key = "probability_sample_count" if metric_key == "Brier_score" else "sample_count"
+def build_actual_weather_hourly(now: datetime):
+    """Build point-in-time CWA weather observations keyed to the local observation hour."""
+    cutoff = now.astimezone(TZ).date() - timedelta(days=60)
+    samples = defaultdict(dict)
+    obs_dir = ROOT / "observations"
+    if not obs_dir.exists():
+        return {}
+    for path in sorted(obs_dir.glob("*.jsonl.gz")):
+        try:
+            day = date.fromisoformat(path.name.split(".")[0])
+        except Exception:
+            continue
+        if day < cutoff:
+            continue
+        for snapshot in read_gzip_jsonl(path):
+            if snapshot.get("snapshot_schema_version", 1) < 2:
+                continue
+            for course_id, item in snapshot.get("courses", {}).items():
+                name = item.get("course_name") or course_id
+                station = item.get("weather_station_code")
+                stamp = parse_dt(item.get("weather_station_observed_at"))
+                distance = item.get("weather_station_distance_km")
+                age = item.get("weather_station_observation_age_minutes")
+                if not station or not stamp or item.get("weather_station_quality_status") != "passed":
+                    continue
+                if distance is None or float(distance) > MIN_STATION_DISTANCE_KM:
+                    continue
+                if age is not None and float(age) > WEATHER_OBS_MAX_AGE_MIN:
+                    continue
+                local = stamp.astimezone(TZ)
+                valid_date = local.date().isoformat()
+                key = (name_key(name), valid_date, local.hour)
+                ts_key = f"{station}|{stamp.isoformat()}"
+                samples[key][ts_key] = {
+                    "observed_at": stamp,
+                    "station_code": str(station),
+                    "distance_km": float(distance),
+                    "temperature_c": item.get("temperature_c"),
+                    "relative_humidity_pct": item.get("relative_humidity_pct"),
+                    "wind_speed_kmh": (
+                        float(item["wind_speed_ms"]) * 3.6
+                        if isinstance(item.get("wind_speed_ms"), (int, float)) else None
+                    ),
+                    "wind_gust_kmh": (
+                        float(item["wind_gust_ms"]) * 3.6
+                        if isinstance(item.get("wind_gust_ms"), (int, float)) else None
+                    ),
+                    "wind_direction_deg": item.get("wind_direction_deg"),
+                }
+    actual = defaultdict(dict)
+    for (course, valid_date, hour), rows in samples.items():
+        # Prefer the closest quality-controlled station; break ties with the latest observation.
+        chosen = min(
+            rows.values(),
+            key=lambda row: (row["distance_km"], -row["observed_at"].timestamp()),
+        )
+        actual[course][(valid_date, hour)] = chosen
+    return actual
+
+
+def build_daily_verification_pairs(source, hours, valid_date, course_key, actual_rain, actual_weather):
+    """Pair source hourly rows with CWA observations for 06:00-18:00 daily aggregates."""
+    pairs = {
+        "rain": [],
+        "temperature": [],
+        "wind": [],
+        "gust": [],
+        "humidity": [],
+    }
+    for row in hours:
+        try:
+            forecast_hour = int(str(row.get("time", ""))[:2])
+        except Exception:
+            forecast_hour = -1
+        if source == "Visual Crossing":
+            rain_hour = forecast_hour if 5 <= forecast_hour <= 17 else None
+        else:
+            rain_hour = forecast_hour - 1 if 6 <= forecast_hour <= 18 else None
+        if rain_hour is not None:
+            observed_rain = actual_rain.get(course_key, {}).get((valid_date, rain_hour))
+            forecast_mm = row.get("precip_mm")
+            if (
+                observed_rain
+                and isinstance(forecast_mm, (int, float))
+                and math.isfinite(forecast_mm)
+            ):
+                probability = row.get("precip_probability_pct")
+                if not isinstance(probability, (int, float)) or not math.isfinite(probability):
+                    probability = None
+                pairs["rain"].append((float(forecast_mm), float(observed_rain["precip_mm"]), probability))
+
+        weather_time = str(row.get("weather_time") or row.get("time") or "")
+        try:
+            weather_hour = int(weather_time[:2])
+        except Exception:
+            continue
+        if not 6 <= weather_hour <= 18:
+            continue
+        observed_weather = actual_weather.get(course_key, {}).get((valid_date, weather_hour))
+        if not observed_weather:
+            continue
+        for key, forecast_key, actual_key in (
+            ("temperature", "temp_c", "temperature_c"),
+            ("wind", "wind_kmh", "wind_speed_kmh"),
+            ("gust", "gust_kmh", "wind_gust_kmh"),
+            ("humidity", "humidity_pct", "relative_humidity_pct"),
+        ):
+            forecast_value = row.get(forecast_key)
+            actual_value = observed_weather.get(actual_key)
+            if (
+                isinstance(forecast_value, (int, float)) and math.isfinite(forecast_value)
+                and isinstance(actual_value, (int, float)) and math.isfinite(actual_value)
+            ):
+                pairs[key].append((float(forecast_value), float(actual_value)))
+    return pairs
+
+
+def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_strength: float, cap: float = 0.35, minimum_vintages: int = MIN_FORECAST_VINTAGES):
+    is_probability = metric_key == "Brier_score"
+    # The caller normalizes both amount and probability metrics to sample_count.
+    count_key = "sample_count"
+    wet_key = "probability_wet_sample_count" if is_probability else "wet_sample_count"
+    vintage_key = "probability_vintage_count" if is_probability else "distinct_vintage_count"
+    wet_minimum = MIN_GLOBAL_WET_PAIRS if minimum_n == MIN_GLOBAL_PAIRS else MIN_COURSE_WET_PAIRS
     eligible = {
         name: row for name, row in scores.items()
-        if row.get(count_key, 0) >= minimum_n and isinstance(row.get(metric_key), (int, float))
+        if row.get(count_key, 0) >= minimum_n
+        and row.get(wet_key, 0) >= wet_minimum
+        and row.get(vintage_key, 0) >= minimum_vintages
+        and isinstance(row.get(metric_key), (int, float))
     }
     if len(eligible) < 3:
         return None
@@ -552,11 +774,82 @@ def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_stre
     total = sum(out.values())
     return {k: round(v / total, 5) for k, v in out.items()}
 
+def normalized_continuous_weights(
+    scores: dict, minimum_n: int, minimum_vintages: int, prior_strength: int, cap: float = 0.35
+):
+    """Create bounded inverse-MAE weights for core models only."""
+    eligible = {
+        name: row for name, row in scores.items()
+        if name in CORE_MODEL_SOURCES
+        and row.get("sample_count", 0) >= minimum_n
+        and row.get("distinct_vintage_count", 0) >= minimum_vintages
+        and isinstance(row.get("MAE"), (int, float))
+    }
+    if len(eligible) < 3:
+        return None
+    raw = {name: 1.0 / max(float(row["MAE"]), 0.05) for name, row in eligible.items()}
+    total = sum(raw.values())
+    empirical = {name: value / total for name, value in raw.items()}
+    prior = 1.0 / len(eligible)
+    out = {}
+    for name, row in eligible.items():
+        shrink = row["sample_count"] / (row["sample_count"] + prior_strength)
+        out[name] = prior * (1 - shrink) + empirical[name] * shrink
+    for _ in range(5):
+        changed = False
+        for name in out:
+            if out[name] > cap:
+                excess = out[name] - cap
+                out[name] = cap
+                others = [key for key in out if key != name]
+                denominator = sum(out[key] for key in others)
+                if denominator:
+                    for key in others:
+                        out[key] += excess * out[key] / denominator
+                changed = True
+        if not changed:
+            break
+    total = sum(out.values())
+    return {key: round(value / total, 5) for key, value in out.items()}
+
+
 def verify_and_weight(now: datetime) -> dict:
     forecasts_dir = ROOT / "forecasts"
     actual = build_actual_hourly(now)
+    actual_weather = build_actual_weather_hourly(now)
     global_scores = {str(lead): defaultdict(Score) for lead in LEADS}
     course_scores = defaultdict(lambda: {str(lead): defaultdict(Score) for lead in LEADS})
+    variable_specs = {
+        "temperature_c": ("temp_c", "temperature_c", 1.0, "°C"),
+        "wind_speed_kmh": ("wind_kmh", "wind_speed_kmh", 1.0, "km/h"),
+        "wind_gust_kmh": ("gust_kmh", "wind_gust_kmh", 1.0, "km/h"),
+        "relative_humidity_pct": ("humidity_pct", "relative_humidity_pct", 1.0, "%"),
+    }
+    global_variable_scores = {
+        variable: {str(lead): defaultdict(ContinuousScore) for lead in LEADS}
+        for variable in variable_specs
+    }
+    course_variable_scores = defaultdict(lambda: {
+        variable: {str(lead): defaultdict(ContinuousScore) for lead in LEADS}
+        for variable in variable_specs
+    })
+    daily_variable_specs = {
+        "temperature_high_c": ("temperature", "max", "°C"),
+        "temperature_low_c": ("temperature", "min", "°C"),
+        "wind_speed_kmh": ("wind", "median", "km/h"),
+        "wind_gust_kmh": ("gust", "max", "km/h"),
+        "relative_humidity_pct": ("humidity", "median", "%"),
+    }
+    global_daily_variable_scores = {
+        variable: {str(lead): defaultdict(ContinuousScore) for lead in LEADS}
+        for variable in daily_variable_specs
+    }
+    course_daily_variable_scores = defaultdict(lambda: {
+        variable: {str(lead): defaultdict(ContinuousScore) for lead in LEADS}
+        for variable in daily_variable_specs
+    })
+    global_daily_rain_scores = {str(lead): defaultdict(Score) for lead in LEADS}
+    course_daily_rain_scores = defaultdict(lambda: {str(lead): defaultdict(Score) for lead in LEADS})
     forecast_files = sorted(forecasts_dir.glob("*.json.gz")) if forecasts_dir.exists() else []
     cutoff = now.astimezone(TZ).date() - timedelta(days=60)
     today = now.astimezone(TZ).date()
@@ -577,6 +870,7 @@ def verify_and_weight(now: datetime) -> dict:
                 lead = str(day.get("lead_days"))
                 if lead not in global_scores:
                     continue
+                vintage_id = archive.get("issue_date", path.stem.split(".")[0])
                 for source, hours in day.get("sources", {}).items():
                     for row in hours:
                         try:
@@ -595,55 +889,148 @@ def verify_and_weight(now: datetime) -> dict:
                                 hour = forecast_hour - 1
                         except Exception:
                             continue
+                        vintage_id = archive.get("issue_date", path.stem.split(".")[0])
                         observed = actual.get(course_key, {}).get((valid_date, hour))
-                        if not observed:
+                        if observed:
+                            forecast_mm = row.get("precip_mm")
+                            actual_mm = observed["precip_mm"]
+                            if isinstance(forecast_mm, (int, float)) and math.isfinite(forecast_mm):
+                                prob = row.get("precip_probability_pct")
+                                if not isinstance(prob, (int, float)) or not math.isfinite(prob):
+                                    prob = None
+                                global_scores[lead][source].add(float(forecast_mm), float(actual_mm), prob, vintage_id)
+                                course_scores[course_name][lead][source].add(float(forecast_mm), float(actual_mm), prob, vintage_id)
+
+                        # Temperature, wind, gust and humidity are point forecasts, so compare
+                        # them at their valid timestamp rather than the preceding rain interval.
+                        weather_time = str(row.get("weather_time") or row.get("time") or "")
+                        try:
+                            weather_hour = int(weather_time[:2])
+                            if not 0 <= weather_hour <= 23:
+                                continue
+                        except Exception:
                             continue
-                        forecast_mm = row.get("precip_mm")
-                        actual_mm = observed["precip_mm"]
-                        if not isinstance(forecast_mm, (int, float)) or not math.isfinite(forecast_mm):
+                        observed_weather = actual_weather.get(course_key, {}).get((valid_date, weather_hour))
+                        if not observed_weather:
                             continue
-                        prob = row.get("precip_probability_pct")
-                        if not isinstance(prob, (int, float)) or not math.isfinite(prob):
-                            prob = None
-                        global_scores[lead][source].add(float(forecast_mm), float(actual_mm), prob)
-                        course_scores[course_name][lead][source].add(float(forecast_mm), float(actual_mm), prob)
+                        for variable, (forecast_key, actual_key, scale, _unit) in variable_specs.items():
+                            forecast_value = row.get(forecast_key)
+                            actual_value = observed_weather.get(actual_key)
+                            if (
+                                isinstance(forecast_value, (int, float)) and math.isfinite(forecast_value)
+                                and isinstance(actual_value, (int, float)) and math.isfinite(actual_value)
+                            ):
+                                actual_scaled = float(actual_value) * scale
+                                global_variable_scores[variable][lead][source].add(float(forecast_value), actual_scaled, vintage_id)
+                                course_variable_scores[course_name][variable][lead][source].add(float(forecast_value), actual_scaled, vintage_id)
+
+                # Independently verify the daily 06:00-18:00 aggregates used by the 16-day panel.
+                for source, hours in day.get("sources", {}).items():
+                    daily_pairs = build_daily_verification_pairs(
+                        source, hours, valid_date, course_key, actual, actual_weather
+                    )
+                    rain_pairs = daily_pairs["rain"]
+                    if len(rain_pairs) >= 9:
+                        rain_forecast = sum(pair[0] for pair in rain_pairs)
+                        rain_actual = sum(pair[1] for pair in rain_pairs)
+                        probabilities = [pair[2] for pair in rain_pairs if pair[2] is not None]
+                        daily_probability = max(probabilities) if probabilities else None
+                        global_daily_rain_scores[lead][source].add(
+                            rain_forecast, rain_actual, daily_probability, vintage_id
+                        )
+                        course_daily_rain_scores[course_name][lead][source].add(
+                            rain_forecast, rain_actual, daily_probability, vintage_id
+                        )
+                    for variable, (pair_key, statistic, _unit) in daily_variable_specs.items():
+                        values = daily_pairs[pair_key]
+                        minimum_hours = 6 if pair_key == "gust" else 9
+                        if len(values) < minimum_hours:
+                            continue
+                        forecast_values = [pair[0] for pair in values]
+                        actual_values = [pair[1] for pair in values]
+                        if statistic == "max":
+                            forecast_daily = max(forecast_values)
+                            actual_daily = max(actual_values)
+                        elif statistic == "min":
+                            forecast_daily = min(forecast_values)
+                            actual_daily = min(actual_values)
+                        else:
+                            forecast_daily = statistics_median(forecast_values)
+                            actual_daily = statistics_median(actual_values)
+                        global_daily_variable_scores[variable][lead][source].add(
+                            forecast_daily, actual_daily, vintage_id
+                        )
+                        course_daily_variable_scores[course_name][variable][lead][source].add(
+                            forecast_daily, actual_daily, vintage_id
+                        )
         evaluated_vintages += 1
 
     metrics = {
-        "schema_version": 1,
+        "schema_version": 3,
         "generated_at": now.astimezone(TZ).isoformat(),
-        "verification_source": "CWA rainfall observations",
+        "verification_source": "CWA rainfall and hourly weather observations",
         "verification_window_days": 60,
         "station_distance_limit_km": MIN_STATION_DISTANCE_KM,
         "rain_event_threshold_mm": 0.1,
         "forecast_hours": "06:00-18:00",
         "evaluated_vintages": evaluated_vintages,
+        "minimum_evaluated_vintages_for_weights": MIN_FORECAST_VINTAGES,
+        "minimum_global_wet_samples_for_weights": MIN_GLOBAL_WET_PAIRS,
+        "minimum_course_wet_samples_for_weights": MIN_COURSE_WET_PAIRS,
+        "minimum_course_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "minimum_global_variable_samples_for_weights": MIN_GLOBAL_PAIRS,
+        "minimum_global_variable_vintages_for_weights": MIN_FORECAST_VINTAGES,
+        "minimum_course_variable_samples_for_weights": MIN_COURSE_PAIRS,
+        "minimum_course_variable_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "minimum_daily_course_samples_for_weights": MIN_DAILY_COURSE_PAIRS,
         "lead_days": {},
         "by_course": {},
+        "variables": {},
+        "daily_variables": {},
     }
     weights = {
-        "schema_version": 1,
+        "schema_version": 3,
         "generated_at": now.astimezone(TZ).isoformat(),
         "status": "warming_up",
-        "method": "inverse-error with equal-prior shrinkage and 0.35 maximum source weight",
-        "verification_source": "CWA rainfall observations",
+        "method": "Hourly and daily rainfall: balanced dry/wet inverse-error with wet-event and vintage gates. Hourly and daily core temperature/wind/gust/humidity: inverse-MAE weights with vintage gates. Equal-prior shrinkage and 0.35 maximum source weight.",
+        "minimum_evaluated_vintages": MIN_FORECAST_VINTAGES,
+        "minimum_global_wet_samples": MIN_GLOBAL_WET_PAIRS,
+        "minimum_course_wet_samples": MIN_COURSE_WET_PAIRS,
+        "minimum_course_vintages": MIN_COURSE_VINTAGES,
+        "minimum_global_variable_samples": MIN_GLOBAL_PAIRS,
+        "minimum_global_variable_vintages": MIN_FORECAST_VINTAGES,
+        "minimum_course_variable_samples": MIN_COURSE_PAIRS,
+        "minimum_course_variable_vintages": MIN_COURSE_VINTAGES,
+        "minimum_daily_course_samples": MIN_DAILY_COURSE_PAIRS,
+        "verification_source": "CWA rainfall and hourly weather observations",
         "lead_days": {},
         "by_course": {},
+        "variables": {},
+        "daily_variables": {},
     }
     active_leads = 0
+    active_variable_leads = 0
+    active_daily_variable_leads = 0
+    active_daily_rain_leads = 0
     for lead in LEADS:
         key = str(lead)
         rows = {source: score.result() for source, score in global_scores[key].items()}
         metrics["lead_days"][key] = rows
-        amount_weights = normalized_weights(rows, "Weight_error_mm", MIN_GLOBAL_PAIRS, 2000)
-        prob_scores = {
-            source: {
-                "sample_count": row.get("probability_sample_count", 0),
-                "Brier_score": row.get("Brier_score"),
+        if evaluated_vintages >= MIN_FORECAST_VINTAGES:
+            amount_weights = normalized_weights(rows, "Weight_error_mm", MIN_GLOBAL_PAIRS, 2000)
+            prob_scores = {
+                source: {
+                    "sample_count": row.get("probability_sample_count", 0),
+                    "probability_wet_sample_count": row.get("probability_wet_sample_count", 0),
+                    "probability_vintage_count": row.get("probability_vintage_count", 0),
+                    "Brier_score": row.get("Brier_score"),
+                }
+                for source, row in rows.items()
             }
-            for source, row in rows.items()
-        }
-        probability_weights = normalized_weights(prob_scores, "Brier_score", MIN_GLOBAL_PAIRS, 2000, 0.35)
+            probability_weights = normalized_weights(prob_scores, "Brier_score", MIN_GLOBAL_PAIRS, 2000, 0.35)
+        else:
+            amount_weights = None
+            probability_weights = None
         if amount_weights or probability_weights:
             active_leads += 1
         weights["lead_days"][key] = {
@@ -655,6 +1042,198 @@ def verify_and_weight(now: datetime) -> dict:
             "probability_weighting_active": bool(probability_weights),
         }
 
+    for variable, (_forecast_key, _actual_key, _scale, unit) in variable_specs.items():
+        variable_leads = {}
+        for lead in LEADS:
+            key = str(lead)
+            variable_leads[key] = {
+                source: score.result()
+                for source, score in global_variable_scores[variable][key].items()
+            }
+        variable_by_course = {}
+        for course_name, course_vars in course_variable_scores.items():
+            variable_by_course[course_name] = {
+                str(lead): {
+                    source: score.result()
+                    for source, score in course_vars[variable][str(lead)].items()
+                }
+                for lead in LEADS
+            }
+        metrics["variables"][variable] = {
+            "unit": unit,
+            "lead_days": variable_leads,
+            "by_course": variable_by_course,
+        }
+        global_variable_weights = {}
+        course_variable_weights = {}
+        for lead in LEADS:
+            key = str(lead)
+            if evaluated_vintages >= MIN_FORECAST_VINTAGES:
+                global_weights = normalized_continuous_weights(
+                    variable_leads[key], MIN_GLOBAL_PAIRS, MIN_FORECAST_VINTAGES, 2000
+                )
+            else:
+                global_weights = None
+            global_variable_weights[key] = global_weights
+            if global_weights:
+                active_variable_leads += 1
+            for course_name, course_rows in variable_by_course.items():
+                if evaluated_vintages < MIN_FORECAST_VINTAGES:
+                    continue
+                local_weights = normalized_continuous_weights(
+                    course_rows[key], MIN_COURSE_PAIRS, MIN_COURSE_VINTAGES, 500
+                )
+                if local_weights:
+                    course_variable_weights.setdefault(course_name, {})[key] = local_weights
+        weights["variables"][variable] = {
+            "lead_days": global_variable_weights,
+            "by_course": course_variable_weights,
+        }
+
+    daily_continuous_metrics = {}
+    daily_continuous_weights = {}
+    for variable, (_pair_key, _statistic, unit) in daily_variable_specs.items():
+        lead_rows = {}
+        course_rows = {}
+        for lead in LEADS:
+            key = str(lead)
+            lead_rows[key] = {
+                source: score.result()
+                for source, score in global_daily_variable_scores[variable][key].items()
+            }
+        for course_name, course_vars in course_daily_variable_scores.items():
+            course_rows[course_name] = {
+                str(lead): {
+                    source: score.result()
+                    for source, score in course_vars[variable][str(lead)].items()
+                }
+                for lead in LEADS
+            }
+        daily_continuous_metrics[variable] = {
+            "unit": unit,
+            "lead_days": lead_rows,
+            "by_course": course_rows,
+        }
+        global_weights_by_lead = {}
+        course_weights_by_course = {}
+        for lead in LEADS:
+            key = str(lead)
+            if evaluated_vintages >= MIN_FORECAST_VINTAGES:
+                global_weights = normalized_continuous_weights(
+                    lead_rows[key], MIN_GLOBAL_PAIRS, MIN_FORECAST_VINTAGES, 500
+                )
+            else:
+                global_weights = None
+            global_weights_by_lead[key] = global_weights
+            if global_weights:
+                active_daily_variable_leads += 1
+            for course_name, local_leads in course_rows.items():
+                if evaluated_vintages < MIN_FORECAST_VINTAGES:
+                    continue
+                local_weights = normalized_continuous_weights(
+                    local_leads[key], MIN_DAILY_COURSE_PAIRS, MIN_COURSE_VINTAGES, 250
+                )
+                if local_weights:
+                    course_weights_by_course.setdefault(course_name, {})[key] = local_weights
+        daily_continuous_weights[variable] = {
+            "lead_days": global_weights_by_lead,
+            "by_course": course_weights_by_course,
+        }
+
+    daily_rain_metrics = {}
+    daily_rain_by_course = {}
+    daily_rain_weights = {}
+    for lead in LEADS:
+        key = str(lead)
+        daily_rain_metrics[key] = {
+            source: score.result()
+            for source, score in global_daily_rain_scores[key].items()
+        }
+    for course_name, course_leads in course_daily_rain_scores.items():
+        daily_rain_by_course[course_name] = {
+            str(lead): {
+                source: score.result()
+                for source, score in course_leads[str(lead)].items()
+            }
+            for lead in LEADS
+        }
+    for lead in LEADS:
+        key = str(lead)
+        core_rows = {
+            source: row for source, row in daily_rain_metrics[key].items()
+            if source in CORE_MODEL_SOURCES
+        }
+        if evaluated_vintages >= MIN_FORECAST_VINTAGES:
+            amount_weights = normalized_weights(core_rows, "Weight_error_mm", MIN_GLOBAL_PAIRS, 2000)
+            probability_scores = {
+                source: {
+                    "sample_count": row.get("probability_sample_count", 0),
+                    "probability_wet_sample_count": row.get("probability_wet_sample_count", 0),
+                    "probability_vintage_count": row.get("probability_vintage_count", 0),
+                    "Brier_score": row.get("Brier_score"),
+                }
+                for source, row in core_rows.items()
+            }
+            probability_weights = normalized_weights(
+                probability_scores, "Brier_score", MIN_GLOBAL_PAIRS, 2000, 0.35
+            )
+        else:
+            amount_weights = None
+            probability_weights = None
+        if amount_weights or probability_weights:
+            active_daily_rain_leads += 1
+        daily_rain_weights[key] = {
+            "amount_weights": amount_weights,
+            "probability_weights": probability_weights,
+        }
+    daily_rain_course_weights = {}
+    for course_name, course_leads in daily_rain_by_course.items():
+        local_out = {}
+        for lead in LEADS:
+            key = str(lead)
+            core_rows = {
+                source: row for source, row in course_leads[key].items()
+                if source in CORE_MODEL_SOURCES
+            }
+            if evaluated_vintages < MIN_FORECAST_VINTAGES:
+                continue
+            amount_weights = normalized_weights(
+                core_rows, "Weight_error_mm", MIN_DAILY_COURSE_PAIRS, 500,
+                minimum_vintages=MIN_COURSE_VINTAGES,
+            )
+            probability_scores = {
+                source: {
+                    "sample_count": row.get("probability_sample_count", 0),
+                    "probability_wet_sample_count": row.get("probability_wet_sample_count", 0),
+                    "probability_vintage_count": row.get("probability_vintage_count", 0),
+                    "Brier_score": row.get("Brier_score"),
+                }
+                for source, row in core_rows.items()
+            }
+            probability_weights = normalized_weights(
+                probability_scores, "Brier_score", MIN_DAILY_COURSE_PAIRS, 500, 0.35,
+                minimum_vintages=MIN_COURSE_VINTAGES,
+            )
+            if amount_weights or probability_weights:
+                local_out[key] = {
+                    "amount_weights": amount_weights,
+                    "probability_weights": probability_weights,
+                }
+        if local_out:
+            daily_rain_course_weights[course_name] = local_out
+
+    metrics["daily_variables"] = daily_continuous_metrics
+    metrics["daily_variables"]["rain_mm"] = {
+        "unit": "mm",
+        "lead_days": daily_rain_metrics,
+        "by_course": daily_rain_by_course,
+    }
+    weights["daily_variables"] = daily_continuous_weights
+    weights["daily_variables"]["rain_mm"] = {
+        "lead_days": daily_rain_weights,
+        "by_course": daily_rain_course_weights,
+    }
+
     for course_name, leads in course_scores.items():
         course_out = {}
         course_weight_out = {}
@@ -662,20 +1241,35 @@ def verify_and_weight(now: datetime) -> dict:
             key = str(lead)
             rows = {source: score.result() for source, score in leads[key].items()}
             course_out[key] = rows
-            local_weights = normalized_weights(rows, "Weight_error_mm", MIN_COURSE_PAIRS, 500)
+            local_weights = normalized_weights(rows, "Weight_error_mm", MIN_COURSE_PAIRS, 500, minimum_vintages=MIN_COURSE_VINTAGES) if evaluated_vintages >= MIN_FORECAST_VINTAGES else None
             if local_weights:
                 course_weight_out[key] = local_weights
         metrics["by_course"][course_name] = course_out
         if course_weight_out:
             weights["by_course"][course_name] = course_weight_out
 
-    if active_leads:
+    if active_leads or active_variable_leads or active_daily_variable_leads or active_daily_rain_leads:
         weights["status"] = "active"
     report = {
         "generated_at": metrics["generated_at"],
         "status": weights["status"],
         "evaluated_vintages": evaluated_vintages,
         "actual_course_hours": sum(len(v) for v in actual.values()),
+        "actual_weather_course_hours": sum(len(v) for v in actual_weather.values()),
+        "verified_variables": list(variable_specs),
+        "verified_daily_variables": list(daily_variable_specs) + ["rain_mm"],
+        "minimum_daily_course_samples_for_weights": MIN_DAILY_COURSE_PAIRS,
+        "minimum_evaluated_vintages_for_weights": MIN_FORECAST_VINTAGES,
+        "minimum_global_wet_samples_for_weights": MIN_GLOBAL_WET_PAIRS,
+        "minimum_course_wet_samples_for_weights": MIN_COURSE_WET_PAIRS,
+        "minimum_course_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "minimum_global_variable_samples_for_weights": MIN_GLOBAL_PAIRS,
+        "minimum_global_variable_vintages_for_weights": MIN_FORECAST_VINTAGES,
+        "minimum_course_variable_samples_for_weights": MIN_COURSE_PAIRS,
+        "minimum_course_variable_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "active_variable_weight_leads": active_variable_leads,
+        "active_daily_variable_weight_leads": active_daily_variable_leads,
+        "active_daily_rain_weight_leads": active_daily_rain_leads,
         "lead_days": {
             key: {
                 "sources": len(metrics["lead_days"][key]),
