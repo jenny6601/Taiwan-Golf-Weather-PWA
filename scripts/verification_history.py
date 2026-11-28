@@ -223,6 +223,7 @@ def archive_forecast_vintage(now: datetime) -> dict:
             if (
                 len(previous_vintage.get("courses", {})) == 57
                 and previous_vintage.get("hour_alignment_version") == 3
+                and previous_vintage.get("lead_days") == list(LEADS)
             ):
                 return {"status": "already_archived", "issue_date": issue_date.isoformat()}
         except Exception:
