@@ -41,6 +41,10 @@ SOURCES = (
     "ECMWF IFS", "NOAA GFS", "DWD ICON", "JMA GSM",
     "Canada GEM", "ECMWF AIFS", "Visual Crossing", "Foreca",
 )
+CORE_MODEL_SOURCES = (
+    "ECMWF IFS", "NOAA GFS", "DWD ICON", "JMA GSM",
+    "Canada GEM", "ECMWF AIFS",
+)
 LIVE_URL = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather/main/data/live_observations.json"
 COURSE_INDEX_URL = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/course-cache/index.json"
 COURSE_BASE = "https://raw.githubusercontent.com/jenny6601/Taiwan-Golf-Weather-PWA/course-cache/"
@@ -711,6 +715,45 @@ def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_stre
     total = sum(out.values())
     return {k: round(v / total, 5) for k, v in out.items()}
 
+def normalized_continuous_weights(
+    scores: dict, minimum_n: int, minimum_vintages: int, prior_strength: int, cap: float = 0.35
+):
+    """Create bounded inverse-MAE weights for core models only."""
+    eligible = {
+        name: row for name, row in scores.items()
+        if name in CORE_MODEL_SOURCES
+        and row.get("sample_count", 0) >= minimum_n
+        and row.get("distinct_vintage_count", 0) >= minimum_vintages
+        and isinstance(row.get("MAE"), (int, float))
+    }
+    if len(eligible) < 3:
+        return None
+    raw = {name: 1.0 / max(float(row["MAE"]), 0.05) for name, row in eligible.items()}
+    total = sum(raw.values())
+    empirical = {name: value / total for name, value in raw.items()}
+    prior = 1.0 / len(eligible)
+    out = {}
+    for name, row in eligible.items():
+        shrink = row["sample_count"] / (row["sample_count"] + prior_strength)
+        out[name] = prior * (1 - shrink) + empirical[name] * shrink
+    for _ in range(5):
+        changed = False
+        for name in out:
+            if out[name] > cap:
+                excess = out[name] - cap
+                out[name] = cap
+                others = [key for key in out if key != name]
+                denominator = sum(out[key] for key in others)
+                if denominator:
+                    for key in others:
+                        out[key] += excess * out[key] / denominator
+                changed = True
+        if not changed:
+            break
+    total = sum(out.values())
+    return {key: round(value / total, 5) for key, value in out.items()}
+
+
 def verify_and_weight(now: datetime) -> dict:
     forecasts_dir = ROOT / "forecasts"
     actual = build_actual_hourly(now)
@@ -818,6 +861,11 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_global_wet_samples_for_weights": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples_for_weights": MIN_COURSE_WET_PAIRS,
         "minimum_course_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "minimum_global_variable_samples_for_weights": MIN_GLOBAL_PAIRS,
+        "minimum_global_variable_vintages_for_weights": MIN_FORECAST_VINTAGES,
+        "minimum_course_variable_samples_for_weights": MIN_COURSE_PAIRS,
+        "minimum_course_variable_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "active_variable_weight_leads": active_variable_leads,
         "lead_days": {},
         "by_course": {},
         "variables": {},
@@ -831,11 +879,17 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_global_wet_samples": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples": MIN_COURSE_WET_PAIRS,
         "minimum_course_vintages": MIN_COURSE_VINTAGES,
+        "minimum_global_variable_samples": MIN_GLOBAL_PAIRS,
+        "minimum_global_variable_vintages": MIN_FORECAST_VINTAGES,
+        "minimum_course_variable_samples": MIN_COURSE_PAIRS,
+        "minimum_course_variable_vintages": MIN_COURSE_VINTAGES,
         "verification_source": "CWA rainfall and hourly weather observations",
         "lead_days": {},
         "by_course": {},
+        "variables": {},
     }
     active_leads = 0
+    active_variable_leads = 0
     for lead in LEADS:
         key = str(lead)
         rows = {source: score.result() for source, score in global_scores[key].items()}
@@ -888,6 +942,31 @@ def verify_and_weight(now: datetime) -> dict:
             "lead_days": variable_leads,
             "by_course": variable_by_course,
         }
+        global_variable_weights = {}
+        course_variable_weights = {}
+        for lead in LEADS:
+            key = str(lead)
+            if evaluated_vintages >= MIN_FORECAST_VINTAGES:
+                global_weights = normalized_continuous_weights(
+                    variable_leads[key], MIN_GLOBAL_PAIRS, MIN_FORECAST_VINTAGES, 2000
+                )
+            else:
+                global_weights = None
+            global_variable_weights[key] = global_weights
+            if global_weights:
+                active_variable_leads += 1
+            for course_name, course_rows in variable_by_course.items():
+                if evaluated_vintages < MIN_FORECAST_VINTAGES:
+                    continue
+                local_weights = normalized_continuous_weights(
+                    course_rows[key], MIN_COURSE_PAIRS, MIN_COURSE_VINTAGES, 500
+                )
+                if local_weights:
+                    course_variable_weights.setdefault(course_name, {})[key] = local_weights
+        weights["variables"][variable] = {
+            "lead_days": global_variable_weights,
+            "by_course": course_variable_weights,
+        }
 
     for course_name, leads in course_scores.items():
         course_out = {}
@@ -903,7 +982,7 @@ def verify_and_weight(now: datetime) -> dict:
         if course_weight_out:
             weights["by_course"][course_name] = course_weight_out
 
-    if active_leads:
+    if active_leads or active_variable_leads:
         weights["status"] = "active"
     report = {
         "generated_at": metrics["generated_at"],
@@ -916,6 +995,11 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_global_wet_samples_for_weights": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples_for_weights": MIN_COURSE_WET_PAIRS,
         "minimum_course_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "minimum_global_variable_samples_for_weights": MIN_GLOBAL_PAIRS,
+        "minimum_global_variable_vintages_for_weights": MIN_FORECAST_VINTAGES,
+        "minimum_course_variable_samples_for_weights": MIN_COURSE_PAIRS,
+        "minimum_course_variable_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "active_variable_weight_leads": active_variable_leads,
         "lead_days": {
             key: {
                 "sources": len(metrics["lead_days"][key]),
