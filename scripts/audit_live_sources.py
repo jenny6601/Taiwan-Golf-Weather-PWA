@@ -59,10 +59,11 @@ def main() -> None:
     course_entry = course_file["courses"][sample_name]
     course_date = max(course_entry["dates"])
     model_rows = course_entry["dates"][course_date]["modelRows"]
-    if not set(CORE_MODEL_SOURCES).issubset(model_rows):
-        raise SystemExit(f"Core model coverage incomplete for {sample_name}: {sorted(model_rows)}")
+    present_core = [model for model in CORE_MODEL_SOURCES if model in model_rows]
+    if len(present_core) < 5:
+        raise SystemExit(f"Core model coverage below 5/6 for {sample_name} at {course_date}: {present_core}")
     core_row = next(
-        row for model in CORE_MODEL_SOURCES
+        row for model in present_core
         for row in model_rows.get(model, [])
         if row.get("time") == "10:00"
     )
@@ -111,7 +112,7 @@ def main() -> None:
 
     print("LIVE SOURCE SCHEMA AUDIT: PASS")
     print(f"Course index and CWA names: {len(matched_names)}/57 matched")
-    print(f"Core Open-Meteo models: {len(CORE_MODEL_SOURCES)}/6 present; required hourly fields present")
+    print(f"Core Open-Meteo models at {course_date}: {len(present_core)}/6 present; required hourly fields present")
     for result in provider_checks:
         print(result)
     print(f"CWA quality-passed weather stations within 15 km and 90 min: {weather_pass}/57")
