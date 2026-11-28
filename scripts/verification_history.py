@@ -237,6 +237,7 @@ def archive_forecast_vintage(now: datetime) -> dict:
             previous_vintage = read_gzip_json(out_path)
             if (
                 len(previous_vintage.get("courses", {})) == 57
+                and previous_vintage.get("schema_version") == 2
                 and previous_vintage.get("hour_alignment_version") == 3
                 and previous_vintage.get("lead_days") == list(LEADS)
             ):
@@ -298,7 +299,7 @@ def archive_forecast_vintage(now: datetime) -> dict:
     foreca_name_lookup = {name_key(k): (k, v) for k, v in foreca_names.items()}
     valid_dates = { (issue_date + timedelta(days=lead)).isoformat(): lead for lead in LEADS }
     archive = {
-        "schema_version": 1,
+        "schema_version": 2,
         "hour_alignment_version": 3,
         "source_hour_alignment": {
             "Open-Meteo": "preceding-hour",
@@ -805,7 +806,7 @@ def verify_and_weight(now: datetime) -> dict:
         evaluated_vintages += 1
 
     metrics = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": now.astimezone(TZ).isoformat(),
         "verification_source": "CWA rainfall and hourly weather observations",
         "verification_window_days": 60,
