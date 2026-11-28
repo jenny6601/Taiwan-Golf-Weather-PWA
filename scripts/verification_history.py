@@ -865,7 +865,6 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_global_variable_vintages_for_weights": MIN_FORECAST_VINTAGES,
         "minimum_course_variable_samples_for_weights": MIN_COURSE_PAIRS,
         "minimum_course_variable_vintages_for_weights": MIN_COURSE_VINTAGES,
-        "active_variable_weight_leads": active_variable_leads,
         "lead_days": {},
         "by_course": {},
         "variables": {},
