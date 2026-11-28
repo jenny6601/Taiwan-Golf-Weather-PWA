@@ -965,7 +965,7 @@ def verify_and_weight(now: datetime) -> dict:
         evaluated_vintages += 1
 
     metrics = {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": now.astimezone(TZ).isoformat(),
         "verification_source": "CWA rainfall and hourly weather observations",
         "verification_window_days": 60,
@@ -981,12 +981,14 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_global_variable_vintages_for_weights": MIN_FORECAST_VINTAGES,
         "minimum_course_variable_samples_for_weights": MIN_COURSE_PAIRS,
         "minimum_course_variable_vintages_for_weights": MIN_COURSE_VINTAGES,
+        "minimum_daily_course_samples_for_weights": MIN_DAILY_COURSE_PAIRS,
         "lead_days": {},
         "by_course": {},
         "variables": {},
+        "daily_variables": {},
     }
     weights = {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": now.astimezone(TZ).isoformat(),
         "status": "warming_up",
         "method": "Rainfall: balanced dry/wet inverse-error with wet-event and vintage gates. Core temperature/wind/gust/humidity: inverse-MAE weights with vintage gates. Equal-prior shrinkage and 0.35 maximum source weight.",
@@ -998,13 +1000,17 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_global_variable_vintages": MIN_FORECAST_VINTAGES,
         "minimum_course_variable_samples": MIN_COURSE_PAIRS,
         "minimum_course_variable_vintages": MIN_COURSE_VINTAGES,
+        "minimum_daily_course_samples": MIN_DAILY_COURSE_PAIRS,
         "verification_source": "CWA rainfall and hourly weather observations",
         "lead_days": {},
         "by_course": {},
         "variables": {},
+        "daily_variables": {},
     }
     active_leads = 0
     active_variable_leads = 0
+    active_daily_variable_leads = 0
+    active_daily_rain_leads = 0
     for lead in LEADS:
         key = str(lead)
         rows = {source: score.result() for source, score in global_scores[key].items()}
@@ -1083,6 +1089,150 @@ def verify_and_weight(now: datetime) -> dict:
             "by_course": course_variable_weights,
         }
 
+    daily_continuous_metrics = {}
+    daily_continuous_weights = {}
+    for variable, (_pair_key, _statistic, unit) in daily_variable_specs.items():
+        lead_rows = {}
+        course_rows = {}
+        for lead in LEADS:
+            key = str(lead)
+            lead_rows[key] = {
+                source: score.result()
+                for source, score in global_daily_variable_scores[variable][key].items()
+            }
+        for course_name, course_vars in course_daily_variable_scores.items():
+            course_rows[course_name] = {
+                str(lead): {
+                    source: score.result()
+                    for source, score in course_vars[variable][str(lead)].items()
+                }
+                for lead in LEADS
+            }
+        daily_continuous_metrics[variable] = {
+            "unit": unit,
+            "lead_days": lead_rows,
+            "by_course": course_rows,
+        }
+        global_weights_by_lead = {}
+        course_weights_by_course = {}
+        for lead in LEADS:
+            key = str(lead)
+            if evaluated_vintages >= MIN_FORECAST_VINTAGES:
+                global_weights = normalized_continuous_weights(
+                    lead_rows[key], MIN_GLOBAL_PAIRS, MIN_FORECAST_VINTAGES, 500
+                )
+            else:
+                global_weights = None
+            global_weights_by_lead[key] = global_weights
+            if global_weights:
+                active_daily_variable_leads += 1
+            for course_name, local_leads in course_rows.items():
+                if evaluated_vintages < MIN_FORECAST_VINTAGES:
+                    continue
+                local_weights = normalized_continuous_weights(
+                    local_leads[key], MIN_DAILY_COURSE_PAIRS, MIN_COURSE_VINTAGES, 250
+                )
+                if local_weights:
+                    course_weights_by_course.setdefault(course_name, {})[key] = local_weights
+        daily_continuous_weights[variable] = {
+            "lead_days": global_weights_by_lead,
+            "by_course": course_weights_by_course,
+        }
+
+    daily_rain_metrics = {}
+    daily_rain_by_course = {}
+    daily_rain_weights = {}
+    for lead in LEADS:
+        key = str(lead)
+        daily_rain_metrics[key] = {
+            source: score.result()
+            for source, score in global_daily_rain_scores[key].items()
+        }
+    for course_name, course_leads in course_daily_rain_scores.items():
+        daily_rain_by_course[course_name] = {
+            str(lead): {
+                source: score.result()
+                for source, score in course_leads[str(lead)].items()
+            }
+            for lead in LEADS
+        }
+    for lead in LEADS:
+        key = str(lead)
+        core_rows = {
+            source: row for source, row in daily_rain_metrics[key].items()
+            if source in CORE_MODEL_SOURCES
+        }
+        if evaluated_vintages >= MIN_FORECAST_VINTAGES:
+            amount_weights = normalized_weights(core_rows, "Weight_error_mm", MIN_GLOBAL_PAIRS, 2000)
+            probability_scores = {
+                source: {
+                    "sample_count": row.get("probability_sample_count", 0),
+                    "probability_wet_sample_count": row.get("probability_wet_sample_count", 0),
+                    "probability_vintage_count": row.get("probability_vintage_count", 0),
+                    "Brier_score": row.get("Brier_score"),
+                }
+                for source, row in core_rows.items()
+            }
+            probability_weights = normalized_weights(
+                probability_scores, "Brier_score", MIN_GLOBAL_PAIRS, 2000, 0.35
+            )
+        else:
+            amount_weights = None
+            probability_weights = None
+        if amount_weights or probability_weights:
+            active_daily_rain_leads += 1
+        daily_rain_weights[key] = {
+            "amount_weights": amount_weights,
+            "probability_weights": probability_weights,
+        }
+    daily_rain_course_weights = {}
+    for course_name, course_leads in daily_rain_by_course.items():
+        local_out = {}
+        for lead in LEADS:
+            key = str(lead)
+            core_rows = {
+                source: row for source, row in course_leads[key].items()
+                if source in CORE_MODEL_SOURCES
+            }
+            if evaluated_vintages < MIN_FORECAST_VINTAGES:
+                continue
+            amount_weights = normalized_weights(
+                core_rows, "Weight_error_mm", MIN_DAILY_COURSE_PAIRS, 500,
+                minimum_vintages=MIN_COURSE_VINTAGES,
+            )
+            probability_scores = {
+                source: {
+                    "sample_count": row.get("probability_sample_count", 0),
+                    "probability_wet_sample_count": row.get("probability_wet_sample_count", 0),
+                    "probability_vintage_count": row.get("probability_vintage_count", 0),
+                    "Brier_score": row.get("Brier_score"),
+                }
+                for source, row in core_rows.items()
+            }
+            probability_weights = normalized_weights(
+                probability_scores, "Brier_score", MIN_DAILY_COURSE_PAIRS, 500, 0.35,
+                minimum_vintages=MIN_COURSE_VINTAGES,
+            )
+            if amount_weights or probability_weights:
+                local_out[key] = {
+                    "amount_weights": amount_weights,
+                    "probability_weights": probability_weights,
+                }
+        if local_out:
+            daily_rain_course_weights[course_name] = local_out
+
+    metrics["daily_variables"] = daily_continuous_metrics
+    metrics["daily_variables"]["rain_mm"] = {
+        "unit": "mm",
+        "lead_days": daily_rain_metrics,
+        "by_course": daily_rain_by_course,
+    }
+    weights["daily_variables"] = daily_continuous_weights
+    weights["daily_variables"]["rain_mm"] = {
+        "lead_days": daily_rain_weights,
+        "by_course": daily_rain_course_weights,
+    }
+
     for course_name, leads in course_scores.items():
         course_out = {}
         course_weight_out = {}
@@ -1097,7 +1247,7 @@ def verify_and_weight(now: datetime) -> dict:
         if course_weight_out:
             weights["by_course"][course_name] = course_weight_out
 
-    if active_leads or active_variable_leads:
+    if active_leads or active_variable_leads or active_daily_variable_leads or active_daily_rain_leads:
         weights["status"] = "active"
     report = {
         "generated_at": metrics["generated_at"],
@@ -1115,6 +1265,8 @@ def verify_and_weight(now: datetime) -> dict:
         "minimum_course_variable_samples_for_weights": MIN_COURSE_PAIRS,
         "minimum_course_variable_vintages_for_weights": MIN_COURSE_VINTAGES,
         "active_variable_weight_leads": active_variable_leads,
+        "active_daily_variable_weight_leads": active_daily_variable_leads,
+        "active_daily_rain_weight_leads": active_daily_rain_leads,
         "lead_days": {
             key: {
                 "sources": len(metrics["lead_days"][key]),
