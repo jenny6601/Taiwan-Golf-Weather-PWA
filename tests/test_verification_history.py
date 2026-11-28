@@ -47,6 +47,7 @@ class ForecastVerificationGateTests(unittest.TestCase):
         self.assertIn('const hi=weighted(tempHighWeights,"hi"),lo=weighted(tempLowWeights,"lo")', source)
         self.assertIn('weightDoc?.daily_variables?.[variable]?.lead_days?.[leadKey]', source)
         self.assertIn('const dailyRain=weightDoc?.daily_variables?.rain_mm', source)
+        self.assertIn('const amountWeights=hasThreeSources(localRain?.amount_weights)?localRain.amount_weights:globalRain?.amount_weights', source)
         self.assertIn('fetchDailyForecast(p.lat,p.lon,p.name)', source)
 
     def test_forecast_archive_contains_weather_variables_and_vc_hour_alignment(self):
@@ -173,6 +174,38 @@ class ForecastVerificationGateTests(unittest.TestCase):
         self.assertEqual(len(paired["humidity"]), 9)
         self.assertEqual(paired["rain"][0], (0.2, 1.0, 30))
         self.assertEqual(paired["temperature"][0], (23.0, 22.0))
+
+    def test_daily_verification_requires_nine_paired_hours_for_main_metrics(self):
+        valid_date = "2026-11-21"
+        course_key = vh.name_key("Test Course")
+        actual_rain = {course_key: {}}
+        actual_weather = {course_key: {}}
+        rows = []
+        for offset in range(8):
+            rain_hour = 5 + offset
+            weather_hour = 6 + offset
+            actual_rain[course_key][(valid_date, rain_hour)] = {"precip_mm": 0.5}
+            actual_weather[course_key][(valid_date, weather_hour)] = {
+                "temperature_c": 22.0,
+                "wind_speed_kmh": 7.2,
+                "wind_gust_kmh": 10.8,
+                "relative_humidity_pct": 60.0,
+            }
+            rows.append({
+                "time": f"{rain_hour:02d}:00",
+                "weather_time": f"{weather_hour:02d}:00",
+                "precip_mm": 0.2,
+                "precip_probability_pct": 20,
+                "temp_c": 23.0,
+                "wind_kmh": 8.0,
+                "gust_kmh": 12.0,
+                "humidity_pct": 62.0,
+            })
+        paired = vh.build_daily_verification_pairs(
+            "Visual Crossing", rows, valid_date, course_key, actual_rain, actual_weather
+        )
+        self.assertEqual(len(paired["rain"]), 8)
+        self.assertLess(len(paired["rain"]), 9)
 
     def test_cwa_weather_observations_are_hour_aligned_and_wind_converted(self):
         original_root = vh.ROOT
@@ -315,6 +348,10 @@ class ForecastVerificationGateTests(unittest.TestCase):
                 self.assertEqual(metrics["daily_variables"]["temperature_high_c"]["lead_days"]["1"], {})
                 self.assertIsNone(weights["daily_variables"]["temperature_high_c"]["lead_days"]["1"])
                 self.assertIsNone(weights["daily_variables"]["rain_mm"]["lead_days"]["1"]["amount_weights"])
+                self.assertEqual(report["verified_daily_variables"], [
+                    "temperature_high_c", "temperature_low_c", "wind_speed_kmh",
+                    "wind_gust_kmh", "relative_humidity_pct", "rain_mm"
+                ])
         finally:
             vh.ROOT = original_root
 
