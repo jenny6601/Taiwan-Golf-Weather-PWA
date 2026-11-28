@@ -538,7 +538,8 @@ def build_actual_hourly(now: datetime):
 
 def normalized_weights(scores: dict, metric_key: str, minimum_n: int, prior_strength: float, cap: float = 0.35, minimum_vintages: int = MIN_FORECAST_VINTAGES):
     is_probability = metric_key == "Brier_score"
-    count_key = "probability_sample_count" if is_probability else "sample_count"
+    # The caller normalizes both amount and probability metrics to sample_count.
+    count_key = "sample_count"
     wet_key = "probability_wet_sample_count" if is_probability else "wet_sample_count"
     vintage_key = "probability_vintage_count" if is_probability else "distinct_vintage_count"
     wet_minimum = MIN_GLOBAL_WET_PAIRS if minimum_n == MIN_GLOBAL_PAIRS else MIN_COURSE_WET_PAIRS
