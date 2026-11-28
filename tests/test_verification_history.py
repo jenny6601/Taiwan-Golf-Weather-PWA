@@ -38,6 +38,11 @@ class ForecastVerificationGateTests(unittest.TestCase):
         self.assertIn("wind:get('wind')", source)
         self.assertIn("gust:get('gust')", source)
         self.assertIn("const amountCandidate=courseWeights||globalAmountWeights", source)
+        self.assertIn("const weightedTemp=weightedRainValue(pairs,variableWeights.temperature_c", source)
+        self.assertIn("const weightedWind=weightedRainValue(pairs,variableWeights.wind_speed_kmh", source)
+        self.assertIn("externalRainRows,variableWeights", source)
+        self.assertIn("const weightDoc=await loadVerificationWeights()", source)
+        self.assertIn('weightDoc?.variables?.[variable]?.lead_days?.[leadKey]', source)
 
     def test_forecast_archive_contains_weather_variables_and_vc_hour_alignment(self):
         source = (Path(__file__).resolve().parents[1] / "scripts" / "verification_history.py").read_text(encoding="utf-8")
@@ -103,6 +108,29 @@ class ForecastVerificationGateTests(unittest.TestCase):
         self.assertEqual(result["MAE"], 1.5)
         self.assertEqual(result["Bias"], -0.5)
         self.assertAlmostEqual(result["RMSE"], (2.5 ** 0.5), places=3)
+
+    def test_continuous_weights_use_only_qualified_core_models(self):
+        rows = {
+            "ECMWF IFS": {"sample_count": 250, "distinct_vintage_count": 25, "MAE": 1.0},
+            "NOAA GFS": {"sample_count": 250, "distinct_vintage_count": 25, "MAE": 1.5},
+            "DWD ICON": {"sample_count": 250, "distinct_vintage_count": 25, "MAE": 2.0},
+            "Visual Crossing": {"sample_count": 500, "distinct_vintage_count": 40, "MAE": 0.1},
+        }
+        weights = vh.normalized_continuous_weights(rows, 200, 20, 2000)
+        self.assertEqual(set(weights), {"ECMWF IFS", "NOAA GFS", "DWD ICON"})
+        self.assertAlmostEqual(sum(weights.values()), 1.0, places=4)
+        self.assertTrue(all(value <= 0.35 for value in weights.values()))
+
+    def test_continuous_weights_reject_insufficient_samples_or_vintages(self):
+        rows = {
+            name: {"sample_count": 199, "distinct_vintage_count": 25, "MAE": 1.0}
+            for name in vh.CORE_MODEL_SOURCES[:3]
+        }
+        self.assertIsNone(vh.normalized_continuous_weights(rows, 200, 20, 2000))
+        for row in rows.values():
+            row["sample_count"] = 250
+            row["distinct_vintage_count"] = 19
+        self.assertIsNone(vh.normalized_continuous_weights(rows, 200, 20, 2000))
 
     def test_cwa_weather_observations_are_hour_aligned_and_wind_converted(self):
         original_root = vh.ROOT
