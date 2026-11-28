@@ -34,6 +34,7 @@ MIN_STATION_DISTANCE_KM = 15.0
 MIN_10M_SAMPLES = 6
 MIN_GLOBAL_PAIRS = 200
 MIN_COURSE_PAIRS = 100
+MIN_DAILY_COURSE_PAIRS = 30
 MIN_GLOBAL_WET_PAIRS = 20
 MIN_COURSE_WET_PAIRS = 10
 MIN_FORECAST_VINTAGES = 20
@@ -832,6 +833,23 @@ def verify_and_weight(now: datetime) -> dict:
         variable: {str(lead): defaultdict(ContinuousScore) for lead in LEADS}
         for variable in variable_specs
     })
+    daily_variable_specs = {
+        "temperature_high_c": ("temperature", "max", "°C"),
+        "temperature_low_c": ("temperature", "min", "°C"),
+        "wind_speed_kmh": ("wind", "median", "km/h"),
+        "wind_gust_kmh": ("gust", "max", "km/h"),
+        "relative_humidity_pct": ("humidity", "median", "%"),
+    }
+    global_daily_variable_scores = {
+        variable: {str(lead): defaultdict(ContinuousScore) for lead in LEADS}
+        for variable in daily_variable_specs
+    }
+    course_daily_variable_scores = defaultdict(lambda: {
+        variable: {str(lead): defaultdict(ContinuousScore) for lead in LEADS}
+        for variable in daily_variable_specs
+    })
+    global_daily_rain_scores = {str(lead): defaultdict(Score) for lead in LEADS}
+    course_daily_rain_scores = defaultdict(lambda: {str(lead): defaultdict(Score) for lead in LEADS})
     forecast_files = sorted(forecasts_dir.glob("*.json.gz")) if forecasts_dir.exists() else []
     cutoff = now.astimezone(TZ).date() - timedelta(days=60)
     today = now.astimezone(TZ).date()
@@ -904,6 +922,46 @@ def verify_and_weight(now: datetime) -> dict:
                                 actual_scaled = float(actual_value) * scale
                                 global_variable_scores[variable][lead][source].add(float(forecast_value), actual_scaled, vintage_id)
                                 course_variable_scores[course_name][variable][lead][source].add(float(forecast_value), actual_scaled, vintage_id)
+
+                # Independently verify the daily 06:00-18:00 aggregates used by the 16-day panel.
+                for source, hours in day.get("sources", {}).items():
+                    daily_pairs = build_daily_verification_pairs(
+                        source, hours, valid_date, course_key, actual, actual_weather
+                    )
+                    rain_pairs = daily_pairs["rain"]
+                    if len(rain_pairs) >= 9:
+                        rain_forecast = sum(pair[0] for pair in rain_pairs)
+                        rain_actual = sum(pair[1] for pair in rain_pairs)
+                        probabilities = [pair[2] for pair in rain_pairs if pair[2] is not None]
+                        daily_probability = max(probabilities) if probabilities else None
+                        global_daily_rain_scores[lead][source].add(
+                            rain_forecast, rain_actual, daily_probability, vintage_id
+                        )
+                        course_daily_rain_scores[course_name][lead][source].add(
+                            rain_forecast, rain_actual, daily_probability, vintage_id
+                        )
+                    for variable, (pair_key, statistic, _unit) in daily_variable_specs.items():
+                        values = daily_pairs[pair_key]
+                        minimum_hours = 6 if pair_key == "gust" else 9
+                        if len(values) < minimum_hours:
+                            continue
+                        forecast_values = [pair[0] for pair in values]
+                        actual_values = [pair[1] for pair in values]
+                        if statistic == "max":
+                            forecast_daily = max(forecast_values)
+                            actual_daily = max(actual_values)
+                        elif statistic == "min":
+                            forecast_daily = min(forecast_values)
+                            actual_daily = min(actual_values)
+                        else:
+                            forecast_daily = statistics_median(forecast_values)
+                            actual_daily = statistics_median(actual_values)
+                        global_daily_variable_scores[variable][lead][source].add(
+                            forecast_daily, actual_daily, vintage_id
+                        )
+                        course_daily_variable_scores[course_name][variable][lead][source].add(
+                            forecast_daily, actual_daily, vintage_id
+                        )
         evaluated_vintages += 1
 
     metrics = {
