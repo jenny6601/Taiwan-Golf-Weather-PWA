@@ -24,6 +24,18 @@ class ForecastVerificationGateTests(unittest.TestCase):
     def test_all_sixteen_lead_days_are_archived(self):
         self.assertEqual(tuple(range(1, 17)), vh.LEADS)
 
+    def test_old_six_lead_vintage_is_not_treated_as_complete(self):
+        source = (Path(__file__).resolve().parents[1] / "scripts" / "verification_history.py").read_text(encoding="utf-8")
+        self.assertIn('previous_vintage.get("lead_days") == list(LEADS)', source)
+
+    def test_external_providers_are_isolated_from_core_weather_variables(self):
+        source = (Path(__file__).resolve().parents[1] / "index.html").read_text(encoding="utf-8")
+        self.assertIn("const rainPairs=pairs.concat(Object.entries(externalRainRows)", source)
+        self.assertIn("const rs=pairs.map(x=>x.row)", source)
+        self.assertIn("temp:get('temp')", source)
+        self.assertIn("wind:get('wind')", source)
+        self.assertIn("gust:get('gust')", source)
+
     def test_dry_only_pairs_never_activate_amount_weights(self):
         rows = self.eligible_rows(wet_sample_count=0, Weight_error_mm=None)
         self.assertIsNone(
