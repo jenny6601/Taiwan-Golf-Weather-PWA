@@ -39,6 +39,16 @@ class ForecastVerificationGateTests(unittest.TestCase):
         self.assertIn("gust:get('gust')", source)
         self.assertIn("const amountCandidate=courseWeights||globalAmountWeights", source)
 
+    def test_forecast_archive_contains_weather_variables_and_vc_hour_alignment(self):
+        source = (Path(__file__).resolve().parents[1] / "scripts" / "verification_history.py").read_text(encoding="utf-8")
+        self.assertIn('"temp_c": r.get("temp")', source)
+        self.assertIn('"wind_kmh": r.get("wind")', source)
+        self.assertIn('"humidity_pct": r.get("rh")', source)
+        self.assertIn('"temperature_c": weather.get("temperature_c")', source)
+        self.assertIn('def build_actual_weather_hourly(now: datetime):', source)
+        self.assertIn('weather_time = str(row.get("weather_time") or row.get("time") or "")', source)
+        self.assertIn('f"{(int(str(r.get(\'time\', \'\'))[11:13]) + 1):02d}:00"', source)
+
     def test_dry_only_pairs_never_activate_amount_weights(self):
         rows = self.eligible_rows(wet_sample_count=0, Weight_error_mm=None)
         self.assertIsNone(
