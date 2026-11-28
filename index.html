@@ -2905,10 +2905,16 @@ async function fetchDailyForecast(lat,lon,courseName=""){
   const code=Object.keys(counts).length?Number(Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0]):null;
   const leadDays=Math.round((new Date(date+"T00:00:00+08:00")-new Date(today+"T00:00:00+08:00"))/86400000);
   const leadKey=String(leadDays);
+  const hasThreeSources=weights=>weights&&Object.keys(weights).filter(name=>pairs.some(pair=>pair.name===name)).length>=3;
   const courseWeights=variable=>weightDoc?.variables?.[variable]?.by_course?.[courseName]?.[leadKey];
   const globalWeights=variable=>weightDoc?.variables?.[variable]?.lead_days?.[leadKey];
-  const selectVariableWeights=variable=>courseWeights(variable)||globalWeights(variable);
-  const amountWeights=weightDoc?.lead_days?.[leadKey]?.amount_weights;
+  const selectVariableWeights=variable=>{
+   const local=courseWeights(variable),global=globalWeights(variable);
+   return hasThreeSources(local)?local:(hasThreeSources(global)?global:null);
+  };
+  const localAmountWeights=weightDoc?.by_course?.[courseName]?.[leadKey];
+  const globalAmountWeights=weightDoc?.lead_days?.[leadKey]?.amount_weights;
+  const amountWeights=hasThreeSources(localAmountWeights)?localAmountWeights:globalAmountWeights;
   const probabilityWeights=weightDoc?.lead_days?.[leadKey]?.probability_weights;
   const tempWeights=selectVariableWeights("temperature_c");
   const windWeights=selectVariableWeights("wind_speed_kmh");
@@ -3085,21 +3091,23 @@ let amountWeights=null,probabilityWeights=null,variableWeights={},weightingLabel
    const weightDoc=await loadVerificationWeights(),lead=weightDoc?.lead_days?.[String(leadDays)];
    const courseWeights=weightDoc?.by_course?.[p.name]?.[String(leadDays)];
    const globalAmountWeights=lead?.amount_weights||{};
-   // Prefer a fully qualified course-specific set; use global weights only when local evidence is insufficient.
-   const amountCandidate=courseWeights||globalAmountWeights;
+   const hasRainSources=weights=>weights&&Object.keys(weights).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3;
+   const hasCoreSources=weights=>weights&&Object.keys(weights).filter(k=>active.modelRows[k]).length>=3;
+   let usedCourseRainWeights=false;
+   if(hasRainSources(courseWeights)){amountWeights=courseWeights;usedCourseRainWeights=true;}
+   else if(hasRainSources(globalAmountWeights))amountWeights=globalAmountWeights;
    const probabilityCandidate=lead?.probability_weights;
-   if(Object.keys(amountCandidate).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3)amountWeights=amountCandidate;
-   if(probabilityCandidate&&Object.keys(probabilityCandidate).filter(k=>active.modelRows[k]||active.externalProviderRows?.[k]).length>=3)probabilityWeights=probabilityCandidate;
+   if(hasRainSources(probabilityCandidate))probabilityWeights=probabilityCandidate;
    const variableNames=["temperature_c","wind_speed_kmh","wind_gust_kmh","relative_humidity_pct"];
    variableNames.forEach(variable=>{
     const block=weightDoc?.variables?.[variable];
     const local=block?.by_course?.[p.name]?.[String(leadDays)];
     const global=block?.lead_days?.[String(leadDays)];
-    const candidate=local||global;
-    if(candidate&&Object.keys(candidate).filter(k=>active.modelRows[k]).length>=3)variableWeights[variable]=candidate;
+    const candidate=hasCoreSources(local)?local:global;
+    if(hasCoreSources(candidate))variableWeights[variable]=candidate;
    });
    if(amountWeights||probabilityWeights){
-    const mode=courseWeights&&amountWeights?"逐球場雨量權重":"全台回測權重";
+    const mode=usedCourseRainWeights?"逐球場雨量權重":"全台回測權重";
     weightingLabel=mode+"（"+leadDays+"天）";
     if(probabilityWeights)weightingLabel+="＋降雨機率校準";
    }
