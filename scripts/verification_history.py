@@ -1257,6 +1257,8 @@ def verify_and_weight(now: datetime) -> dict:
         "actual_course_hours": sum(len(v) for v in actual.values()),
         "actual_weather_course_hours": sum(len(v) for v in actual_weather.values()),
         "verified_variables": list(variable_specs),
+        "verified_daily_variables": list(daily_variable_specs) + ["rain_mm"],
+        "minimum_daily_course_samples_for_weights": MIN_DAILY_COURSE_PAIRS,
         "minimum_evaluated_vintages_for_weights": MIN_FORECAST_VINTAGES,
         "minimum_global_wet_samples_for_weights": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples_for_weights": MIN_COURSE_WET_PAIRS,
