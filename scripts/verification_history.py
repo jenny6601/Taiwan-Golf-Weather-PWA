@@ -870,10 +870,10 @@ def verify_and_weight(now: datetime) -> dict:
         "variables": {},
     }
     weights = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": now.astimezone(TZ).isoformat(),
         "status": "warming_up",
-        "method": "balanced dry/wet inverse-error with equal-prior shrinkage, minimum vintage and wet-event gates, and 0.35 maximum source weight",
+        "method": "Rainfall: balanced dry/wet inverse-error with wet-event and vintage gates. Core temperature/wind/gust/humidity: inverse-MAE weights with vintage gates. Equal-prior shrinkage and 0.35 maximum source weight.",
         "minimum_evaluated_vintages": MIN_FORECAST_VINTAGES,
         "minimum_global_wet_samples": MIN_GLOBAL_WET_PAIRS,
         "minimum_course_wet_samples": MIN_COURSE_WET_PAIRS,
